@@ -1,0 +1,374 @@
+unit Sensor.Components.Button;
+
+interface
+
+uses
+  System.Classes,
+  System.SysUtils,
+  System.UITypes,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Graphics,
+  FMX.Objects,
+  FMX.StdCtrls;
+
+type
+  TSensorButton = class(TRectangle)
+  private
+    FLayoutIcone: TLayout;
+    FLabelIcone: TLabel;
+    FLabelTexto: TLabel;
+
+    FIcone: string;
+    FTitulo: string;
+    FIconFontFamily: string;
+    FIconFontSize: Single;
+    FTextFontFamily: string;
+    FTextFontSize: Single;
+
+    FNormalColor: TAlphaColor;
+    FHoverColor: TAlphaColor;
+    FPressedColor: TAlphaColor;
+    FSelectedColor: TAlphaColor;
+    FDisabledColor: TAlphaColor;
+    FTextColor: TAlphaColor;
+    FIconColor: TAlphaColor;
+
+    FSelected: Boolean;
+    FMouseOver: Boolean;
+
+    procedure SetIcone(const Value: string);
+    procedure SetTitulo(const Value: string);
+    procedure SetIconFontFamily(const Value: string);
+    procedure SetIconFontSize(const Value: Single);
+    procedure SetTextFontFamily(const Value: string);
+    procedure SetTextFontSize(const Value: Single);
+
+    procedure SetNormalColor(const Value: TAlphaColor);
+    procedure SetHoverColor(const Value: TAlphaColor);
+    procedure SetPressedColor(const Value: TAlphaColor);
+    procedure SetSelectedColor(const Value: TAlphaColor);
+    procedure SetDisabledColor(const Value: TAlphaColor);
+    procedure SetTextColor(const Value: TAlphaColor);
+    procedure SetIconColor(const Value: TAlphaColor);
+    procedure SetSelected(const Value: Boolean);
+
+    procedure AtualizarAparencia;
+    procedure CliqueInterno(Sender: TObject);
+  protected
+    procedure DoMouseEnter; override;
+    procedure DoMouseLeave; override;
+    procedure MouseDown(Button: TMouseButton;
+      Shift: TShiftState; X, Y: Single); override;
+    procedure MouseUp(Button: TMouseButton;
+      Shift: TShiftState; X, Y: Single); override;
+    procedure EnabledChanged; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property Icone: string read FIcone write SetIcone;
+    property Titulo: string read FTitulo write SetTitulo;
+
+    property IconFontFamily: string
+      read FIconFontFamily write SetIconFontFamily;
+
+    property IconFontSize: Single
+      read FIconFontSize write SetIconFontSize;
+
+    property TextFontFamily: string
+      read FTextFontFamily write SetTextFontFamily;
+
+    property TextFontSize: Single
+      read FTextFontSize write SetTextFontSize;
+
+    property NormalColor: TAlphaColor
+      read FNormalColor write SetNormalColor;
+
+    property HoverColor: TAlphaColor
+      read FHoverColor write SetHoverColor;
+
+    property PressedColor: TAlphaColor
+      read FPressedColor write SetPressedColor;
+
+    property SelectedColor: TAlphaColor
+      read FSelectedColor write SetSelectedColor;
+
+    property DisabledColor: TAlphaColor
+      read FDisabledColor write SetDisabledColor;
+
+    property TextColor: TAlphaColor
+      read FTextColor write SetTextColor;
+
+    property IconColor: TAlphaColor
+      read FIconColor write SetIconColor;
+
+    property Selected: Boolean
+      read FSelected write SetSelected default False;
+
+    property Align;
+    property Anchors;
+    property Cursor;
+    property Enabled;
+    property Height;
+    property HitTest;
+    property Margins;
+    property OnClick;
+    property Padding;
+    property Position;
+    property Visible;
+    property Width;
+  end;
+
+procedure Register;
+
+implementation
+
+{ TSensorButton }
+
+constructor TSensorButton.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  Width := 210;
+  Height := 48;
+
+  XRadius := 9;
+  YRadius := 9;
+
+  Stroke.Kind := TBrushKind.Solid;
+  Stroke.Color := $FF2C3244;
+  Stroke.Thickness := 1;
+
+  FNormalColor := $FF191D27;
+  FHoverColor := $FF242938;
+  FPressedColor := $FF30364A;
+  FSelectedColor := $FF292E40;
+  FDisabledColor := $FF151820;
+
+  FTextColor := $FFE7E9F2;
+  FIconColor := $FFB9BDCB;
+
+  FIconFontFamily := 'Segoe MDL2 Assets';
+  FIconFontSize := 20;
+
+  FTextFontFamily := 'Urbanist';
+  FTextFontSize := 14;
+
+  FSelected := False;
+  FMouseOver := False;
+
+  Cursor := crHandPoint;
+  ClipChildren := True;
+
+  FLayoutIcone := TLayout.Create(Self);
+  FLayoutIcone.Parent := Self;
+  FLayoutIcone.Align := TAlignLayout.Left;
+  FLayoutIcone.Width := 48;
+  FLayoutIcone.HitTest := False;
+
+  FLabelIcone := TLabel.Create(Self);
+  FLabelIcone.Parent := FLayoutIcone;
+  FLabelIcone.Align := TAlignLayout.Client;
+  FLabelIcone.TextSettings.HorzAlign := TTextAlign.Center;
+  FLabelIcone.TextSettings.VertAlign := TTextAlign.Center;
+  FLabelIcone.TextSettings.Font.Family := FIconFontFamily;
+  FLabelIcone.TextSettings.Font.Size := FIconFontSize;
+  FLabelIcone.TextSettings.FontColor := FIconColor;
+  FLabelIcone.StyledSettings := [];
+  FLabelIcone.HitTest := False;
+
+  FLabelTexto := TLabel.Create(Self);
+  FLabelTexto.Parent := Self;
+  FLabelTexto.Align := TAlignLayout.Client;
+  FLabelTexto.Margins.Left := 4;
+  FLabelTexto.Margins.Right := 12;
+  FLabelTexto.TextSettings.HorzAlign := TTextAlign.Leading;
+  FLabelTexto.TextSettings.VertAlign := TTextAlign.Center;
+  FLabelTexto.TextSettings.Font.Family := FTextFontFamily;
+  FLabelTexto.TextSettings.Font.Size := FTextFontSize;
+  FLabelTexto.TextSettings.FontColor := FTextColor;
+  FLabelTexto.StyledSettings := [];
+  FLabelTexto.HitTest := False;
+
+//  OnClick := CliqueInterno;
+
+  AtualizarAparencia;
+end;
+
+procedure TSensorButton.AtualizarAparencia;
+begin
+  if not Enabled then
+    Fill.Color := FDisabledColor
+  else if FSelected then
+    Fill.Color := FSelectedColor
+  else if FMouseOver then
+    Fill.Color := FHoverColor
+  else
+    Fill.Color := FNormalColor;
+
+  FLabelTexto.TextSettings.FontColor := FTextColor;
+  FLabelIcone.TextSettings.FontColor := FIconColor;
+
+  Opacity := 1;
+
+  if not Enabled then
+    Opacity := 0.55;
+end;
+
+procedure TSensorButton.DoMouseEnter;
+begin
+  inherited;
+
+  FMouseOver := True;
+  AtualizarAparencia;
+end;
+
+procedure TSensorButton.DoMouseLeave;
+begin
+  inherited;
+
+  FMouseOver := False;
+  AtualizarAparencia;
+end;
+
+procedure TSensorButton.MouseDown(Button: TMouseButton;
+  Shift: TShiftState; X, Y: Single);
+begin
+  inherited;
+
+  if Enabled and (Button = TMouseButton.mbLeft) then
+    Fill.Color := FPressedColor;
+end;
+
+procedure TSensorButton.MouseUp(Button: TMouseButton;
+  Shift: TShiftState; X, Y: Single);
+begin
+  inherited;
+
+  AtualizarAparencia;
+end;
+
+procedure TSensorButton.EnabledChanged;
+begin
+  inherited;
+  AtualizarAparencia;
+end;
+
+procedure TSensorButton.CliqueInterno(Sender: TObject);
+begin
+  { Deixe vazio.
+
+    O evento OnClick informado no formulário continuará funcionando.
+    Este método poderá ser removido posteriormente caso não seja necessário. }
+end;
+
+procedure TSensorButton.SetIcone(const Value: string);
+begin
+  if FIcone <> Value then
+  begin
+    FIcone := Value;
+    FLabelIcone.Text := Value;
+  end;
+end;
+
+procedure TSensorButton.SetTitulo(const Value: string);
+begin
+  if FTitulo <> Value then
+  begin
+    FTitulo := Value;
+    FLabelTexto.Text := Value;
+  end;
+end;
+
+procedure TSensorButton.SetIconFontFamily(const Value: string);
+begin
+  if FIconFontFamily <> Value then
+  begin
+    FIconFontFamily := Value;
+    FLabelIcone.TextSettings.Font.Family := Value;
+  end;
+end;
+
+procedure TSensorButton.SetIconFontSize(const Value: Single);
+begin
+  if FIconFontSize <> Value then
+  begin
+    FIconFontSize := Value;
+    FLabelIcone.TextSettings.Font.Size := Value;
+  end;
+end;
+
+procedure TSensorButton.SetTextFontFamily(const Value: string);
+begin
+  if FTextFontFamily <> Value then
+  begin
+    FTextFontFamily := Value;
+    FLabelTexto.TextSettings.Font.Family := Value;
+  end;
+end;
+
+procedure TSensorButton.SetTextFontSize(const Value: Single);
+begin
+  if FTextFontSize <> Value then
+  begin
+    FTextFontSize := Value;
+    FLabelTexto.TextSettings.Font.Size := Value;
+  end;
+end;
+
+procedure TSensorButton.SetNormalColor(const Value: TAlphaColor);
+begin
+  FNormalColor := Value;
+  AtualizarAparencia;
+end;
+
+procedure TSensorButton.SetHoverColor(const Value: TAlphaColor);
+begin
+  FHoverColor := Value;
+  AtualizarAparencia;
+end;
+
+procedure TSensorButton.SetPressedColor(const Value: TAlphaColor);
+begin
+  FPressedColor := Value;
+end;
+
+procedure TSensorButton.SetSelectedColor(const Value: TAlphaColor);
+begin
+  FSelectedColor := Value;
+  AtualizarAparencia;
+end;
+
+procedure TSensorButton.SetDisabledColor(const Value: TAlphaColor);
+begin
+  FDisabledColor := Value;
+  AtualizarAparencia;
+end;
+
+procedure TSensorButton.SetTextColor(const Value: TAlphaColor);
+begin
+  FTextColor := Value;
+  AtualizarAparencia;
+end;
+
+procedure TSensorButton.SetIconColor(const Value: TAlphaColor);
+begin
+  FIconColor := Value;
+  AtualizarAparencia;
+end;
+
+procedure TSensorButton.SetSelected(const Value: Boolean);
+begin
+  if FSelected <> Value then
+  begin
+    FSelected := Value;
+    AtualizarAparencia;
+  end;
+end;
+
+procedure Register;
+begin
+  RegisterComponents('Sensor Studio', [TSensorButton]);
+end;
+
+end.

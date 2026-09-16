@@ -1,0 +1,384 @@
+unit uSensorIcons;
+
+interface
+
+uses
+  System.UITypes,
+  FMX.Types,
+  FMX.Objects,
+  FMX.Graphics;
+
+type
+  TSensorIconType = (
+    sitNenhum,
+    sitInformacao,
+    sitSucesso,
+    sitAtencao,
+    sitErro,
+    sitConfirmacao,
+    sitPedido,
+    sitUsuario,
+    sitConfiguracao,
+    sitDinheiro,
+    sitEntrega,
+    sitPizza,
+    sitRelatorio,
+    sitSair
+  );
+
+  TSensorIcon = class
+  private
+    class procedure Aplicar(
+      const APath: TPath;
+      const AData: string;
+      const AColor: TAlphaColor;
+      const AWidth: Single = 24;
+      const AHeight: Single = 24
+    ); static;
+  public
+    class procedure Informacao(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FF43A5FF
+    ); static;
+
+    class procedure Sucesso(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FF36D276
+    ); static;
+
+    class procedure Atencao(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FFFFA21A
+    ); static;
+
+    class procedure Erro(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FFFF5A65
+    ); static;
+
+    class procedure Confirmacao(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FF9B6CFF
+    ); static;
+
+    class procedure Pedido(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FF9B6CFF
+    ); static;
+
+    class procedure Usuario(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FFB7C1CF
+    ); static;
+
+    class procedure Configuracao(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FFB7C1CF
+    ); static;
+
+    class procedure Dinheiro(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FF45D982
+    ); static;
+
+    class procedure Entrega(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FF43A5FF
+    ); static;
+
+    class procedure Pizza(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FFFFA21A
+    ); static;
+
+    class procedure Relatorio(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FFB7C1CF
+    ); static;
+
+    class procedure Sair(
+      const APath: TPath;
+      const AColor: TAlphaColor = $FFFF5A65
+    ); static;
+  end;
+
+implementation
+
+const
+  PATH_INFORMACAO =
+    'M12,2 ' +
+    'C6.477,2 2,6.477 2,12 ' +
+    'C2,17.523 6.477,22 12,22 ' +
+    'C17.523,22 22,17.523 22,12 ' +
+    'C22,6.477 17.523,2 12,2 ' +
+    'Z ' +
+    'M11,10 L13,10 L13,18 L11,18 Z ' +
+    'M11,6 L13,6 L13,8 L11,8 Z';
+
+  PATH_SUCESSO =
+    'M12,2 ' +
+    'C6.477,2 2,6.477 2,12 ' +
+    'C2,17.523 6.477,22 12,22 ' +
+    'C17.523,22 22,17.523 22,12 ' +
+    'C22,6.477 17.523,2 12,2 ' +
+    'Z ' +
+    'M10.2,16.4 L5.8,12 L7.2,10.6 ' +
+    'L10.2,13.6 L16.8,7 L18.2,8.4 Z';
+
+  PATH_ATENCAO =
+    'M12,2 L22,20 L2,20 Z ' +
+    'M11,8 L13,8 L13,14 L11,14 Z ' +
+    'M11,16 L13,16 L13,18 L11,18 Z';
+
+  PATH_ERRO =
+    'M12,2 ' +
+    'C6.477,2 2,6.477 2,12 ' +
+    'C2,17.523 6.477,22 12,22 ' +
+    'C17.523,22 22,17.523 22,12 ' +
+    'C22,6.477 17.523,2 12,2 ' +
+    'Z ' +
+    'M7.8,6.4 L12,10.6 L16.2,6.4 ' +
+    'L17.6,7.8 L13.4,12 L17.6,16.2 ' +
+    'L16.2,17.6 L12,13.4 L7.8,17.6 ' +
+    'L6.4,16.2 L10.6,12 L6.4,7.8 Z';
+
+  PATH_CONFIRMAR =
+    'M12,2 ' +
+    'C6.477,2 2,6.477 2,12 ' +
+    'C2,17.523 6.477,22 12,22 ' +
+    'C17.523,22 22,17.523 22,12 ' +
+    'C22,6.477 17.523,2 12,2 ' +
+    'Z ' +
+    'M11,16 L13,16 L13,18 L11,18 Z ' +
+    'M12,6 ' +
+    'C14.209,6 16,7.567 16,9.5 ' +
+    'C16,11.1 14.9,12 13.9,12.8 ' +
+    'C13.2,13.3 13,13.6 13,14 ' +
+    'L11,14 ' +
+    'C11,12.8 11.7,12.1 12.6,11.4 ' +
+    'C13.4,10.8 14,10.3 14,9.5 ' +
+    'C14,8.6 13.1,8 12,8 ' +
+    'C10.9,8 10,8.7 10,9.8 ' +
+    'L8,9.8 C8,7.6 9.8,6 12,6 Z';
+
+  PATH_PEDIDO =
+    'M5,2 L19,2 ' +
+    'C20.1,2 21,2.9 21,4 ' +
+    'L21,20 ' +
+    'C21,21.1 20.1,22 19,22 ' +
+    'L5,22 ' +
+    'C3.9,22 3,21.1 3,20 ' +
+    'L3,4 C3,2.9 3.9,2 5,2 Z ' +
+    'M7,6 L17,6 L17,8 L7,8 Z ' +
+    'M7,10 L17,10 L17,12 L7,12 Z ' +
+    'M7,14 L14,14 L14,16 L7,16 Z';
+
+  PATH_USUARIO =
+    'M12,2 ' +
+    'C9.239,2 7,4.239 7,7 ' +
+    'C7,9.761 9.239,12 12,12 ' +
+    'C14.761,12 17,9.761 17,7 ' +
+    'C17,4.239 14.761,2 12,2 Z ' +
+    'M12,14 ' +
+    'C6.5,14 3,16.5 3,20 ' +
+    'L3,22 L21,22 L21,20 ' +
+    'C21,16.5 17.5,14 12,14 Z';
+
+  PATH_CONFIGURACAO =
+    'M10.5,2 L13.5,2 L14.2,4.4 ' +
+    'C14.8,4.6 15.4,4.8 15.9,5.1 ' +
+    'L18.1,4 L20,5.9 L18.9,8.1 ' +
+    'C19.2,8.6 19.4,9.2 19.6,9.8 ' +
+    'L22,10.5 L22,13.5 L19.6,14.2 ' +
+    'C19.4,14.8 19.2,15.4 18.9,15.9 ' +
+    'L20,18.1 L18.1,20 L15.9,18.9 ' +
+    'C15.4,19.2 14.8,19.4 14.2,19.6 ' +
+    'L13.5,22 L10.5,22 L9.8,19.6 ' +
+    'C9.2,19.4 8.6,19.2 8.1,18.9 ' +
+    'L5.9,20 L4,18.1 L5.1,15.9 ' +
+    'C4.8,15.4 4.6,14.8 4.4,14.2 ' +
+    'L2,13.5 L2,10.5 L4.4,9.8 ' +
+    'C4.6,9.2 4.8,8.6 5.1,8.1 ' +
+    'L4,5.9 L5.9,4 L8.1,5.1 ' +
+    'C8.6,4.8 9.2,4.6 9.8,4.4 Z ' +
+    'M12,8 C9.791,8 8,9.791 8,12 ' +
+    'C8,14.209 9.791,16 12,16 ' +
+    'C14.209,16 16,14.209 16,12 ' +
+    'C16,9.791 14.209,8 12,8 Z';
+
+  PATH_DINHEIRO =
+    'M12,2 C6.477,2 2,6.477 2,12 ' +
+    'C2,17.523 6.477,22 12,22 ' +
+    'C17.523,22 22,17.523 22,12 ' +
+    'C22,6.477 17.523,2 12,2 Z ' +
+    'M11,5 L13,5 L13,6.2 ' +
+    'C15.2,6.5 16.5,7.8 16.5,9.5 ' +
+    'L14.5,9.5 C14.5,8.6 13.6,8 12,8 ' +
+    'C10.4,8 9.5,8.6 9.5,9.4 ' +
+    'C9.5,10.2 10.2,10.6 12.4,11.1 ' +
+    'C15.2,11.8 16.8,12.8 16.8,15 ' +
+    'C16.8,16.9 15.3,18.2 13,18.5 ' +
+    'L13,20 L11,20 L11,18.5 ' +
+    'C8.5,18.2 7,16.8 7,14.8 L9,14.8 ' +
+    'C9,15.9 10.1,16.5 12,16.5 ' +
+    'C13.8,16.5 14.8,15.9 14.8,15 ' +
+    'C14.8,14.2 14.1,13.8 11.8,13.2 ' +
+    'C9.1,12.5 7.5,11.5 7.5,9.4 ' +
+    'C7.5,7.6 8.9,6.4 11,6.2 Z';
+
+  PATH_ENTREGA =
+    'M3,5 L15,5 L15,16 L3,16 Z ' +
+    'M15,8 L19,8 L22,12 L22,16 L15,16 Z ' +
+    'M6,17 C4.895,17 4,17.895 4,19 ' +
+    'C4,20.105 4.895,21 6,21 ' +
+    'C7.105,21 8,20.105 8,19 ' +
+    'C8,17.895 7.105,17 6,17 Z ' +
+    'M18,17 C16.895,17 16,17.895 16,19 ' +
+    'C16,20.105 16.895,21 18,21 ' +
+    'C19.105,21 20,20.105 20,19 ' +
+    'C20,17.895 19.105,17 18,17 Z';
+
+  PATH_PIZZA =
+    'M12,2 C7,2 3.2,5.2 2,10 ' +
+    'L22,10 C20.8,5.2 17,2 12,2 Z ' +
+    'M3,12 L21,12 L14,22 L10,22 Z ' +
+    'M8,6 C8,4.895 8.895,4 10,4 ' +
+    'C11.105,4 12,4.895 12,6 ' +
+    'C12,7.105 11.105,8 10,8 ' +
+    'C8.895,8 8,7.105 8,6 Z ' +
+    'M14,7 C14,6.172 14.672,5.5 15.5,5.5 ' +
+    'C16.328,5.5 17,6.172 17,7 ' +
+    'C17,7.828 16.328,8.5 15.5,8.5 ' +
+    'C14.672,8.5 14,7.828 14,7 Z';
+
+  PATH_RELATORIO =
+    'M5,2 L15,2 L20,7 L20,22 L5,22 Z ' +
+    'M15,3 L15,8 L19,8 Z ' +
+    'M8,11 L17,11 L17,13 L8,13 Z ' +
+    'M8,15 L17,15 L17,17 L8,17 Z ' +
+    'M8,19 L14,19 L14,21 L8,21 Z';
+
+  PATH_SAIR =
+    'M3,3 L12,3 L12,5 L5,5 L5,19 L12,19 L12,21 L3,21 Z ' +
+    'M14,7 L15.4,5.6 L21.8,12 L15.4,18.4 L14,17 ' +
+    'L18,13 L9,13 L9,11 L18,11 Z';
+
+{ TSensorIcon }
+
+class procedure TSensorIcon.Aplicar(
+  const APath: TPath;
+  const AData: string;
+  const AColor: TAlphaColor;
+  const AWidth: Single;
+  const AHeight: Single);
+begin
+  if not Assigned(APath) then
+    Exit;
+
+  APath.Data.Data := AData;
+
+  APath.Width := AWidth;
+  APath.Height := AHeight;
+
+  APath.WrapMode := TPathWrapMode.Stretch;
+
+  APath.Fill.Kind := TBrushKind.Solid;
+  APath.Fill.Color := AColor;
+
+  APath.Stroke.Kind := TBrushKind.None;
+
+  APath.HitTest := False;
+end;
+
+class procedure TSensorIcon.Informacao(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_INFORMACAO, AColor);
+end;
+
+class procedure TSensorIcon.Sucesso(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_SUCESSO, AColor);
+end;
+
+class procedure TSensorIcon.Atencao(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_ATENCAO, AColor);
+end;
+
+class procedure TSensorIcon.Erro(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_ERRO, AColor);
+end;
+
+class procedure TSensorIcon.Confirmacao(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_CONFIRMAR, AColor);
+end;
+
+class procedure TSensorIcon.Pedido(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_PEDIDO, AColor);
+end;
+
+class procedure TSensorIcon.Usuario(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_USUARIO, AColor);
+end;
+
+class procedure TSensorIcon.Configuracao(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_CONFIGURACAO, AColor);
+end;
+
+class procedure TSensorIcon.Dinheiro(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_DINHEIRO, AColor);
+end;
+
+class procedure TSensorIcon.Entrega(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_ENTREGA, AColor);
+end;
+
+class procedure TSensorIcon.Pizza(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_PIZZA, AColor);
+end;
+
+class procedure TSensorIcon.Relatorio(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_RELATORIO, AColor);
+end;
+
+class procedure TSensorIcon.Sair(
+  const APath: TPath;
+  const AColor: TAlphaColor);
+begin
+  Aplicar(APath, PATH_SAIR, AColor);
+end;
+
+end.

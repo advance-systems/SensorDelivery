@@ -1,0 +1,477 @@
+﻿unit uFrameInicio;
+
+interface
+
+uses
+  System.SysUtils,
+  System.Types,
+  System.UITypes,
+  System.Classes,
+  System.Variants,
+  System.Math,
+  FMX.Types,
+  FMX.Graphics,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Dialogs,
+  FMX.Layouts,
+  FMX.Objects,
+  FMX.StdCtrls,
+  FMX.Edit,
+  FMX.Controls.Presentation;
+
+type
+  TProdutoSelecionadoEvent = procedure(
+    Sender: TObject;
+    const AProdutoId: Integer
+  ) of object;
+
+  TfraInicio = class(TFrame)
+    vsbConteudo: TVertScrollBox;
+    lytCabecalho: TLayout;
+    crlLogo: TCircle;
+    lblLogo: TLabel;
+    lblNomeLoja: TLabel;
+    lblStatusLoja: TLabel;
+    rctBusca: TRectangle;
+    lblIconeBusca: TLabel;
+    edtBusca: TEdit;
+    rctBanner: TRectangle;
+    lblBannerTitulo: TLabel;
+    lblBannerTexto: TLabel;
+    rctBannerBotao: TRectangle;
+    lblBannerBotao: TLabel;
+    lblTituloCategorias: TLabel;
+    hsbCategorias: THorzScrollBox;
+    lblTituloDestaques: TLabel;
+    flwProdutos: TFlowLayout;
+    procedure edtBuscaTyping(Sender: TObject);
+    procedure rctBannerBotaoClick(Sender: TObject);
+    procedure FrameResize(Sender: TObject);
+  private
+    FCategoriaSelecionada: Integer;
+
+    procedure CarregarDadosTemporarios;
+
+    procedure CriarCategoria(
+      const AId: Integer;
+      const ANome: string;
+      const AIcone: string
+    );
+
+    procedure CriarProduto(
+      const AId: Integer;
+      const ANome: string;
+      const ADescricao: string;
+      const AValor: Currency;
+      const AIcone: string
+    );
+
+    procedure CategoriaClick(Sender: TObject);
+    procedure ProdutoClick(Sender: TObject);
+
+    procedure SelecionarCategoria(
+      const ACategoriaId: Integer
+    );
+
+    procedure AtualizarLayoutProdutos;
+    function CalcularLarguraCardProduto: Single;
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+const
+  COR_PRIMARIA: TAlphaColor = $FF6C5CE7;
+  COR_PRIMARIA_CLARA: TAlphaColor = $FFF1EFFE;
+  COR_CARD: TAlphaColor = $FFFFFFFF;
+  COR_TEXTO: TAlphaColor = $FF202332;
+  COR_TEXTO_SECUNDARIO: TAlphaColor = $FF7B8190;
+  COR_BORDA: TAlphaColor = $FFE8EAF0;
+
+constructor TfraInicio.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FCategoriaSelecionada := 0;
+  CarregarDadosTemporarios;
+end;
+
+procedure TfraInicio.CarregarDadosTemporarios;
+begin
+  CriarCategoria(0, 'Todos', '✦');
+  CriarCategoria(1, 'Pizzas', '🍕');
+  CriarCategoria(2, 'Lanches', '🍔');
+  CriarCategoria(3, 'Porções', '🍟');
+  CriarCategoria(4, 'Bebidas', '🥤');
+  CriarCategoria(5, 'Doces', '🍰');
+
+  CriarProduto(
+    1,
+    'Pizza Calabresa',
+    'Mussarela, calabresa, cebola e orégano',
+    49.90,
+    '🍕'
+  );
+
+  CriarProduto(
+    2,
+    'Pizza Frango',
+    'Frango, mussarela e catupiry',
+    54.90,
+    '🍕'
+  );
+
+  CriarProduto(
+    3,
+    'X-Bacon',
+    'Hambúrguer, bacon, queijo e salada',
+    29.90,
+    '🍔'
+  );
+
+  CriarProduto(
+    4,
+    'Batata especial',
+    'Batata frita com cheddar e bacon',
+    24.90,
+    '🍟'
+  );
+
+  CriarProduto(
+    5,
+    'Refrigerante',
+    'Refrigerante em lata 350 ml',
+    6.00,
+    '🥤'
+  );
+
+  CriarProduto(
+    6,
+    'Pizza Chocolate',
+    'Chocolate, granulado e morango',
+    42.90,
+    '🍫'
+  );
+
+  SelecionarCategoria(0);
+  AtualizarLayoutProdutos;
+end;
+
+procedure TfraInicio.CriarCategoria(
+  const AId: Integer;
+  const ANome: string;
+  const AIcone: string);
+var
+  LCard: TRectangle;
+  LIcone: TLabel;
+  LNome: TLabel;
+  LX: Single;
+begin
+  LX := hsbCategorias.Content.ChildrenCount * 92;
+
+  LCard := TRectangle.Create(hsbCategorias);
+  LCard.Parent := hsbCategorias;
+  LCard.Name := 'rctCategoria_' + AId.ToString;
+  LCard.Position.X := LX;
+  LCard.Position.Y := 4;
+  LCard.Width := 82;
+  LCard.Height := 82;
+  LCard.Fill.Color := COR_CARD;
+  LCard.Stroke.Color := COR_BORDA;
+  LCard.Stroke.Thickness := 1;
+  LCard.XRadius := 16;
+  LCard.YRadius := 16;
+  LCard.Tag := AId;
+  LCard.Cursor := crHandPoint;
+  LCard.OnClick := CategoriaClick;
+
+  LIcone := TLabel.Create(LCard);
+  LIcone.Parent := LCard;
+  LIcone.Align := TAlignLayout.Top;
+  LIcone.Height := 48;
+  LIcone.Text := AIcone;
+  LIcone.TextSettings.Font.Size := 25;
+  LIcone.TextSettings.HorzAlign := TTextAlign.Center;
+  LIcone.TextSettings.VertAlign := TTextAlign.Center;
+  LIcone.HitTest := False;
+
+  LNome := TLabel.Create(LCard);
+  LNome.Parent := LCard;
+  LNome.Align := TAlignLayout.Client;
+  LNome.Text := ANome;
+  LNome.TextSettings.Font.Size := 11;
+  LNome.TextSettings.Font.Style := [TFontStyle.fsBold];
+  LNome.TextSettings.FontColor := COR_TEXTO;
+  LNome.TextSettings.HorzAlign := TTextAlign.Center;
+  LNome.TextSettings.VertAlign := TTextAlign.Center;
+  LNome.HitTest := False;
+end;
+
+procedure TfraInicio.CriarProduto(
+  const AId: Integer;
+  const ANome: string;
+  const ADescricao: string;
+  const AValor: Currency;
+  const AIcone: string);
+var
+  LCard: TRectangle;
+  LImagem: TRectangle;
+  LIcone: TLabel;
+  LNome: TLabel;
+  LDescricao: TLabel;
+  LPreco: TLabel;
+  LBotaoAdicionar: TCircle;
+  LTextoBotao: TLabel;
+begin
+  LCard := TRectangle.Create(flwProdutos);
+  LCard.Parent := flwProdutos;
+  LCard.Name := 'rctProduto_' + AId.ToString;
+  LCard.Width := CalcularLarguraCardProduto;
+  LCard.Height := 248;
+  LCard.Margins.Left := 2;
+  LCard.Margins.Top := 4;
+  LCard.Margins.Right := 2;
+  LCard.Margins.Bottom := 10;
+  LCard.Fill.Color := COR_CARD;
+  LCard.Stroke.Color := COR_BORDA;
+  LCard.Stroke.Thickness := 1;
+  LCard.XRadius := 18;
+  LCard.YRadius := 18;
+  LCard.ClipChildren := True;
+  LCard.Tag := AId;
+  LCard.Cursor := crHandPoint;
+  LCard.OnClick := ProdutoClick;
+
+  LImagem := TRectangle.Create(LCard);
+  LImagem.Parent := LCard;
+  LImagem.Align := TAlignLayout.Top;
+  LImagem.Height := 124;
+  LImagem.Fill.Color := COR_PRIMARIA_CLARA;
+  LImagem.Stroke.Kind := TBrushKind.None;
+  LImagem.HitTest := False;
+
+  LIcone := TLabel.Create(LImagem);
+  LIcone.Parent := LImagem;
+  LIcone.Align := TAlignLayout.Client;
+  LIcone.Text := AIcone;
+  LIcone.TextSettings.Font.Size := 52;
+  LIcone.TextSettings.HorzAlign := TTextAlign.Center;
+  LIcone.TextSettings.VertAlign := TTextAlign.Center;
+  LIcone.HitTest := False;
+
+  LNome := TLabel.Create(LCard);
+  LNome.Parent := LCard;
+  LNome.Position.X := 12;
+  LNome.Position.Y := 133;
+  LNome.Width := LCard.Width - 24;
+  LNome.Height := 23;
+  LNome.Text := ANome;
+  LNome.TextSettings.Font.Size := 14;
+  LNome.TextSettings.Font.Style := [TFontStyle.fsBold];
+  LNome.TextSettings.FontColor := COR_TEXTO;
+  LNome.TextSettings.HorzAlign := TTextAlign.Leading;
+  LNome.TextSettings.VertAlign := TTextAlign.Center;
+  LNome.HitTest := False;
+
+  LDescricao := TLabel.Create(LCard);
+  LDescricao.Parent := LCard;
+  LDescricao.Position.X := 12;
+  LDescricao.Position.Y := 158;
+  LDescricao.Width := LCard.Width - 24;
+  LDescricao.Height := 42;
+  LDescricao.Text := ADescricao;
+  LDescricao.WordWrap := True;
+  LDescricao.TextSettings.Font.Size := 10;
+  LDescricao.TextSettings.FontColor := COR_TEXTO_SECUNDARIO;
+  LDescricao.TextSettings.HorzAlign := TTextAlign.Leading;
+  LDescricao.TextSettings.VertAlign := TTextAlign.Leading;
+  LDescricao.HitTest := False;
+
+  LPreco := TLabel.Create(LCard);
+  LPreco.Parent := LCard;
+  LPreco.Position.X := 12;
+  LPreco.Position.Y := 207;
+  LPreco.Width := LCard.Width - 58;
+  LPreco.Height := 28;
+  LPreco.Text := FormatFloat('R$ #,##0.00', AValor);
+  LPreco.TextSettings.Font.Size := 14;
+  LPreco.TextSettings.Font.Style := [TFontStyle.fsBold];
+  LPreco.TextSettings.FontColor := COR_PRIMARIA;
+  LPreco.TextSettings.HorzAlign := TTextAlign.Leading;
+  LPreco.TextSettings.VertAlign := TTextAlign.Center;
+  LPreco.HitTest := False;
+
+  LBotaoAdicionar := TCircle.Create(LCard);
+  LBotaoAdicionar.Parent := LCard;
+  LBotaoAdicionar.Position.X := LCard.Width - 43;
+  LBotaoAdicionar.Position.Y := 204;
+  LBotaoAdicionar.Width := 32;
+  LBotaoAdicionar.Height := 32;
+  LBotaoAdicionar.Fill.Color := COR_PRIMARIA;
+  LBotaoAdicionar.Stroke.Kind := TBrushKind.None;
+  LBotaoAdicionar.HitTest := False;
+
+  LTextoBotao := TLabel.Create(LBotaoAdicionar);
+  LTextoBotao.Parent := LBotaoAdicionar;
+  LTextoBotao.Align := TAlignLayout.Client;
+  LTextoBotao.Text := '+';
+  LTextoBotao.TextSettings.Font.Size := 20;
+  LTextoBotao.TextSettings.Font.Style := [TFontStyle.fsBold];
+  LTextoBotao.TextSettings.FontColor := TAlphaColorRec.White;
+  LTextoBotao.TextSettings.HorzAlign := TTextAlign.Center;
+  LTextoBotao.TextSettings.VertAlign := TTextAlign.Center;
+  LTextoBotao.HitTest := False;
+end;
+
+function TfraInicio.CalcularLarguraCardProduto: Single;
+const
+  ESPACO_ENTRE_CARDS = 10;
+begin
+  Result :=
+    (flwProdutos.Width - ESPACO_ENTRE_CARDS - 8) / 2;
+
+  if Result < 150 then
+    Result := 150;
+end;
+
+procedure TfraInicio.AtualizarLayoutProdutos;
+var
+  I: Integer;
+  LQuantidade: Integer;
+  LQuantidadeColunas: Integer;
+  LQuantidadeLinhas: Integer;
+  LCard: TControl;
+  LLarguraCard: Single;
+begin
+  LLarguraCard := CalcularLarguraCardProduto;
+
+  LQuantidade := 0;
+
+  for I := 0 to flwProdutos.ChildrenCount - 1 do
+  begin
+    if flwProdutos.Children[I] is TRectangle then
+    begin
+      LCard := TControl(flwProdutos.Children[I]);
+      LCard.Width := LLarguraCard;
+
+      if LCard.ChildrenCount > 0 then
+      begin
+        // Reposiciona elementos dependentes da largura.
+        if LCard.FindComponent('') <> nil then
+          ;
+      end;
+
+      Inc(LQuantidade);
+    end;
+  end;
+
+  if flwProdutos.Width >= 320 then
+    LQuantidadeColunas := 2
+  else
+    LQuantidadeColunas := 1;
+
+  LQuantidadeLinhas :=
+    Ceil(LQuantidade / LQuantidadeColunas);
+
+  flwProdutos.Height :=
+    LQuantidadeLinhas * 262;
+end;
+
+procedure TfraInicio.SelecionarCategoria(
+  const ACategoriaId: Integer);
+var
+  I: Integer;
+  LCard: TRectangle;
+begin
+  FCategoriaSelecionada := ACategoriaId;
+
+  for I := 0 to hsbCategorias.Content.ChildrenCount - 1 do
+  begin
+    if hsbCategorias.Content.Children[I] is TRectangle then
+    begin
+      LCard :=
+        TRectangle(hsbCategorias.Content.Children[I]);
+
+      if LCard.Tag = ACategoriaId then
+      begin
+        LCard.Fill.Color := COR_PRIMARIA;
+        LCard.Stroke.Color := COR_PRIMARIA;
+
+        if LCard.ChildrenCount >= 2 then
+        begin
+          TLabel(LCard.Children[0]).TextSettings.FontColor :=
+            TAlphaColorRec.White;
+
+          TLabel(LCard.Children[1]).TextSettings.FontColor :=
+            TAlphaColorRec.White;
+        end;
+      end
+      else
+      begin
+        LCard.Fill.Color := COR_CARD;
+        LCard.Stroke.Color := COR_BORDA;
+
+        if LCard.ChildrenCount >= 2 then
+        begin
+          TLabel(LCard.Children[0]).TextSettings.FontColor :=
+            COR_TEXTO;
+
+          TLabel(LCard.Children[1]).TextSettings.FontColor :=
+            COR_TEXTO;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TfraInicio.CategoriaClick(Sender: TObject);
+begin
+  if not (Sender is TRectangle) then
+    Exit;
+
+  SelecionarCategoria(
+    TRectangle(Sender).Tag
+  );
+
+  if TRectangle(Sender).Tag = 0 then
+    lblTituloDestaques.Text := 'Mais pedidos'
+  else
+    lblTituloDestaques.Text :=
+      'Produtos da categoria';
+end;
+
+procedure TfraInicio.ProdutoClick(Sender: TObject);
+var
+  LProdutoId: Integer;
+begin
+  if not (Sender is TRectangle) then
+    Exit;
+
+  LProdutoId := TRectangle(Sender).Tag;
+
+  ShowMessage(
+    'Abrir produto ' +
+    LProdutoId.ToString
+  );
+end;
+
+procedure TfraInicio.edtBuscaTyping(Sender: TObject);
+begin
+  // Na próxima etapa filtraremos os produtos.
+end;
+
+procedure TfraInicio.rctBannerBotaoClick(Sender: TObject);
+begin
+  // Na próxima etapa abriremos o cardápio.
+end;
+
+procedure TfraInicio.FrameResize(Sender: TObject);
+begin
+  AtualizarLayoutProdutos;
+end;
+
+end.

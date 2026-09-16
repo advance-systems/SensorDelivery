@@ -1,0 +1,33 @@
+unit uFrameEntradaLoja;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Objects, FMX.Controls.Presentation;
+
+type
+  TfraEntradaLoja = class(TFrame)
+    rctFundo: TRectangle;
+    imgLogo: TImage;
+    lblTitulo: TLabel;
+    lblSubtitulo: TLabel;
+    rctEmpresa: TRectangle;
+    rctImagemEmpresa: TRectangle;
+    imgLogoEmpresa: TImage;
+    lblNomeEmpresa: TLabel;
+    lblEnderecoEmpresa: TLabel;
+    cirStatusEmpresa: TCircle;
+    lblStatusEmpresa: TLabel;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+implementation
+
+{$R *.fmx}
+
+end.

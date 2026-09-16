@@ -1,0 +1,379 @@
+unit Sensor.Components.Base;
+
+interface
+
+uses
+  System.Classes,
+  System.UITypes,
+  FMX.Types,
+  FMX.Objects,
+  Sensor.Components.Theme;
+
+type
+  TSensorControlState = (
+    scsNormal,
+    scsHover,
+    scsPressed,
+    scsDisabled
+  );
+
+  TSensorControl = class(TRectangle)
+  private
+    FControlState: TSensorControlState;
+
+    FUseTheme: Boolean;
+
+    FBackgroundColor: TAlphaColor;
+    FHoverColor: TAlphaColor;
+    FPressedColor: TAlphaColor;
+    FDisabledColor: TAlphaColor;
+
+    FBorderColor: TAlphaColor;
+    FHoverBorderColor: TAlphaColor;
+    FPressedBorderColor: TAlphaColor;
+    FDisabledBorderColor: TAlphaColor;
+
+    FBorderThickness: Single;
+    FCornerRadius: Single;
+
+    procedure SetUseTheme(const Value: Boolean);
+
+    procedure SetBackgroundColor(const Value: TAlphaColor);
+    procedure SetHoverColor(const Value: TAlphaColor);
+    procedure SetPressedColor(const Value: TAlphaColor);
+    procedure SetDisabledColor(const Value: TAlphaColor);
+
+    procedure SetBorderColor(const Value: TAlphaColor);
+    procedure SetHoverBorderColor(const Value: TAlphaColor);
+    procedure SetPressedBorderColor(const Value: TAlphaColor);
+    procedure SetDisabledBorderColor(const Value: TAlphaColor);
+
+    procedure SetBorderThickness(const Value: Single);
+    procedure SetCornerRadius(const Value: Single);
+
+  protected
+    procedure ApplyTheme; virtual;
+    procedure ApplyStyle; virtual;
+
+    procedure SetControlState(
+      const Value: TSensorControlState
+    ); virtual;
+
+    procedure MouseEnter; override;
+    procedure MouseLeave; override;
+
+    procedure MouseDown(
+      Button: TMouseButton;
+      Shift: TShiftState;
+      X, Y: Single
+    ); override;
+
+    procedure MouseUp(
+      Button: TMouseButton;
+      Shift: TShiftState;
+      X, Y: Single
+    ); override;
+
+    procedure EnabledChanged; override;
+
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    procedure RefreshTheme; virtual;
+
+    property ControlState: TSensorControlState
+      read FControlState;
+
+  published
+    property UseTheme: Boolean
+      read FUseTheme
+      write SetUseTheme
+      default True;
+
+    property BackgroundColor: TAlphaColor
+      read FBackgroundColor
+      write SetBackgroundColor;
+
+    property HoverColor: TAlphaColor
+      read FHoverColor
+      write SetHoverColor;
+
+    property PressedColor: TAlphaColor
+      read FPressedColor
+      write SetPressedColor;
+
+    property DisabledColor: TAlphaColor
+      read FDisabledColor
+      write SetDisabledColor;
+
+    property BorderColor: TAlphaColor
+      read FBorderColor
+      write SetBorderColor;
+
+    property HoverBorderColor: TAlphaColor
+      read FHoverBorderColor
+      write SetHoverBorderColor;
+
+    property PressedBorderColor: TAlphaColor
+      read FPressedBorderColor
+      write SetPressedBorderColor;
+
+    property DisabledBorderColor: TAlphaColor
+      read FDisabledBorderColor
+      write SetDisabledBorderColor;
+
+    property BorderThickness: Single
+      read FBorderThickness
+      write SetBorderThickness;
+
+    property CornerRadius: Single
+      read FCornerRadius
+      write SetCornerRadius;
+  end;
+
+implementation
+
+{ TSensorControl }
+
+constructor TSensorControl.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  Width := 160;
+  Height := 44;
+
+  HitTest := True;
+  ClipChildren := False;
+
+  FControlState := scsNormal;
+  FUseTheme := True;
+
+  FBorderThickness := 1;
+  FCornerRadius := 10;
+
+  ApplyTheme;
+  ApplyStyle;
+end;
+
+procedure TSensorControl.ApplyTheme;
+begin
+  FBackgroundColor := TSensorTheme.Surface;
+  FHoverColor := TSensorTheme.SurfaceHover;
+  FPressedColor := TSensorTheme.SurfacePressed;
+  FDisabledColor := TSensorTheme.SurfaceDisabled;
+
+  FBorderColor := TSensorTheme.Border;
+  FHoverBorderColor := TSensorTheme.BorderHover;
+  FPressedBorderColor := TSensorTheme.BorderPressed;
+  FDisabledBorderColor := TSensorTheme.BorderDisabled;
+end;
+
+procedure TSensorControl.RefreshTheme;
+begin
+  if FUseTheme then
+    ApplyTheme;
+
+  ApplyStyle;
+end;
+
+procedure TSensorControl.ApplyStyle;
+var
+  LFillColor: TAlphaColor;
+  LStrokeColor: TAlphaColor;
+begin
+  if not Enabled then
+    FControlState := scsDisabled;
+
+  case FControlState of
+    scsHover:
+      begin
+        LFillColor := FHoverColor;
+        LStrokeColor := FHoverBorderColor;
+      end;
+
+    scsPressed:
+      begin
+        LFillColor := FPressedColor;
+        LStrokeColor := FPressedBorderColor;
+      end;
+
+    scsDisabled:
+      begin
+        LFillColor := FDisabledColor;
+        LStrokeColor := FDisabledBorderColor;
+      end;
+
+  else
+    LFillColor := FBackgroundColor;
+    LStrokeColor := FBorderColor;
+  end;
+
+  Fill.Kind := TBrushKind.Solid;
+  Fill.Color := LFillColor;
+
+  Stroke.Kind := TBrushKind.Solid;
+  Stroke.Color := LStrokeColor;
+  Stroke.Thickness := FBorderThickness;
+
+  XRadius := FCornerRadius;
+  YRadius := FCornerRadius;
+
+  Repaint;
+end;
+
+procedure TSensorControl.SetControlState(
+  const Value: TSensorControlState);
+begin
+  if FControlState = Value then
+    Exit;
+
+  FControlState := Value;
+  ApplyStyle;
+end;
+
+procedure TSensorControl.MouseEnter;
+begin
+  inherited;
+
+  if Enabled then
+    SetControlState(scsHover);
+end;
+
+procedure TSensorControl.MouseLeave;
+begin
+  inherited;
+
+  if Enabled then
+    SetControlState(scsNormal);
+end;
+
+procedure TSensorControl.MouseDown(
+  Button: TMouseButton;
+  Shift: TShiftState;
+  X, Y: Single);
+begin
+  inherited;
+
+  if Enabled and (Button = TMouseButton.mbLeft) then
+    SetControlState(scsPressed);
+end;
+
+procedure TSensorControl.MouseUp(
+  Button: TMouseButton;
+  Shift: TShiftState;
+  X, Y: Single);
+begin
+  inherited;
+
+  if Enabled and (Button = TMouseButton.mbLeft) then
+    SetControlState(scsHover);
+end;
+
+procedure TSensorControl.EnabledChanged;
+begin
+  inherited;
+
+  if Enabled then
+    SetControlState(scsNormal)
+  else
+    SetControlState(scsDisabled);
+end;
+
+procedure TSensorControl.SetUseTheme(const Value: Boolean);
+begin
+  if FUseTheme = Value then
+    Exit;
+
+  FUseTheme := Value;
+
+  if FUseTheme then
+    ApplyTheme;
+
+  ApplyStyle;
+end;
+
+procedure TSensorControl.SetBackgroundColor(
+  const Value: TAlphaColor);
+begin
+  FBackgroundColor := Value;
+  FUseTheme := False;
+  ApplyStyle;
+end;
+
+procedure TSensorControl.SetHoverColor(
+  const Value: TAlphaColor);
+begin
+  FHoverColor := Value;
+  FUseTheme := False;
+  ApplyStyle;
+end;
+
+procedure TSensorControl.SetPressedColor(
+  const Value: TAlphaColor);
+begin
+  FPressedColor := Value;
+  FUseTheme := False;
+  ApplyStyle;
+end;
+
+procedure TSensorControl.SetDisabledColor(
+  const Value: TAlphaColor);
+begin
+  FDisabledColor := Value;
+  FUseTheme := False;
+  ApplyStyle;
+end;
+
+procedure TSensorControl.SetBorderColor(
+  const Value: TAlphaColor);
+begin
+  FBorderColor := Value;
+  FUseTheme := False;
+  ApplyStyle;
+end;
+
+procedure TSensorControl.SetHoverBorderColor(
+  const Value: TAlphaColor);
+begin
+  FHoverBorderColor := Value;
+  FUseTheme := False;
+  ApplyStyle;
+end;
+
+procedure TSensorControl.SetPressedBorderColor(
+  const Value: TAlphaColor);
+begin
+  FPressedBorderColor := Value;
+  FUseTheme := False;
+  ApplyStyle;
+end;
+
+procedure TSensorControl.SetDisabledBorderColor(
+  const Value: TAlphaColor);
+begin
+  FDisabledBorderColor := Value;
+  FUseTheme := False;
+  ApplyStyle;
+end;
+
+procedure TSensorControl.SetBorderThickness(
+  const Value: Single);
+begin
+  if FBorderThickness = Value then
+    Exit;
+
+  FBorderThickness := Value;
+  ApplyStyle;
+end;
+
+procedure TSensorControl.SetCornerRadius(
+  const Value: Single);
+begin
+  if FCornerRadius = Value then
+    Exit;
+
+  FCornerRadius := Value;
+  ApplyStyle;
+end;
+
+end.

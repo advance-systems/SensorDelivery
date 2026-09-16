@@ -1,0 +1,53 @@
+unit uFrameContaMobile;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, FMX.Edit;
+
+type
+  TfraContaMobile = class(TFrame)
+    rctTopoConta: TRectangle;
+    lblTituloConta: TLabel;
+    lblSubtituloConta: TLabel;
+    vsbConta: TVertScrollBox;
+    lblDadosPessoais: TLabel;
+    rctDadosPessoais: TRectangle;
+    lblNome: TLabel;
+    edtNome: TEdit;
+    lblTelefone: TLabel;
+    edtTelefone: TEdit;
+    lblEndereco: TLabel;
+    rctEndereco: TRectangle;
+    lblCEP: TLabel;
+    edtCEP: TEdit;
+    lblRua: TLabel;
+    edtRua: TEdit;
+    lblNumero: TLabel;
+    edtNumero: TEdit;
+    lblBairro: TLabel;
+    edtBairro: TEdit;
+    lblComplemento: TLabel;
+    edtComplemento: TEdit;
+    lblCidade: TLabel;
+    edtCidade: TEdit;
+    lblUF: TLabel;
+    edtUF: TEdit;
+    rctSalvar: TRectangle;
+    lblSalvar: TLabel;
+  private
+    procedure CarregarDados;
+    procedure SalvarDados;
+  public
+    procedure PrepararTela;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+uses uClienteLocal;
+
+end.

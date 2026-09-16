@@ -1,0 +1,298 @@
+unit uFramePedidoKanban;
+
+interface
+
+uses
+  System.SysUtils,
+  System.Classes,
+  System.UITypes,
+  System.Types,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Graphics,
+  FMX.Objects,
+  FMX.StdCtrls,
+  FMX.Layouts, FMX.Controls.Presentation;
+
+type
+  TTipoEntrega = (
+    teDelivery,
+    teRetirada
+  );
+
+  TStatusPedidoKanban = (
+    spNovo,
+    spConfirmado,
+    spEmPreparo,
+    spPronto,
+    spEmEntrega,
+    spFinalizado
+  );
+
+  TPedidoKanbanEvent = procedure(
+    Sender: TObject;
+    const APedidoId: Integer;
+    const AStatusAtual: TStatusPedidoKanban
+  ) of object;
+
+  TfraPedidoKanban = class(TFrame)
+    rctCard: TRectangle;
+    lytTopo: TLayout;
+    lblNumeroPedido: TLabel;
+    lblHorario: TLabel;
+    rctTipoEntrega: TRectangle;
+    lblTipoEntrega: TLabel;
+    lblCliente: TLabel;
+    lblTempoEspera: TLabel;
+    lnSeparadorTopo: TLine;
+    lblItens: TLabel;
+    lblObservacao: TLabel;
+    lnSeparadorRodape: TLine;
+    lblTotalTitulo: TLabel;
+    lblTotalValor: TLabel;
+    rctAvancar: TRectangle;
+    lblAvancar: TLabel;
+    procedure rctAvancarClick(Sender: TObject);
+    procedure FrameResize(Sender: TObject);
+  private
+    FPedidoId: Integer;
+    FStatusAtual: TStatusPedidoKanban;
+    FTipoEntrega: TTipoEntrega;
+    FOnAvancarStatus: TPedidoKanbanEvent;
+
+    procedure ConfigurarStatus;
+    procedure ConfigurarTipoEntrega;
+    function ResumirItens(const AItens: string): string;
+    procedure AjustarLayout;
+    procedure ConfigurarTempoEspera(const AMinutos: Integer);
+  public
+    procedure Preencher(
+      const APedidoId: Integer;
+      const ANumeroPedido: string;
+      const ACliente: string;
+      const AHorario: TTime;
+      const ATempoEsperaMinutos: Integer;
+      const AItens: string;
+      const AObservacao: string;
+      const ATotal: Currency;
+      const ATipoEntrega: TTipoEntrega;
+      const AStatusAtual: TStatusPedidoKanban
+    );
+
+    procedure AlterarStatus(const AStatus: TStatusPedidoKanban);
+
+    property PedidoId: Integer
+      read FPedidoId;
+
+    property StatusAtual: TStatusPedidoKanban
+      read FStatusAtual;
+
+    property TipoEntrega: TTipoEntrega
+      read FTipoEntrega;
+
+    property OnAvancarStatus: TPedidoKanbanEvent
+      read FOnAvancarStatus
+      write FOnAvancarStatus;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+procedure TfraPedidoKanban.Preencher(
+  const APedidoId: Integer;
+  const ANumeroPedido: string;
+  const ACliente: string;
+  const AHorario: TTime;
+  const ATempoEsperaMinutos: Integer;
+  const AItens: string;
+  const AObservacao: string;
+  const ATotal: Currency;
+  const ATipoEntrega: TTipoEntrega;
+  const AStatusAtual: TStatusPedidoKanban);
+begin
+  FPedidoId := APedidoId;
+  FTipoEntrega := ATipoEntrega;
+  FStatusAtual := AStatusAtual;
+
+  lblNumeroPedido.Text := ANumeroPedido;
+  lblCliente.Text := ACliente;
+  lblHorario.Text := FormatDateTime('hh:nn', AHorario);
+
+  ConfigurarTempoEspera(ATempoEsperaMinutos);
+
+  lblItens.Text := ResumirItens(AItens);
+
+  if AObservacao.Trim.IsEmpty then
+  begin
+    lblObservacao.Text := '';
+    lblObservacao.Visible := False;
+  end
+  else
+  begin
+    lblObservacao.Text := 'Obs.: ' + AObservacao.Trim;
+    if Length(lblObservacao.Text) > 48 then
+      lblObservacao.Text := Copy(lblObservacao.Text, 1, 45) + '...';
+    lblObservacao.Visible := True;
+  end;
+
+  lblTotalValor.Text := FormatFloat('"R$ " #,##0.00', ATotal);
+
+  ConfigurarTipoEntrega;
+  ConfigurarStatus;
+  AjustarLayout;
+end;
+
+procedure TfraPedidoKanban.ConfigurarTipoEntrega;
+begin
+  case FTipoEntrega of
+    teDelivery:
+      begin
+        lblTipoEntrega.Text := 'Delivery';
+
+        rctTipoEntrega.Fill.Color := $3343A5FF;
+        lblTipoEntrega.TextSettings.FontColor := $FF43A5FF;
+      end;
+
+    teRetirada:
+      begin
+        lblTipoEntrega.Text := 'Retirada';
+
+        rctTipoEntrega.Fill.Color := $3336D276;
+        lblTipoEntrega.TextSettings.FontColor := $FF36D276;
+      end;
+  end;
+end;
+
+procedure TfraPedidoKanban.FrameResize(Sender: TObject);
+begin
+  AjustarLayout;
+end;
+
+procedure TfraPedidoKanban.ConfigurarStatus;
+begin
+  rctAvancar.Visible := True;
+  rctAvancar.Enabled := True;
+  rctAvancar.Opacity := 1;
+
+  case FStatusAtual of
+    spNovo:
+      begin
+        lblAvancar.Text := 'Confirmar';
+        rctAvancar.Fill.Color := $FF9B6CFF;
+      end;
+
+    spConfirmado:
+      begin
+        lblAvancar.Text := 'Preparar';
+        rctAvancar.Fill.Color := $FF43A5FF;
+      end;
+
+    spEmPreparo:
+      begin
+        lblAvancar.Text := 'Pronto';
+        rctAvancar.Fill.Color := $FFFFA21A;
+      end;
+
+    spPronto:
+      begin
+        if FTipoEntrega = teDelivery then
+          lblAvancar.Text := 'Despachar'
+        else
+          lblAvancar.Text := 'Finalizar';
+
+        rctAvancar.Fill.Color := $FF36D276;
+      end;
+
+    spEmEntrega:
+      begin
+        lblAvancar.Text := 'Finalizar';
+        rctAvancar.Fill.Color := $FF9267FF;
+      end;
+
+    spFinalizado:
+      begin
+        rctAvancar.Visible := False;
+        rctAvancar.Enabled := False;
+      end;
+  end;
+end;
+
+function TfraPedidoKanban.ResumirItens(
+  const AItens: string): string;
+var
+  LLinhas: TArray<string>;
+  LTexto: string;
+begin
+  LTexto := AItens
+    .Replace(#13#10, #10)
+    .Replace(#13, #10);
+
+  LLinhas := LTexto.Split([#10]);
+
+  case Length(LLinhas) of
+    0:
+      Result := '';
+
+    1:
+      Result := LLinhas[0];
+
+    2:
+      Result := LLinhas[0] + sLineBreak +
+                LLinhas[1];
+
+  else
+    Result := LLinhas[0] + sLineBreak +
+              '+' + (Length(LLinhas) - 1).ToString + ' itens';
+  end;
+end;
+
+procedure TfraPedidoKanban.AjustarLayout;
+begin
+  rctAvancar.Position.X :=
+    rctCard.Width -
+    rctAvancar.Width -
+    10;
+
+  lblTotalValor.Width :=
+    rctAvancar.Position.X -
+    lblTotalValor.Position.X -
+    8;
+end;
+
+procedure TfraPedidoKanban.ConfigurarTempoEspera(
+  const AMinutos: Integer);
+begin
+  lblTempoEspera.Text :=
+    Format('Aguardando há %d min', [AMinutos]);
+
+  if AMinutos <= 15 then
+    lblTempoEspera.TextSettings.FontColor := $FF36D276
+  else if AMinutos <= 30 then
+    lblTempoEspera.TextSettings.FontColor := $FFFFA21A
+  else
+    lblTempoEspera.TextSettings.FontColor := $FFFF5A65;
+end;
+
+procedure TfraPedidoKanban.AlterarStatus(
+  const AStatus: TStatusPedidoKanban);
+begin
+  FStatusAtual := AStatus;
+  ConfigurarStatus;
+end;
+
+procedure TfraPedidoKanban.rctAvancarClick(Sender: TObject);
+begin
+  if FStatusAtual = spFinalizado then
+    Exit;
+
+  if Assigned(FOnAvancarStatus) then
+    FOnAvancarStatus(
+      Self,
+      FPedidoId,
+      FStatusAtual
+    );
+end;
+
+end.

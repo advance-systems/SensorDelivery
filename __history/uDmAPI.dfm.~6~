@@ -1,0 +1,23 @@
+object dmAPI: TdmAPI
+  Height = 480
+  Width = 640
+  object RESTClient: TRESTClient
+    BaseURL = 'http://localhost:3000'
+    Params = <>
+    SynchronizedEvents = False
+    Left = 32
+    Top = 32
+  end
+  object reqPedidos: TRESTRequest
+    Client = RESTClient
+    Params = <>
+    Response = resPedidos
+    SynchronizedEvents = False
+    Left = 128
+    Top = 32
+  end
+  object resPedidos: TRESTResponse
+    Left = 216
+    Top = 32
+  end
+end

@@ -1,0 +1,35 @@
+program SensorDelivery;
+
+uses
+  System.StartUpCopy,
+  FMX.Forms,
+  uPrincipalAdmin in 'uPrincipalAdmin.pas' {frmPrincipalAdmin},
+  uFramePedidoKanban in 'Frames\uFramePedidoKanban.pas' {fraPedidoKanban: TFrame},
+  uMensagem in 'Utils\uMensagem.pas' {frmMensagem},
+  uSensorIcons in 'Utils\uSensorIcons.pas',
+  uFrameCentralPedidos in 'Frames\uFrameCentralPedidos.pas' {fraCentralPedidos: TFrame},
+  uFramePedidos in 'Frames\uFramePedidos.pas' {fraPedidos: TFrame},
+  uFrameClientes in 'Frames\uFrameClientes.pas' {fraClientes: TFrame},
+  uFrameFiltro in 'Frames\uFrameFiltro.pas' {fraFiltro: TFrame},
+  uFrameItemPedido in 'Frames\uFrameItemPedido.pas' {fraItemPedido: TFrame},
+  uFrameItemProduto in 'Frames\uFrameItemProduto.pas' {fraItemProduto: TFrame},
+  uFrameCardapio in 'Frames\uFrameCardapio.pas' {fraCardapio: TFrame},
+  uFrameConfiguracoes in 'Frames\uFrameConfiguracoes.pas' {fraConfiguracoes: TFrame},
+  uFrameEntregadores in 'Frames\uFrameEntregadores.pas' {fraEntregadores: TFrame},
+  uFrameFinanceiro in 'Frames\uFrameFinanceiro.pas' {fraFinanceiro: TFrame},
+  uFramePromocoes in 'Frames\uFramePromocoes.pas' {fraPromocoes: TFrame},
+  uFrameRelatorios in 'Frames\uFrameRelatorios.pas' {fraRelatorios: TFrame},
+  uFramePopupMenu in 'Frames\uFramePopupMenu.pas' {fraPopupMenu: TFrame},
+  uFrameSensorButton in 'Frames\uFrameSensorButton.pas' {fraSensorButton: TFrame},
+  uFrameSensorEdit in 'Frames\uFrameSensorEdit.pas' {fraSensorEdit: TFrame},
+  uFrameItemSabor in 'Frames\uFrameItemSabor.pas' {fraItemSabor: TFrame},
+  uFrameItemBorda in 'Frames\uFrameItemBorda.pas' {fraItemBorda: TFrame},
+  uFrameItemAdicional in 'uFrameItemAdicional.pas' {Frame1: TFrame};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.CreateForm(TfrmPrincipalAdmin, frmPrincipalAdmin);
+  Application.Run;
+end.

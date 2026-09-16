@@ -1,0 +1,65 @@
+object frmLogin: TfrmLogin
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 552
+  ClientWidth = 400
+  Fill.Color = xFF060D13
+  Fill.Kind = Solid
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object recFundo: TRectangle
+    Align = Contents
+    Fill.Kind = Gradient
+    Fill.Gradient.Points = <
+      item
+        Color = xFF030A16
+        Offset = 0.000000000000000000
+      end
+      item
+        Color = xFF061311
+        Offset = 1.000000000000000000
+      end>
+    Fill.Gradient.StartPosition.X = 1.000000000000000000
+    Fill.Gradient.StartPosition.Y = 1.000000000000000000
+    Fill.Gradient.StopPosition.Y = 0.000000017114270889
+    Size.Width = 400.000000000000000000
+    Size.Height = 552.000000000000000000
+    Size.PlatformDefault = False
+    object edtEmail: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 1
+      Position.X = 96.000000000000000000
+      Position.Y = 192.000000000000000000
+    end
+    object edtSenha: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 0
+      Password = True
+      Position.X = 96.000000000000000000
+      Position.Y = 240.000000000000000000
+    end
+    object btnEntrar: TCornerButton
+      Position.X = 152.000000000000000000
+      Position.Y = 384.000000000000000000
+      Sides = [Top, Left, Bottom, Right]
+      TabOrder = 2
+      XRadius = 3.000000000000000000
+      YRadius = 3.000000000000000000
+    end
+    object lblStatus: TLabel
+      Position.X = 88.000000000000000000
+      Position.Y = 464.000000000000000000
+      Text = 'lblStatus'
+      TabOrder = 3
+    end
+    object aniLogin: TAniIndicator
+      Position.X = 296.000000000000000000
+      Position.Y = 240.000000000000000000
+      Visible = False
+    end
+  end
+end

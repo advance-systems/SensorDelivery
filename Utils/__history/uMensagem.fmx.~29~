@@ -1,0 +1,130 @@
+object frmMensagem: TfrmMensagem
+  Left = 0
+  Top = 0
+  BorderStyle = None
+  Caption = 'Form1'
+  ClientHeight = 260
+  ClientWidth = 460
+  Position = ScreenCenter
+  Transparency = True
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object rctFundo: TRectangle
+    Align = Client
+    Fill.Color = x99000000
+    Size.Width = 460.000000000000000000
+    Size.Height = 260.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object rctMensagem: TRectangle
+      Align = Center
+      Fill.Color = xFF172335
+      Size.Width = 420.000000000000000000
+      Size.Height = 220.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFF2A3A50
+      XRadius = 16.000000000000000000
+      YRadius = 16.000000000000000000
+      object crcIcone: TCircle
+        Fill.Color = x339B6CFF
+        Position.X = 24.000000000000000000
+        Position.Y = 24.000000000000000000
+        Size.Width = 46.000000000000000000
+        Size.Height = 46.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        object pthIcone: TPath
+          Align = Center
+          HitTest = False
+          Size.Width = 24.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+        end
+      end
+      object lblTitulo: TLabel
+        StyledSettings = []
+        Position.X = 84.000000000000000000
+        Position.Y = 24.000000000000000000
+        Size.Width = 310.000000000000000000
+        Size.Height = 30.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Manrope'
+        TextSettings.Font.Size = 16.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.FontColor = xFFF4F7FB
+        TextSettings.HorzAlign = Center
+        Text = 'Confirma'#231#227'o'
+        TabOrder = 1
+      end
+      object lblMensagem: TLabel
+        StyledSettings = []
+        Position.X = 84.000000000000000000
+        Position.Y = 58.000000000000000000
+        Size.Width = 310.000000000000000000
+        Size.Height = 78.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Manrope'
+        TextSettings.Font.Size = 11.000000000000000000
+        TextSettings.FontColor = xFFB7C1CF
+        TextSettings.VertAlign = Leading
+        Text = 'Deseja confirmar esta opera'#231#227'o?'
+        TabOrder = 2
+      end
+      object rctBotaoCancelar: TRectangle
+        Cursor = crHandPoint
+        Fill.Color = xFF26364C
+        Position.X = 198.000000000000000000
+        Position.Y = 160.000000000000000000
+        Size.Width = 96.000000000000000000
+        Size.Height = 38.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        XRadius = 9.000000000000000000
+        YRadius = 9.000000000000000000
+        object lblCancelar: TLabel
+          Align = Client
+          StyledSettings = []
+          Size.Width = 96.000000000000000000
+          Size.Height = 38.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Manrope'
+          TextSettings.Font.Size = 10.000000000000000000
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          TextSettings.FontColor = xFFD7DFEA
+          TextSettings.HorzAlign = Center
+          Text = 'Cancelar'
+          TabOrder = 0
+        end
+      end
+      object rctBotaoConfirmar: TRectangle
+        Cursor = crHandPoint
+        Fill.Color = xFF9B6CFF
+        Position.X = 304.000000000000000000
+        Position.Y = 160.000000000000000000
+        Size.Width = 96.000000000000000000
+        Size.Height = 38.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        XRadius = 9.000000000000000000
+        YRadius = 9.000000000000000000
+        object lblConfirmar: TLabel
+          Align = Client
+          StyledSettings = []
+          Size.Width = 96.000000000000000000
+          Size.Height = 38.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Manrope'
+          TextSettings.Font.Size = 10.000000000000000000
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          TextSettings.FontColor = claWhite
+          TextSettings.HorzAlign = Center
+          Text = 'Confirmar'
+          TabOrder = 0
+        end
+      end
+    end
+  end
+end

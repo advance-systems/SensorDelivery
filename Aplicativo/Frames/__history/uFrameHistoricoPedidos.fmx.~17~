@@ -1,0 +1,47 @@
+object fraHistoricoPedidos: TfraHistoricoPedidos
+  Align = Client
+  Size.Width = 390.000000000000000000
+  Size.Height = 680.000000000000000000
+  Size.PlatformDefault = False
+  object rctFundo: TRectangle
+    Align = Client
+    Fill.Color = xFFF8F8FA
+    Size.Width = 390.000000000000000000
+    Size.Height = 680.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object lytTopo: TLayout
+      Align = Top
+      Size.Width = 390.000000000000000000
+      Size.Height = 82.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object lblTitulo: TLabel
+        StyledSettings = []
+        Position.X = 20.000000000000000000
+        Position.Y = 15.000000000000000000
+        Size.Width = 250.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Manrope'
+        TextSettings.Font.Size = 20.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.FontColor = xFF24242C
+        Text = 'Meus Pedidos'
+        TabOrder = 0
+      end
+      object lblPeriodo: TLabel
+        StyledSettings = [Size, Style]
+        Position.X = 20.000000000000000000
+        Position.Y = 46.000000000000000000
+        Size.Width = 260.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Manrope'
+        TextSettings.FontColor = xFF777786
+        Text = 'Pedidos dos '#250'ltimos 30 dias'
+        TabOrder = 1
+      end
+    end
+  end
+end

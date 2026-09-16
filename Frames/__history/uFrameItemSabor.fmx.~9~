@@ -1,0 +1,43 @@
+object fraItemSabor: TfraItemSabor
+  Size.Width = 390.000000000000000000
+  Size.Height = 42.000000000000000000
+  Size.PlatformDefault = False
+  object rctFundo: TRectangle
+    Align = Client
+    Cursor = crHandPoint
+    Fill.Color = x00FFFFFF
+    Size.Width = 390.000000000000000000
+    Size.Height = 42.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    XRadius = 7.000000000000000000
+    YRadius = 7.000000000000000000
+    object rctCheck: TRectangle
+      Align = Left
+      Fill.Color = xFF152439
+      Margins.Left = 8.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Right = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 8.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 22.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFF2A405B
+      XRadius = 5.000000000000000000
+      YRadius = 5.000000000000000000
+      object pthCheck: TPath
+        Align = Center
+        Fill.Kind = None
+        HitTest = False
+        Size.Width = 12.000000000000000000
+        Size.Height = 12.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = claWhite
+        Stroke.Thickness = 2.000000000000000000
+        Visible = False
+      end
+    end
+  end
+end

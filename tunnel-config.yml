@@ -1,0 +1,13 @@
+tunnel: d9f8278a-6f23-4757-a494-9b1d83f49cf0
+credentials-file: C:\Users\Elcio\.cloudflared\d9f8278a-6f23-4757-a494-9b1d83f49cf0.json
+
+ingress:
+  - hostname: sensordelivery.sistemassensor.com.br
+    service: http://localhost:3002
+  - hostname: sensordeliveryadmin.sistemassensor.com.br
+    service: http://localhost:3000
+  - hostname: admin-delivery.sistemassensor.com.br
+    service: http://localhost:3000
+  - hostname: api.sistemassensor.com.br
+    service: http://localhost:3001
+  - service: http_status:404

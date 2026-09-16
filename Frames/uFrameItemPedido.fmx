@@ -1,0 +1,150 @@
+object fraItemPedido: TfraItemPedido
+  Size.Width = 950.000000000000000000
+  Size.Height = 72.000000000000000000
+  Size.PlatformDefault = False
+  object rctFundo: TRectangle
+    Align = Client
+    Cursor = crHandPoint
+    Fill.Color = xFF0E1928
+    Margins.Bottom = 8.000000000000000000
+    Size.Width = 950.000000000000000000
+    Size.Height = 64.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Color = xFF20334A
+    XRadius = 8.000000000000000000
+    YRadius = 8.000000000000000000
+    object lblNumero: TLabel
+      StyledSettings = [Size]
+      Position.X = 12.000000000000000000
+      Size.Width = 78.000000000000000000
+      Size.Height = 64.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Manrope'
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = claWhite
+      Text = '#1024'
+      TabOrder = 0
+    end
+    object lytCliente: TLayout
+      Position.X = 90.000000000000000000
+      Size.Width = 250.000000000000000000
+      Size.Height = 64.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      object lblCliente: TLabel
+        StyledSettings = []
+        Position.Y = 13.000000000000000000
+        Size.Width = 240.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Manrope'
+        TextSettings.Font.Size = 11.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.FontColor = xFFF1F5FA
+        Text = 'Jo'#227'o da Silva'
+        TabOrder = 0
+      end
+      object lblTelefone: TLabel
+        StyledSettings = []
+        Position.Y = 34.000000000000000000
+        Size.Width = 240.000000000000000000
+        Size.Height = 18.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Manrope'
+        TextSettings.Font.Size = 9.000000000000000000
+        TextSettings.FontColor = xFF8290A5
+        Text = '(47) 99999-9999'
+        TabOrder = 1
+      end
+    end
+    object lblTipo: TLabel
+      StyledSettings = []
+      Position.X = 340.000000000000000000
+      Size.Width = 130.000000000000000000
+      Size.Height = 64.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Manrope'
+      TextSettings.Font.Size = 10.000000000000000000
+      TextSettings.FontColor = xFFB7C1CF
+      Text = '-'
+      TabOrder = 2
+    end
+    object rctStatus: TRectangle
+      Fill.Color = x332FA765
+      HitTest = False
+      Position.X = 470.000000000000000000
+      Position.Y = 19.000000000000000000
+      Size.Width = 116.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Kind = None
+      XRadius = 14.000000000000000000
+      YRadius = 14.000000000000000000
+      object lblStatus: TLabel
+        Align = Client
+        StyledSettings = []
+        Size.Width = 116.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Manrope'
+        TextSettings.Font.Size = 9.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.FontColor = xFF43D982
+        TextSettings.HorzAlign = Center
+        Text = '-'
+        TabOrder = 0
+      end
+    end
+    object lblHorario: TLabel
+      StyledSettings = []
+      Position.X = 620.000000000000000000
+      Size.Width = 110.000000000000000000
+      Size.Height = 64.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Manrope'
+      TextSettings.Font.Size = 10.000000000000000000
+      TextSettings.FontColor = xFFB7C1CF
+      Text = '19:42'
+      TabOrder = 3
+    end
+    object lblTotal: TLabel
+      StyledSettings = []
+      Position.X = 730.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 64.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Manrope'
+      TextSettings.Font.Size = 11.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = claWhite
+      Text = 'R$ 0,00'
+      TabOrder = 5
+    end
+    object rctAcoes: TRectangle
+      Align = Right
+      Cursor = crHandPoint
+      Fill.Color = xFF152439
+      Margins.Top = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Margins.Bottom = 12.000000000000000000
+      Position.X = 886.000000000000000000
+      Position.Y = 12.000000000000000000
+      Size.Width = 52.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFF2A405B
+      XRadius = 7.000000000000000000
+      YRadius = 7.000000000000000000
+      OnClick = rctAcoesClick
+      object pthAcoes: TPath
+        Align = Center
+        Fill.Color = xFF8B99AD
+        HitTest = False
+        Size.Width = 18.000000000000000000
+        Size.Height = 18.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+      end
+    end
+  end
+end

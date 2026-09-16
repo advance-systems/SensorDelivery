@@ -1,0 +1,25 @@
+unit uDmAPI;
+
+interface
+
+uses
+  System.SysUtils, System.Classes;
+
+type
+  TdmAPI = class(TDataModule)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  dmAPI: TdmAPI;
+
+implementation
+
+{%CLASSGROUP 'FMX.Controls.TControl'}
+
+{$R *.dfm}
+
+end.

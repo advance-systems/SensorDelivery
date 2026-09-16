@@ -1,0 +1,177 @@
+unit uFrameItemAdicional;
+
+interface
+
+uses
+  System.SysUtils,
+  System.Classes,
+  System.UITypes,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Objects,
+  FMX.StdCtrls, FMX.Controls.Presentation;
+
+type
+  TItemSaborSelecionadoEvent = procedure(
+    Sender: TObject;
+    const ASaborId: string;
+    const ASelecionado: Boolean
+  ) of object;
+
+  TfraItemAdicional = class(TFrame)
+    rctFundo: TRectangle;
+    rctCheck: TRectangle;
+    pthCheck: TPath;
+    lblDescricao: TLabel;
+    lblValor: TLabel;
+
+    procedure rctFundoClick(Sender: TObject);
+    procedure rctFundoMouseEnter(Sender: TObject);
+    procedure rctFundoMouseLeave(Sender: TObject);
+  private
+    FSaborId: string;
+    FDescricao: string;
+    FValor: Currency;
+    FSelecionado: Boolean;
+    FOnSelecionado: TItemSaborSelecionadoEvent;
+
+    procedure SetSelecionado(const Value: Boolean);
+    procedure AtualizarVisual;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    procedure Preencher(
+      const ASaborId: string;
+      const ADescricao: string;
+      const AValor: Currency
+    );
+
+    property SaborId: string
+      read FSaborId;
+
+    property Descricao: string
+      read FDescricao;
+
+    property Valor: Currency
+      read FValor;
+
+    property Selecionado: Boolean
+      read FSelecionado
+      write SetSelecionado;
+
+    property OnSelecionado: TItemSaborSelecionadoEvent
+      read FOnSelecionado
+      write FOnSelecionado;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+constructor TfraItemAdicional.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FSaborId := '';
+  FDescricao := '';
+  FValor := 0;
+  FSelecionado := False;
+
+  pthCheck.Data.Data :=
+    'M2,6 L5,9 L10,3';
+
+  AtualizarVisual;
+end;
+
+procedure TfraItemAdicional.Preencher(
+  const ASaborId: string;
+  const ADescricao: string;
+  const AValor: Currency);
+begin
+  FSaborId := ASaborId;
+  FDescricao := ADescricao;
+  FValor := AValor;
+
+  lblDescricao.Text := FDescricao;
+
+  if FValor > 0 then
+  begin
+    lblValor.Text :=
+      FormatFloat('"+ R$ " #,##0.00', FValor);
+
+    lblValor.Visible := True;
+  end
+  else
+  begin
+    lblValor.Text := '';
+    lblValor.Visible := False;
+  end;
+
+  AtualizarVisual;
+end;
+
+procedure TfraItemAdicional.SetSelecionado(
+  const Value: Boolean);
+begin
+  if FSelecionado = Value then
+    Exit;
+
+  FSelecionado := Value;
+  AtualizarVisual;
+end;
+
+procedure TfraItemAdicional.AtualizarVisual;
+begin
+  if FSelecionado then
+  begin
+    rctFundo.Fill.Color := $221A2C42;
+
+    rctCheck.Fill.Color := $FF8C63FF;
+    rctCheck.Stroke.Color := $FF8C63FF;
+
+    pthCheck.Visible := True;
+
+    lblDescricao.TextSettings.FontColor :=
+      $FFF2F5F9;
+  end
+  else
+  begin
+    rctFundo.Fill.Color := $00FFFFFF;
+
+    rctCheck.Fill.Color := $FF152439;
+    rctCheck.Stroke.Color := $FF2A405B;
+
+    pthCheck.Visible := False;
+
+    lblDescricao.TextSettings.FontColor :=
+      $FFD8E0EA;
+  end;
+end;
+
+procedure TfraItemAdicional.rctFundoClick(Sender: TObject);
+begin
+  Selecionado := not Selecionado;
+
+  if Assigned(FOnSelecionado) then
+    FOnSelecionado(
+      Self,
+      FSaborId,
+      FSelecionado
+    );
+end;
+
+procedure TfraItemAdicional.rctFundoMouseEnter(
+  Sender: TObject);
+begin
+  if not FSelecionado then
+    rctFundo.Fill.Color := $FF18283B;
+end;
+
+procedure TfraItemAdicional.rctFundoMouseLeave(
+  Sender: TObject);
+begin
+  AtualizarVisual;
+end;
+
+end.

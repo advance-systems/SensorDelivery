@@ -1,0 +1,153 @@
+﻿unit uFrmLogin;
+
+interface
+
+uses
+  System.SysUtils,
+  System.Types,
+  System.UITypes,
+  System.Classes,
+  System.Variants,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Graphics,
+  FMX.Dialogs,
+  FMX.StdCtrls,
+  FMX.Edit,
+  FMX.Controls.Presentation;
+
+type
+  TfrmLogin = class(TForm)
+    edtEmail: TEdit;
+    edtSenha: TEdit;
+    btnEntrar: TCornerButton;
+    lblStatus: TLabel;
+    aniLogin: TAniIndicator;
+    procedure FormCreate(Sender: TObject);
+    procedure btnEntrarClick(Sender: TObject);
+    procedure edtSenhaKeyDown(
+      Sender: TObject;
+      var Key: Word;
+      var KeyChar: Char;
+      Shift: TShiftState
+    );
+  private
+    procedure AlterarCarregamento(const ACarregando: Boolean);
+    procedure ExecutarLogin;
+  end;
+
+var
+  frmLogin: TfrmLogin;
+
+implementation
+
+{$R *.fmx}
+
+uses
+  uApiAuth,
+  uSessao,
+  uFrmPrincipal;
+
+procedure TfrmLogin.FormCreate(Sender: TObject);
+begin
+  edtEmail.Text := 'admin@sensordelivery.local';
+  edtSenha.Text := '';
+
+  edtSenha.Password := True;
+
+  aniLogin.Enabled := False;
+  aniLogin.Visible := False;
+
+  lblStatus.Text := '';
+end;
+
+procedure TfrmLogin.AlterarCarregamento(
+  const ACarregando: Boolean
+);
+begin
+  btnEntrar.Enabled := not ACarregando;
+  edtEmail.Enabled := not ACarregando;
+  edtSenha.Enabled := not ACarregando;
+
+  aniLogin.Visible := ACarregando;
+  aniLogin.Enabled := ACarregando;
+
+  if ACarregando then
+    lblStatus.Text := 'Conectando ao Sensor Delivery...'
+  else
+    lblStatus.Text := '';
+
+  Application.ProcessMessages;
+end;
+
+procedure TfrmLogin.ExecutarLogin;
+var
+  LApiAuth: TApiAuth;
+begin
+  AlterarCarregamento(True);
+
+  try
+    LApiAuth := TApiAuth.Create('http://localhost:3000');
+
+    try
+      if LApiAuth.Login(
+        edtEmail.Text,
+        edtSenha.Text
+      ) then
+      begin
+        lblStatus.Text := 'Login realizado com sucesso.';
+
+        if not Assigned(frmPrincipal) then
+          Application.CreateForm(
+            TfrmPrincipal,
+            frmPrincipal
+          );
+
+        frmPrincipal.Show;
+        Hide;
+      end;
+    finally
+      LApiAuth.Free;
+    end;
+  except
+    on E: EApiAuth do
+    begin
+      lblStatus.Text := E.Message;
+      ShowMessage(E.Message);
+    end;
+
+    on E: Exception do
+    begin
+      lblStatus.Text := 'Erro inesperado.';
+      ShowMessage(
+        'Erro inesperado ao realizar o login:' +
+        sLineBreak +
+        E.Message
+      );
+    end;
+  end;
+
+  AlterarCarregamento(False);
+end;
+
+procedure TfrmLogin.btnEntrarClick(Sender: TObject);
+begin
+  ExecutarLogin;
+end;
+
+procedure TfrmLogin.edtSenhaKeyDown(
+  Sender: TObject;
+  var Key: Word;
+  var KeyChar: Char;
+  Shift: TShiftState
+);
+begin
+  if Key = vkReturn then
+  begin
+    Key := 0;
+    ExecutarLogin;
+  end;
+end;
+
+end.

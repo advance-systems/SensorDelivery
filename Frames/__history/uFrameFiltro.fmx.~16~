@@ -1,0 +1,44 @@
+object fraFiltro: TfraFiltro
+  Size.Width = 150.000000000000000000
+  Size.Height = 42.000000000000000000
+  Size.PlatformDefault = False
+  object rctFundo: TRectangle
+    Align = Client
+    Cursor = crHandPoint
+    Fill.Color = xFF121F30
+    Size.Width = 150.000000000000000000
+    Size.Height = 42.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Color = xFF26374C
+    XRadius = 9.000000000000000000
+    YRadius = 9.000000000000000000
+    OnClick = rctFundoClick
+    OnMouseEnter = rctFundoMouseEnter
+    OnMouseLeave = rctFundoMouseLeave
+    object lblTexto: TLabel
+      StyledSettings = []
+      Position.X = 40.000000000000000000
+      Size.Width = 118.000000000000000000
+      Size.Height = 42.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Manrope'
+      TextSettings.Font.Size = 11.000000000000000000
+      TextSettings.FontColor = xFFD5DCE6
+      Text = 'Todos os status'
+      TabOrder = 0
+    end
+    object pthSeta: TPath
+      Data.Path = {
+        04000000000000000000004000008040010000000000C0400000004101000000
+        0000204100008040030000000000004000008040}
+      Fill.Color = xFF8795A8
+      HitTest = False
+      Position.X = 136.000000000000000000
+      Position.Y = 15.000000000000000000
+      Size.Width = 12.000000000000000000
+      Size.Height = 12.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Kind = None
+    end
+  end
+end

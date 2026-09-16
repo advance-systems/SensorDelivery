@@ -1,0 +1,41 @@
+unit uFramePedidoHistorico;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Objects, FMX.Controls.Presentation, uHistoricoPedidoModel;
+
+type
+  type
+  TPedidoHistoricoEvent = procedure(
+    Sender: TObject;
+    APedido: TPedidoHistorico
+  ) of object;
+
+  TfraPedidoHistorico = class(TFrame)
+    rctCartao: TRectangle;
+    lblNumero: TLabel;
+    lblData: TLabel;
+    lblStatus: TLabel;
+    lblItens: TLabel;
+    lblTotal: TLabel;
+    rctAcao: TRectangle;
+    lblAcao: TLabel;
+  private
+    FPedido: TPedidoHistorico;
+    FOnAcao: TPedidoHistoricoEvent;
+
+    procedure rctAcaoClick(Sender: TObject);
+    function FormatarData(const AData: string): string;
+    function MontarResumoItens(APedido: TPedidoHistorico): string;
+  public
+    { Public declarations }
+  end;
+
+implementation
+
+{$R *.fmx}
+
+end.

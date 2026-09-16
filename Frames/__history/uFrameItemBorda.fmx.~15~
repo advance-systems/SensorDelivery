@@ -1,0 +1,43 @@
+object fraItemBorda: TfraItemBorda
+  Size.Width = 390.000000000000000000
+  Size.Height = 42.000000000000000000
+  Size.PlatformDefault = False
+  object rctFundo: TRectangle
+    Align = Client
+    Cursor = crHandPoint
+    Fill.Color = x00FFFFFF
+    Size.Width = 390.000000000000000000
+    Size.Height = 42.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    XRadius = 7.000000000000000000
+    YRadius = 7.000000000000000000
+    object rctRadio: TRectangle
+      Align = Left
+      Fill.Color = xFF152439
+      HitTest = False
+      Margins.Left = 8.000000000000000000
+      Margins.Top = 10.000000000000000000
+      Margins.Right = 10.000000000000000000
+      Margins.Bottom = 10.000000000000000000
+      Position.X = 8.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 22.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFF2A405B
+      XRadius = 11.000000000000000000
+      YRadius = 11.000000000000000000
+      object ellSelecionado: TEllipse
+        Align = Center
+        Fill.Color = xFF8C63FF
+        HitTest = False
+        Size.Width = 10.000000000000000000
+        Size.Height = 10.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        Visible = False
+      end
+    end
+  end
+end

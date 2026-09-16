@@ -1,0 +1,71 @@
+object fraItemProduto: TfraItemProduto
+  Size.Width = 360.000000000000000000
+  Size.Height = 82.000000000000000000
+  Size.PlatformDefault = False
+  object rctFundo: TRectangle
+    Align = Client
+    Fill.Color = xFF162538
+    Size.Width = 360.000000000000000000
+    Size.Height = 82.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Color = xFF26384F
+    XRadius = 8.000000000000000000
+    YRadius = 8.000000000000000000
+    object lblQuantidade: TLabel
+      StyledSettings = []
+      Position.X = 12.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 28.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Manrope'
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = xFF8C63FF
+      Text = '2x'
+      TabOrder = 0
+    end
+    object lblProduto: TLabel
+      StyledSettings = []
+      Position.X = 48.000000000000000000
+      Position.Y = 12.000000000000000000
+      Size.Width = 210.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 11.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = xFFF2F5F9
+      Text = 'Pizza Calabresa G'
+      TabOrder = 1
+    end
+    object lblComplemento: TLabel
+      StyledSettings = []
+      Position.X = 48.000000000000000000
+      Position.Y = 36.000000000000000000
+      Size.Width = 230.000000000000000000
+      Size.Height = 34.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Manrope'
+      TextSettings.Font.Size = 10.000000000000000000
+      TextSettings.FontColor = xFF8F9EB2
+      TextSettings.VertAlign = Leading
+      Text = #8226' Borda Cheddar'#13#10#8226' Sem cebola'
+      TabOrder = 2
+    end
+    object lblValor: TLabel
+      Align = Right
+      StyledSettings = []
+      Margins.Right = 12.000000000000000000
+      Position.X = 260.000000000000000000
+      Size.Width = 88.000000000000000000
+      Size.Height = 82.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Manrope'
+      TextSettings.Font.Size = 11.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = xFFF2F5F9
+      TextSettings.HorzAlign = Trailing
+      Text = 'R$ 84,90'
+      TabOrder = 3
+    end
+  end
+end

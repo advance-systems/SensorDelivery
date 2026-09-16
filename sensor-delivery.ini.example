@@ -1,0 +1,6 @@
+[API]
+; Use um IP público ou, preferencialmente, um domínio HTTPS.
+BaseURL=https://api.seudominio.com
+
+; Exemplo com IP e porta:
+; BaseURL=http://203.0.113.10:3001

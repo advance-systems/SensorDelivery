@@ -1,0 +1,42 @@
+﻿program SensorDeliveryApp;
+
+uses
+  System.StartUpCopy,
+  FMX.Forms,
+  uPrincipal in 'Forms\uPrincipal.pas' {frmPrincipal},
+  uConstantes in 'Utils\uConstantes.pas',
+  uMensagemMobile in 'Utils\uMensagemMobile.pas',
+  uApiConfig in '..\Utils\uApiConfig.pas',
+  uEmpresaApp in 'Utils\uEmpresaApp.pas',
+  uTelefoneDispositivo in 'Utils\uTelefoneDispositivo.pas',
+  uVersaoApp in 'Utils\uVersaoApp.pas',
+  uCursorCamposMobile in 'Utils\uCursorCamposMobile.pas',
+  uFrameInicio in 'Frames\uFrameInicio.pas' {fraInicio: TFrame},
+  uFrameMontarPizza in 'Frames\uFrameMontarPizza.pas' {fraMontarPizza: TFrame},
+  uCarrinhoModel in 'Models\uCarrinhoModel.pas',
+  uFrameCarrinho in 'Frames\uFrameCarrinho.pas' {fraCarrinho: TFrame},
+  uFrameFinalizarPedido in 'Frames\uFrameFinalizarPedido.pas' {fraFinalizarPedido: TFrame},
+  uFramePagamentoPix in 'Frames\uFramePagamentoPix.pas',
+  uPedidoModel in 'Models\uPedidoModel.pas',
+  uPedidoService in 'Services\uPedidoService.pas',
+  uFrameItemCarrinho in 'Frames\uFrameItemCarrinho.pas' {fraItemCarrinho: TFrame},
+  uFrameProdutoMobile in 'Frames\uFrameProdutoMobile.pas' {fraProdutoMobile: TFrame},
+  uFrameHomeMobile in 'Frames\uFrameHomeMobile.pas' {fraHomeMobile: TFrame},
+  uClienteLocal in 'Services\uClienteLocal.pas',
+  uFrameAcompanharPedido in 'Frames\uFrameAcompanharPedido.pas' {fraAcompanharPedido: TFrame},
+  uPedidoLocal in 'Services\uPedidoLocal.pas',
+  uFrameSituacaoLoja in 'Frames\uFrameSituacaoLoja.pas' {fraSituacaoLoja: TFrame},
+  uFrameEntradaLoja in 'Frames\uFrameEntradaLoja.pas' {fraEntradaLoja: TFrame},
+  uFrameContaMobile in 'Frames\uFrameContaMobile.pas' {fraContaMobile: TFrame},
+  uHistoricoPedidoModel in 'Models\uHistoricoPedidoModel.pas',
+  uHistoricoPedidoService in 'Services\uHistoricoPedidoService.pas',
+  uFrameHistoricoPedidos in 'Frames\uFrameHistoricoPedidos.pas' {fraHistoricoPedidos: TFrame},
+  uFramePedidoHistorico in 'Frames\uFramePedidoHistorico.pas' {fraPedidoHistorico: TFrame};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.CreateForm(TfrmPrincipal, frmPrincipal);
+  Application.Run;
+end.

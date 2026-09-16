@@ -1,0 +1,108 @@
+object fraItemCarrinho: TfraItemCarrinho
+  Align = Top
+  Size.Width = 360.000000000000000000
+  Size.Height = 133.000000000000000000
+  Size.PlatformDefault = False
+  object lytConteudo: TLayout
+    Align = Client
+    Margins.Left = 4.000000000000000000
+    Margins.Top = 4.000000000000000000
+    Margins.Right = 8.000000000000000000
+    Margins.Bottom = 8.000000000000000000
+    Size.Width = 348.000000000000000000
+    Size.Height = 121.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object rctFundo: TRectangle
+      Align = Client
+      Fill.Color = claWhite
+      Size.Width = 348.000000000000000000
+      Size.Height = 121.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFFE5E7EB
+      XRadius = 14.000000000000000000
+      YRadius = 14.000000000000000000
+      object lblProduto: TLabel
+        StyledSettings = [Family, FontColor]
+        Position.X = 16.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 250.000000000000000000
+        Size.Height = 24.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 16.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        Text = 'Pizza grande'
+        TabOrder = 0
+      end
+      object lblDetalhes: TLabel
+        StyledSettings = [Family, Size, Style]
+        Position.X = 16.000000000000000000
+        Position.Y = 39.000000000000000000
+        Size.Width = 250.000000000000000000
+        Size.Height = 36.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.FontColor = xFF6B7280
+        Text = '2 sabores '#8226' Borda de Catupiry'
+        TabOrder = 1
+        object btnMenos: TCornerButton
+          Position.X = 190.000000000000000000
+          Position.Y = 40.000000000000000000
+          Sides = [Top, Left, Bottom, Right]
+          Size.Width = 34.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 4
+          Text = '-'
+          XRadius = 3.000000000000000000
+          YRadius = 3.000000000000000000
+        end
+      end
+      object lblValor: TLabel
+        StyledSettings = [Family, FontColor]
+        Position.X = 16.000000000000000000
+        Position.Y = 87.000000000000000000
+        Size.Width = 110.000000000000000000
+        Size.Height = 24.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        Text = 'R$ 0,00'
+        TabOrder = 2
+      end
+      object lblQuantidade: TLabel
+        Position.X = 248.000000000000000000
+        Position.Y = 84.000000000000000000
+        Size.Width = 32.000000000000000000
+        Size.Height = 24.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.HorzAlign = Center
+        Text = '1'
+        TabOrder = 3
+      end
+      object btnMais: TCornerButton
+        Position.X = 288.000000000000000000
+        Position.Y = 79.000000000000000000
+        Sides = [Top, Left, Bottom, Right]
+        Size.Width = 34.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 5
+        Text = '+'
+        XRadius = 3.000000000000000000
+        YRadius = 3.000000000000000000
+      end
+      object btnRemover: TCornerButton
+        Position.X = 305.000000000000000000
+        Position.Y = 10.000000000000000000
+        Sides = [Top, Left, Bottom, Right]
+        Size.Width = 32.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+        Text = #215
+        XRadius = 3.000000000000000000
+        YRadius = 3.000000000000000000
+      end
+    end
+  end
+end

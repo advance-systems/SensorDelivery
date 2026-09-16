@@ -1,0 +1,174 @@
+unit uClienteLocal;
+
+interface
+
+uses
+  System.SysUtils,
+  System.Classes,
+  System.JSON,
+  System.IOUtils;
+
+type
+  TClienteLocal = class
+  private
+    FCidade: string;
+    FUF: string;
+
+    class function NomeArquivo: string; static;
+  public
+    Nome: string;
+    Telefone: string;
+    Cep: string;
+    Endereco: string;
+    Numero: string;
+    Complemento: string;
+    Bairro: string;
+    Referencia: string;
+
+    procedure Limpar;
+
+    function ExisteCadastro: Boolean;
+
+    procedure Salvar;
+    procedure Carregar;
+  end;
+
+implementation
+
+class function TClienteLocal.NomeArquivo: string;
+var
+  LPastaBase: string;
+  LPastaApp: string;
+begin
+  {$IF DEFINED(MSWINDOWS)}
+  LPastaBase := TPath.GetHomePath;
+  {$ELSE}
+  LPastaBase := TPath.GetDocumentsPath;
+  {$ENDIF}
+
+  LPastaApp :=
+    TPath.Combine(
+      LPastaBase,
+      'SensorDelivery'
+    );
+
+  if not TDirectory.Exists(LPastaApp) then
+    TDirectory.CreateDirectory(LPastaApp);
+
+  Result :=
+    TPath.Combine(
+      LPastaApp,
+      'cliente.json'
+    );
+end;
+
+procedure TClienteLocal.Limpar;
+begin
+  Nome := '';
+  Telefone := '';
+  Cep := '';
+  Endereco := '';
+  Numero := '';
+  Complemento := '';
+  Bairro := '';
+  Referencia := '';
+end;
+
+function TClienteLocal.ExisteCadastro: Boolean;
+begin
+  Result :=
+    TFile.Exists(
+      NomeArquivo
+    );
+end;
+
+procedure TClienteLocal.Salvar;
+var
+  LJSON: TJSONObject;
+  LArquivo: string;
+  LPasta: string;
+begin
+  LArquivo := NomeArquivo;
+  LPasta := ExtractFilePath(LArquivo);
+
+  if not TDirectory.Exists(LPasta) then
+    TDirectory.CreateDirectory(LPasta);
+
+  LJSON := TJSONObject.Create;
+
+  try
+    LJSON.AddPair('nome', Nome);
+    LJSON.AddPair('telefone', Telefone);
+    LJSON.AddPair('cep', Cep);
+    LJSON.AddPair('endereco', Endereco);
+    LJSON.AddPair('numero', Numero);
+    LJSON.AddPair('complemento', Complemento);
+    LJSON.AddPair('bairro', Bairro);
+    LJSON.AddPair('referencia', Referencia);
+
+    TFile.WriteAllText(
+      LArquivo,
+      LJSON.ToJSON,
+      TEncoding.UTF8
+    );
+
+  finally
+    LJSON.Free;
+  end;
+end;
+
+procedure TClienteLocal.Carregar;
+var
+  LTexto: string;
+  LJSON: TJSONObject;
+begin
+  Limpar;
+
+  if not ExisteCadastro then
+    Exit;
+
+  LTexto :=
+    TFile.ReadAllText(
+      NomeArquivo,
+      TEncoding.UTF8
+    );
+
+  LJSON :=
+    TJSONObject.ParseJSONValue(
+      LTexto
+    ) as TJSONObject;
+
+  if not Assigned(LJSON) then
+    Exit;
+
+  try
+    Nome :=
+      LJSON.GetValue<string>('nome', '');
+
+    Telefone :=
+      LJSON.GetValue<string>('telefone', '');
+
+    Cep :=
+      LJSON.GetValue<string>('cep', '');
+
+    Endereco :=
+      LJSON.GetValue<string>('endereco', '');
+
+    Numero :=
+      LJSON.GetValue<string>('numero', '');
+
+    Complemento :=
+      LJSON.GetValue<string>('complemento', '');
+
+    Bairro :=
+      LJSON.GetValue<string>('bairro', '');
+
+    Referencia :=
+      LJSON.GetValue<string>('referencia', '');
+
+  finally
+    LJSON.Free;
+  end;
+end;
+
+end.

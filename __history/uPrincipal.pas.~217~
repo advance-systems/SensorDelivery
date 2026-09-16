@@ -1,0 +1,282 @@
+﻿unit uPrincipal;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
+  System.Net.URLClient, System.Net.HttpClient, System.Net.HttpClientComponent,
+  System.Threading, System.JSON, System.Generics.Collections,FMX.Objects,   // 👈 ADICIONE ESTE (Para TRectangle e TText)
+  FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls, Sensor.Components.Button,
+  Sensor.Components.Icons, uApiDashboard;
+
+type
+  TfrmPrincipal = class(TForm)
+    rectFundo: TRectangle;
+    lytMenu: TLayout;
+    rectMenuFundo: TRectangle;
+    lytLogo: TLayout;
+    rectLogo: TRectangle;
+    lblLogo: TLabel;
+    lytNomeSistema: TLayout;
+    lblSistema: TLabel;
+    lblVersao: TLabel;
+    lytMenuBotoes: TLayout;
+    lytMenuRodape: TLayout;
+    rectUsuarioMenu: TRectangle;
+    lblUsuarioMenu: TLabel;
+    lblTipoUsuarioMenu: TLabel;
+    btnSair: TCornerButton;
+    lytConteudo: TLayout;
+    lytCabecalho: TLayout;
+    lytCabecalhoEsquerdo: TLayout;
+    lblTitulo: TLabel;
+    lblSubtitulo: TLabel;
+    lytCabecalhoDireito: TLayout;
+    lblEmpresa: TLabel;
+    lblUsuario: TLabel;
+    lblStatusServidor: TLabel;
+    lytCards: TLayout;
+    lytCardPedidos: TLayout;
+    lytCardEntregas: TLayout;
+    lytCardPreparando: TLayout;
+    lytCardFaturamento: TLayout;
+    rectCardPedidos: TRectangle;
+    lblCardPedidosTitulo: TLabel;
+    lblCardPedidosValor: TLabel;
+    lblCardPedidosRodape: TLabel;
+    lytAreaModulo: TLayout;
+    rectAreaModulo: TRectangle;
+    lblAreaModulo: TLabel;
+    rectCardFaturamento: TRectangle;
+    rectCardPreparando: TRectangle;
+    rectCardEntregas: TRectangle;
+    lblCardFaturamentoTitulo: TLabel;
+    lblCardFaturamentoValor: TLabel;
+    lblCardFaturamentoRodape: TLabel;
+    lblCardPreparoTitulo: TLabel;
+    lblCardPreparoValor: TLabel;
+    lblCardPreparoRodape: TLabel;
+    lblCardEntregaTitulo: TLabel;
+    lblCardEntregaValor: TLabel;
+    lblCardEntregaRodape: TLabel;
+    aniDashboard: TAniIndicator;
+    lblAtualizacaoDashboard: TLabel;
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCreate(Sender: TObject);
+  private
+    FBtnDashboard: TSensorButton;
+    FBtnPedidos: TSensorButton;
+    FBtnConversas: TSensorButton;
+    FBtnClientes: TSensorButton;
+    FBtnProdutos: TSensorButton;
+    FBtnCategorias: TSensorButton;
+    FBtnWhatsApp: TSensorButton;
+    FBtnUsuarios: TSensorButton;
+    FBtnConfiguracoes: TSensorButton;
+
+    procedure CriarMenu;
+    procedure SelecionarBotaoMenu(ABotao: TSensorButton);
+
+    procedure MenuDashboardClick(Sender: TObject);
+    procedure MenuPedidosClick(Sender: TObject);
+    procedure MenuConversasClick(Sender: TObject);
+    procedure MenuClientesClick(Sender: TObject);
+    procedure MenuProdutosClick(Sender: TObject);
+    procedure MenuCategoriasClick(Sender: TObject);
+    procedure MenuWhatsAppClick(Sender: TObject);
+    procedure MenuUsuariosClick(Sender: TObject);
+    procedure MenuConfiguracoesClick(Sender: TObject);
+    procedure CarregarDashboard;
+    procedure AtualizarCards(const AResumo: TDashboardResumo);
+    procedure AlterarCarregamentoDashboard(const ACarregando: Boolean);
+    function NovoBotaoMenu(const ATitulo: string; const AIcone: string; const AEvento: TNotifyEvent): TSensorButton;
+  public
+    { Public declarations }
+  end;
+
+var
+  frmPrincipal: TfrmPrincipal;
+
+implementation
+
+{$R *.fmx}
+
+uses uSessao, uLogin;
+
+procedure TfrmPrincipal.AlterarCarregamentoDashboard(const ACarregando: Boolean);
+begin
+  aniDashboard.Visible := ACarregando;
+  aniDashboard.Enabled := ACarregando;
+
+  if ACarregando then
+    lblAtualizacaoDashboard.Text :=
+      'Atualizando dashboard...'
+  else
+    lblAtualizacaoDashboard.Text := '';
+
+  Application.ProcessMessages;
+end;
+
+function TfrmPrincipal.NovoBotaoMenu(const ATitulo: string; const AIcone: string; const AEvento: TNotifyEvent): TSensorButton;
+begin
+  Result := TSensorButton.Create(Self);
+  Result.Parent := lytMenuBotoes;
+
+  Result.Align := TAlignLayout.Top;
+  Result.Height := 48;
+
+  Result.Margins.Left := 18;
+  Result.Margins.Top := 0;
+  Result.Margins.Right := 18;
+  Result.Margins.Bottom := 8;
+
+  Result.Titulo := ATitulo;
+  Result.Icone := AIcone;
+
+  Result.IconFontFamily := 'Segoe MDL2 Assets';
+  Result.IconFontSize := 22;
+
+  Result.TextFontFamily := 'Urbanist';
+  Result.TextFontSize := 14;
+
+  Result.NormalColor := $FF191D27;
+  Result.HoverColor := $FF242938;
+  Result.PressedColor := $FF30364A;
+  Result.SelectedColor := $FF292E40;
+  Result.DisabledColor := $FF151820;
+
+  Result.TextColor := $FFD6D9E3;
+  Result.IconColor := $FFADB4C4;
+  Result.SelectedTextColor := $FFFFFFFF;
+  Result.SelectedIconColor := $FFFFFFFF;
+
+  Result.BorderColor := $FF2E3445;
+  Result.HoverBorderColor := $FF4B6BFF;
+  Result.SelectedBorderColor := $FF7C5CFC;
+  Result.DisabledBorderColor := $FF252A38;
+
+  Result.BorderThickness := 1;
+  Result.SelectedBorderThickness := 1;
+
+  Result.ShowSelectedBar := True;
+  Result.SelectedBarColor := $FF7C5CFC;
+  Result.SelectedBarWidth := 4;
+
+  Result.IconAreaWidth := 44;
+  Result.IconSpacing := 4;
+
+  Result.Selected := False;
+  Result.OnClick := AEvento;
+end;
+
+procedure TfrmPrincipal.CriarMenu;
+begin
+  FBtnConfiguracoes := NovoBotaoMenu('Configurações', ICON_CONFIGURACOES, MenuConfiguracoesClick);
+  FBtnUsuarios := NovoBotaoMenu('Usuários', ICON_USUARIOS, MenuUsuariosClick);
+  FBtnWhatsApp := NovoBotaoMenu('WhatsApp', ICON_WHATSAPP, MenuWhatsAppClick);
+  FBtnCategorias := NovoBotaoMenu('Categorias', ICON_CATEGORIAS, MenuCategoriasClick);
+  FBtnProdutos := NovoBotaoMenu('Produtos', ICON_PRODUTOS, MenuProdutosClick);
+  FBtnClientes := NovoBotaoMenu('Clientes', ICON_CLIENTES, MenuClientesClick);
+  FBtnConversas := NovoBotaoMenu('Conversas', ICON_CONVERSAS, MenuConversasClick);
+  FBtnPedidos := NovoBotaoMenu('Pedidos', ICON_PEDIDOS, MenuPedidosClick);
+  FBtnDashboard := NovoBotaoMenu('Dashboard', ICON_DASHBOARD, MenuDashboardClick);
+  SelecionarBotaoMenu(FBtnDashboard);
+end;
+
+procedure TfrmPrincipal.MenuDashboardClick(Sender: TObject);
+begin
+  SelecionarBotaoMenu(FBtnDashboard);
+
+  lblTitulo.Text := 'Dashboard';
+  lblSubtitulo.Text := 'Resumo das operações do Sensor Delivery';
+end;
+
+procedure TfrmPrincipal.MenuPedidosClick(Sender: TObject);
+begin
+  SelecionarBotaoMenu(FBtnPedidos);
+
+  lblTitulo.Text := 'Pedidos';
+  lblSubtitulo.Text := 'Acompanhe e gerencie os pedidos';
+end;
+
+procedure TfrmPrincipal.MenuConversasClick(Sender: TObject);
+begin
+  SelecionarBotaoMenu(FBtnConversas);
+
+  lblTitulo.Text := 'Conversas';
+  lblSubtitulo.Text := 'Atendimento e mensagens do WhatsApp';
+end;
+
+procedure TfrmPrincipal.MenuClientesClick(Sender: TObject);
+begin
+  SelecionarBotaoMenu(FBtnClientes);
+
+  lblTitulo.Text := 'Clientes';
+  lblSubtitulo.Text := 'Cadastro e histórico de clientes';
+end;
+
+procedure TfrmPrincipal.MenuProdutosClick(Sender: TObject);
+begin
+  SelecionarBotaoMenu(FBtnProdutos);
+
+  lblTitulo.Text := 'Produtos';
+  lblSubtitulo.Text := 'Gerencie os produtos disponíveis';
+end;
+
+procedure TfrmPrincipal.MenuCategoriasClick(Sender: TObject);
+begin
+  SelecionarBotaoMenu(FBtnCategorias);
+
+  lblTitulo.Text := 'Categorias';
+  lblSubtitulo.Text := 'Organize as categorias dos produtos';
+end;
+
+procedure TfrmPrincipal.MenuWhatsAppClick(Sender: TObject);
+begin
+  SelecionarBotaoMenu(FBtnWhatsApp);
+
+  lblTitulo.Text := 'WhatsApp';
+  lblSubtitulo.Text := 'Conexão e configurações do WhatsApp';
+end;
+
+procedure TfrmPrincipal.MenuUsuariosClick(Sender: TObject);
+begin
+  SelecionarBotaoMenu(FBtnUsuarios);
+
+  lblTitulo.Text := 'Usuários';
+  lblSubtitulo.Text := 'Controle de usuários e permissões';
+end;
+
+procedure TfrmPrincipal.MenuConfiguracoesClick(Sender: TObject);
+begin
+  SelecionarBotaoMenu(FBtnConfiguracoes);
+
+  lblTitulo.Text := 'Configurações';
+  lblSubtitulo.Text := 'Preferências do Sensor Delivery';
+end;
+
+procedure TfrmPrincipal.SelecionarBotaoMenu(ABotao: TSensorButton);
+begin
+  FBtnDashboard.Selected := FBtnDashboard = ABotao;
+  FBtnPedidos.Selected := FBtnPedidos = ABotao;
+  FBtnConversas.Selected := FBtnConversas = ABotao;
+  FBtnClientes.Selected := FBtnClientes = ABotao;
+  FBtnProdutos.Selected := FBtnProdutos = ABotao;
+  FBtnCategorias.Selected := FBtnCategorias = ABotao;
+  FBtnWhatsApp.Selected := FBtnWhatsApp = ABotao;
+  FBtnUsuarios.Selected := FBtnUsuarios = ABotao;
+  FBtnConfiguracoes.Selected := FBtnConfiguracoes = ABotao;
+end;
+
+procedure TfrmPrincipal.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Application.Terminate;
+end;
+
+procedure TfrmPrincipal.FormCreate(Sender: TObject);
+begin
+  CriarMenu;
+end;
+
+end.

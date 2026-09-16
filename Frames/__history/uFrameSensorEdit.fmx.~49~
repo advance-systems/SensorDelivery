@@ -1,0 +1,95 @@
+object fraSensorEdit: TfraSensorEdit
+  Size.Width = 410.000000000000000000
+  Size.Height = 88.000000000000000000
+  Size.PlatformDefault = False
+  object lytPrincipal: TLayout
+    Align = Client
+    Size.Width = 410.000000000000000000
+    Size.Height = 88.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object lblTitulo: TLabel
+      Anchors = [akLeft, akTop, akRight]
+      StyledSettings = []
+      Margins.Left = 2.000000000000000000
+      Margins.Bottom = 6.000000000000000000
+      Position.X = 2.000000000000000000
+      Size.Width = 410.000000000000000000
+      Size.Height = 18.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Manrope'
+      TextSettings.Font.Size = 11.000000000000000000
+      TextSettings.FontColor = xFF9AA8B9
+      Text = 'Cliente'
+      TabOrder = 0
+    end
+    object rctFundo: TRectangle
+      Anchors = [akLeft, akTop, akRight]
+      Cursor = crIBeam
+      Fill.Color = xFF152439
+      Padding.Left = 12.000000000000000000
+      Padding.Right = 12.000000000000000000
+      Position.Y = 22.000000000000000000
+      Size.Width = 410.000000000000000000
+      Size.Height = 44.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFF2A405B
+      XRadius = 8.000000000000000000
+      YRadius = 8.000000000000000000
+      object pthIcone: TPath
+        Align = Left
+        HitTest = False
+        Margins.Right = 10.000000000000000000
+        Position.X = 12.000000000000000000
+        Size.Width = 18.000000000000000000
+        Size.Height = 44.000000000000000000
+        Size.PlatformDefault = False
+        Visible = False
+      end
+      object edtValor: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Align = Client
+        StyleLookup = 'transparentedit'
+        TabOrder = 1
+        TextSettings.Font.Family = 'Manrope'
+        TextSettings.FontColor = xFFF2F5F9
+        Size.Width = 386.000000000000000000
+        Size.Height = 42.000000000000000000
+        Size.PlatformDefault = False
+        TextPrompt = 'Digite...'
+        StyledSettings = []
+        KillFocusByReturn = True
+        OnChange = edtValorChange
+        OnEnter = EditEnter
+        OnExit = EditExit
+      end
+      object rctLinhaFoco: TRectangle
+        Align = Bottom
+        Fill.Color = claNull
+        Position.X = 12.000000000000000000
+        Position.Y = 42.000000000000000000
+        Size.Width = 386.000000000000000000
+        Size.Height = 2.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+      end
+    end
+    object lblErro: TLabel
+      Anchors = [akLeft, akTop, akRight]
+      StyledSettings = []
+      Margins.Left = 2.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Position.X = 2.000000000000000000
+      Position.Y = 68.000000000000000000
+      Size.Width = 410.000000000000000000
+      Size.Height = 18.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Manrope'
+      TextSettings.Font.Size = 10.000000000000000000
+      TextSettings.FontColor = xFFFF6570
+      Text = 'Campo Obrigat'#243'rio'
+      Visible = False
+      TabOrder = 1
+    end
+  end
+end

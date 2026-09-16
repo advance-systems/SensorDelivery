@@ -1,0 +1,1231 @@
+object fraPedidos: TfraPedidos
+  Size.Width = 1200.000000000000000000
+  Size.Height = 700.000000000000000000
+  Size.PlatformDefault = False
+  object rctFundo: TRectangle
+    Align = Client
+    Fill.Color = xFF0B1422
+    HitTest = False
+    Size.Width = 1200.000000000000000000
+    Size.Height = 700.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object lytPrincipal: TLayout
+      Align = Client
+      Padding.Left = 24.000000000000000000
+      Padding.Top = 20.000000000000000000
+      Padding.Right = 24.000000000000000000
+      Padding.Bottom = 20.000000000000000000
+      Size.Width = 1200.000000000000000000
+      Size.Height = 700.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object lytCabecalho: TLayout
+        Align = Top
+        Margins.Bottom = 16.000000000000000000
+        Position.X = 24.000000000000000000
+        Position.Y = 20.000000000000000000
+        Size.Width = 1152.000000000000000000
+        Size.Height = 74.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object lblTitulo: TLabel
+          StyledSettings = []
+          Size.Width = 500.000000000000000000
+          Size.Height = 36.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Manrope'
+          TextSettings.Font.Size = 24.000000000000000000
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          TextSettings.FontColor = xFFF4F7FB
+          Text = 'Pedidos'
+          TabOrder = 0
+        end
+        object lblSubtitulo: TLabel
+          StyledSettings = []
+          Position.Y = 38.000000000000000000
+          Size.Width = 700.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Manrope'
+          TextSettings.Font.Size = 11.000000000000000000
+          TextSettings.FontColor = xFF8795A8
+          Text = 'Consulte, filtre e acompanhe todos os pedidos.'
+          TabOrder = 1
+        end
+        object rctNovoPedido: TRectangle
+          Align = Right
+          Cursor = crHandPoint
+          Fill.Color = xFF9B6CFF
+          Margins.Top = 8.000000000000000000
+          Margins.Bottom = 26.000000000000000000
+          Position.X = 1014.000000000000000000
+          Position.Y = 8.000000000000000000
+          Size.Width = 138.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          XRadius = 9.000000000000000000
+          YRadius = 9.000000000000000000
+          object pthNovoPedido: TPath
+            Position.X = 14.000000000000000000
+            Position.Y = 10.000000000000000000
+            Size.Width = 20.000000000000000000
+            Size.Height = 20.000000000000000000
+            Size.PlatformDefault = False
+          end
+          object lblNovoPedido: TLabel
+            StyledSettings = [Size, FontColor]
+            Position.X = 42.000000000000000000
+            Size.Width = 88.000000000000000000
+            Size.Height = 40.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Manrope'
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            TextSettings.HorzAlign = Center
+            Text = 'Novo Pedido'
+            TabOrder = 1
+          end
+        end
+      end
+      object lytConteudo: TLayout
+        Align = Client
+        Size.Width = 1152.000000000000000000
+        Size.Height = 570.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object lytFiltros: TLayout
+          Align = Top
+          Margins.Bottom = 14.000000000000000000
+          Size.Width = 1152.000000000000000000
+          Size.Height = 66.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object rctFiltroBusca: TRectangle
+            Align = Left
+            Fill.Color = xFF121F30
+            Margins.Top = 12.000000000000000000
+            Margins.Bottom = 12.000000000000000000
+            Position.Y = 12.000000000000000000
+            Size.Width = 320.000000000000000000
+            Size.Height = 42.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Color = xFF26374C
+            XRadius = 9.000000000000000000
+            YRadius = 9.000000000000000000
+            object edtBusca: TEdit
+              Touch.InteractiveGestures = [LongTap, DoubleTap]
+              Align = Client
+              TabOrder = 0
+              TextSettings.Font.Family = 'Manrope'
+              Margins.Left = 14.000000000000000000
+              Margins.Right = 14.000000000000000000
+              Size.Width = 292.000000000000000000
+              Size.Height = 42.000000000000000000
+              Size.PlatformDefault = False
+              TextPrompt = 'Pedido, cliente ou telefone...'
+              StyledSettings = [Size, Style, FontColor]
+            end
+          end
+          object rctStatus: TRectangle
+            Align = Left
+            Cursor = crHandPoint
+            Fill.Color = xFF132238
+            Margins.Left = 10.000000000000000000
+            Margins.Top = 12.000000000000000000
+            Margins.Bottom = 12.000000000000000000
+            Position.X = 330.000000000000000000
+            Position.Y = 12.000000000000000000
+            Size.Width = 160.000000000000000000
+            Size.Height = 42.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Color = xFF2B4564
+            XRadius = 8.000000000000000000
+            YRadius = 8.000000000000000000
+            object lblStatus: TLabel
+              Align = Left
+              StyledSettings = [Style]
+              Margins.Left = 16.000000000000000000
+              Position.X = 16.000000000000000000
+              Size.Width = 110.000000000000000000
+              Size.Height = 42.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Manrope'
+              TextSettings.Font.Size = 11.000000000000000000
+              TextSettings.FontColor = xFFD5DCE6
+              Text = 'Todos os status'
+              TabOrder = 0
+            end
+            object pthStatus: TPath
+              Align = Right
+              Fill.Color = xFF8795A8
+              HitTest = False
+              Margins.Top = 13.000000000000000000
+              Margins.Right = 14.000000000000000000
+              Margins.Bottom = 13.000000000000000000
+              Position.X = 130.000000000000000000
+              Position.Y = 13.000000000000000000
+              Size.Width = 16.000000000000000000
+              Size.Height = 16.000000000000000000
+              Size.PlatformDefault = False
+            end
+          end
+        end
+        object lytListaPedidos: TLayout
+          Align = Client
+          Margins.Left = 20.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 20.000000000000000000
+          Margins.Bottom = 20.000000000000000000
+          Size.Width = 1112.000000000000000000
+          Size.Height = 454.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          object rctCabecalhoLista: TRectangle
+            Align = Top
+            Fill.Color = xFF101C2C
+            HitTest = False
+            Size.Width = 1112.000000000000000000
+            Size.Height = 46.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Color = xFF26384F
+            XRadius = 8.000000000000000000
+            YRadius = 8.000000000000000000
+            object lytColunasCabecalho: TLayout
+              Align = Client
+              Margins.Left = 12.000000000000000000
+              Margins.Right = 12.000000000000000000
+              Size.Width = 1088.000000000000000000
+              Size.Height = 46.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 0
+              object lblColPedido: TLabel
+                StyledSettings = []
+                Size.Width = 90.000000000000000000
+                Size.Height = 46.000000000000000000
+                Size.PlatformDefault = False
+                TextSettings.Font.Family = 'Manrope'
+                TextSettings.Font.Size = 10.000000000000000000
+                TextSettings.FontColor = xFF8290A5
+                Text = 'PEDIDO'
+                TabOrder = 6
+              end
+              object lblColCliente: TLabel
+                StyledSettings = []
+                Position.X = 90.000000000000000000
+                Size.Width = 250.000000000000000000
+                Size.Height = 46.000000000000000000
+                Size.PlatformDefault = False
+                TextSettings.Font.Family = 'Manrope'
+                TextSettings.Font.Size = 10.000000000000000000
+                TextSettings.FontColor = xFF8290A5
+                Text = 'CLIENTE'
+                TabOrder = 5
+              end
+              object lblColTipo: TLabel
+                StyledSettings = []
+                Position.X = 340.000000000000000000
+                Size.Width = 130.000000000000000000
+                Size.Height = 46.000000000000000000
+                Size.PlatformDefault = False
+                TextSettings.Font.Family = 'Manrope'
+                TextSettings.Font.Size = 10.000000000000000000
+                TextSettings.FontColor = xFF8290A5
+                Text = 'TIPO'
+                TabOrder = 4
+              end
+              object lblColStatus: TLabel
+                StyledSettings = []
+                Position.X = 470.000000000000000000
+                Size.Width = 150.000000000000000000
+                Size.Height = 46.000000000000000000
+                Size.PlatformDefault = False
+                TextSettings.Font.Family = 'Manrope'
+                TextSettings.Font.Size = 10.000000000000000000
+                TextSettings.FontColor = xFF8290A5
+                Text = 'STATUS'
+                TabOrder = 3
+              end
+              object lblColHorario: TLabel
+                StyledSettings = []
+                Position.X = 620.000000000000000000
+                Size.Width = 110.000000000000000000
+                Size.Height = 46.000000000000000000
+                Size.PlatformDefault = False
+                TextSettings.Font.Family = 'Manrope'
+                TextSettings.Font.Size = 10.000000000000000000
+                TextSettings.FontColor = xFF8290A5
+                Text = 'HOR'#193'RIO'
+                TabOrder = 2
+              end
+              object lblColTotal: TLabel
+                StyledSettings = []
+                Position.X = 730.000000000000000000
+                Size.Width = 120.000000000000000000
+                Size.Height = 46.000000000000000000
+                Size.PlatformDefault = False
+                TextSettings.Font.Family = 'Manrope'
+                TextSettings.Font.Size = 10.000000000000000000
+                TextSettings.FontColor = xFF8290A5
+                Text = 'TOTAL'
+                TabOrder = 1
+              end
+              object lblColAcoes: TLabel
+                Align = Right
+                StyledSettings = []
+                Position.X = 1008.000000000000000000
+                Size.Width = 80.000000000000000000
+                Size.Height = 46.000000000000000000
+                Size.PlatformDefault = False
+                TextSettings.Font.Family = 'Manrope'
+                TextSettings.Font.Size = 10.000000000000000000
+                TextSettings.FontColor = xFF8290A5
+                TextSettings.HorzAlign = Center
+                Text = 'A'#199#213'ES'
+                TabOrder = 0
+              end
+            end
+          end
+          object vsbPedidos: TVertScrollBox
+            Align = Client
+            ClipChildren = True
+            Margins.Top = 10.000000000000000000
+            Size.Width = 1112.000000000000000000
+            Size.Height = 398.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Viewport.Width = 1112.000000000000000000
+            Viewport.Height = 398.000000000000000000
+            object lytItensPedidos: TLayout
+              Align = Top
+              Size.Width = 1112.000000000000000000
+              Size.Height = 0.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 0
+            end
+          end
+        end
+      end
+      object rctMenuAcoes: TRectangle
+        Fill.Color = xFF101C2C
+        Padding.Left = 6.000000000000000000
+        Padding.Top = 6.000000000000000000
+        Padding.Right = 6.000000000000000000
+        Padding.Bottom = 6.000000000000000000
+        Position.X = 576.000000000000000000
+        Position.Y = 328.000000000000000000
+        Size.Width = 190.000000000000000000
+        Size.Height = 168.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = xFF2A405B
+        Visible = False
+        XRadius = 9.000000000000000000
+        YRadius = 9.000000000000000000
+        object rctVerDetalhes: TRectangle
+          Align = Top
+          Cursor = crHandPoint
+          Fill.Color = x00FFFFFF
+          Position.X = 6.000000000000000000
+          Position.Y = 6.000000000000000000
+          Size.Width = 178.000000000000000000
+          Size.Height = 39.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          XRadius = 6.000000000000000000
+          YRadius = 6.000000000000000000
+          OnClick = rctVerDetalhesClick
+          object lblVerDetalhes: TLabel
+            Align = Client
+            StyledSettings = []
+            Margins.Left = 14.000000000000000000
+            Size.Width = 164.000000000000000000
+            Size.Height = 39.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Manrope'
+            TextSettings.Font.Size = 10.000000000000000000
+            TextSettings.FontColor = xFFD8E0EA
+            Text = 'Ver Detalhes'
+            TabOrder = 0
+          end
+        end
+        object rctAlterarStatus: TRectangle
+          Align = Top
+          Cursor = crHandPoint
+          Fill.Color = x00FFFFFF
+          Position.X = 6.000000000000000000
+          Position.Y = 45.000000000000000000
+          Size.Width = 178.000000000000000000
+          Size.Height = 39.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          XRadius = 6.000000000000000000
+          YRadius = 6.000000000000000000
+          object lblAlterarStatus: TLabel
+            Align = Client
+            StyledSettings = []
+            Margins.Left = 14.000000000000000000
+            Size.Width = 164.000000000000000000
+            Size.Height = 39.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Manrope'
+            TextSettings.Font.Size = 10.000000000000000000
+            TextSettings.FontColor = xFFD8E0EA
+            Text = 'Alterar Status'
+            TabOrder = 0
+          end
+        end
+        object rctImprimir: TRectangle
+          Align = Top
+          Cursor = crHandPoint
+          Fill.Color = x00FFFFFF
+          Position.X = 6.000000000000000000
+          Position.Y = 84.000000000000000000
+          Size.Width = 178.000000000000000000
+          Size.Height = 39.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          XRadius = 6.000000000000000000
+          YRadius = 6.000000000000000000
+          object lblImprimir: TLabel
+            Align = Client
+            StyledSettings = []
+            Margins.Left = 14.000000000000000000
+            Size.Width = 164.000000000000000000
+            Size.Height = 39.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Manrope'
+            TextSettings.Font.Size = 10.000000000000000000
+            TextSettings.FontColor = xFFD8E0EA
+            Text = 'Imprimir Pedido'
+            TabOrder = 0
+          end
+        end
+        object rctCancelar: TRectangle
+          Align = Top
+          Cursor = crHandPoint
+          Fill.Color = x00FFFFFF
+          Position.X = 6.000000000000000000
+          Position.Y = 123.000000000000000000
+          Size.Width = 178.000000000000000000
+          Size.Height = 39.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          XRadius = 6.000000000000000000
+          YRadius = 6.000000000000000000
+          object lblCancelar: TLabel
+            Align = Client
+            StyledSettings = []
+            Margins.Left = 14.000000000000000000
+            Size.Width = 164.000000000000000000
+            Size.Height = 39.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Manrope'
+            TextSettings.Font.Size = 10.000000000000000000
+            TextSettings.FontColor = xFFFF6570
+            Text = 'Cancelar Pedido'
+            TabOrder = 0
+          end
+        end
+      end
+      object rctOverlayDetalhes: TRectangle
+        Align = Client
+        Fill.Color = x66000000
+        Size.Width = 1152.000000000000000000
+        Size.Height = 570.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        Visible = False
+        object rctPainelDetalhes: TRectangle
+          Align = Right
+          Fill.Color = xFF0C1726
+          Position.X = 722.000000000000000000
+          Size.Width = 430.000000000000000000
+          Size.Height = 570.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Color = xFF26384F
+          object lytTopoDetalhes: TLayout
+            Align = Top
+            Size.Width = 430.000000000000000000
+            Size.Height = 64.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            object lblTituloDetalhes: TLabel
+              Align = Client
+              StyledSettings = []
+              Margins.Left = 20.000000000000000000
+              Margins.Right = 8.000000000000000000
+              Size.Width = 348.000000000000000000
+              Size.Height = 64.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Manrope'
+              TextSettings.Font.Size = 15.000000000000000000
+              TextSettings.Font.StyleExt = {00070000000000000004000000}
+              TextSettings.FontColor = claWhite
+              TextSettings.WordWrap = False
+              Text = 'Detalhes do Pedido'
+              TabOrder = 0
+            end
+            object rctFecharDetalhes: TRectangle
+              Align = Right
+              Cursor = crHandPoint
+              Fill.Color = xFF152439
+              Margins.Top = 10.000000000000000000
+              Margins.Right = 12.000000000000000000
+              Margins.Bottom = 10.000000000000000000
+              Position.X = 376.000000000000000000
+              Position.Y = 10.000000000000000000
+              Size.Width = 42.000000000000000000
+              Size.Height = 44.000000000000000000
+              Size.PlatformDefault = False
+              Stroke.Color = xFF2A405B
+              XRadius = 8.000000000000000000
+              YRadius = 8.000000000000000000
+              OnClick = rctFecharDetalhesClick
+              object pthFecharDetalhes: TPath
+                Align = Center
+                Data.Path = {
+                  04000000000000000000C0400000C04001000000000090410000904100000000
+                  000090410000C040010000000000C04000009041}
+                Fill.Kind = None
+                HitTest = False
+                Size.Width = 16.000000000000000000
+                Size.Height = 16.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Color = xFF9BA8BA
+                Stroke.Thickness = 2.000000000000000000
+              end
+            end
+          end
+          object vsbDetalhes: TVertScrollBox
+            Align = Client
+            ClipChildren = True
+            Margins.Left = 20.000000000000000000
+            Margins.Top = 16.000000000000000000
+            Margins.Right = 20.000000000000000000
+            Margins.Bottom = 20.000000000000000000
+            Size.Width = 390.000000000000000000
+            Size.Height = 316.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Viewport.Width = 374.000000000000000000
+            Viewport.Height = 316.000000000000000000
+            object lytConteudoDetalhes: TLayout
+              Align = Top
+              Margins.Left = 16.000000000000000000
+              Margins.Top = 16.000000000000000000
+              Margins.Right = 16.000000000000000000
+              Margins.Bottom = 16.000000000000000000
+              Position.X = 16.000000000000000000
+              Position.Y = 16.000000000000000000
+              Size.Width = 342.000000000000000000
+              Size.Height = 900.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 3
+              object rctResumoPedido: TRectangle
+                Align = Top
+                Fill.Color = xFF111F31
+                Size.Width = 342.000000000000000000
+                Size.Height = 110.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Color = xFF26384F
+                XRadius = 10.000000000000000000
+                YRadius = 10.000000000000000000
+                object lblDetalheNumero: TLabel
+                  StyledSettings = []
+                  Position.X = 16.000000000000000000
+                  Position.Y = 14.000000000000000000
+                  Size.Width = 220.000000000000000000
+                  Size.Height = 24.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 14.000000000000000000
+                  TextSettings.Font.StyleExt = {00070000000000000004000000}
+                  TextSettings.FontColor = claWhite
+                  Text = 'Pedido #0000'
+                  TabOrder = 0
+                end
+                object lblDetalheHorario: TLabel
+                  StyledSettings = []
+                  Position.X = 16.000000000000000000
+                  Position.Y = 44.000000000000000000
+                  Size.Width = 220.000000000000000000
+                  Size.Height = 20.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 10.000000000000000000
+                  TextSettings.FontColor = xFF8D9AAD
+                  Text = 'Hor'#225'rio: 00:00'
+                  TabOrder = 1
+                end
+              end
+              object rctDetalheStatus: TRectangle
+                Fill.Color = x332FA765
+                Position.X = 16.000000000000000000
+                Position.Y = 72.000000000000000000
+                Size.Width = 130.000000000000000000
+                Size.Height = 26.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Kind = None
+                XRadius = 13.000000000000000000
+                YRadius = 13.000000000000000000
+                object lblDetalheStatus: TLabel
+                  Align = Client
+                  StyledSettings = []
+                  Size.Width = 130.000000000000000000
+                  Size.Height = 26.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 9.000000000000000000
+                  TextSettings.Font.StyleExt = {00070000000000000004000000}
+                  TextSettings.FontColor = xFF43D982
+                  TextSettings.HorzAlign = Center
+                  Text = 'Em Preparo'
+                  TabOrder = 0
+                end
+              end
+              object rctDetalheCliente: TRectangle
+                Align = Top
+                Fill.Color = xFF111F31
+                Margins.Top = 12.000000000000000000
+                Position.Y = 122.000000000000000000
+                Size.Width = 342.000000000000000000
+                Size.Height = 112.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Color = xFF26384F
+                XRadius = 10.000000000000000000
+                YRadius = 10.000000000000000000
+                object lblTituloCliente: TLabel
+                  StyledSettings = []
+                  Position.X = 16.000000000000000000
+                  Position.Y = 12.000000000000000000
+                  Size.Width = 200.000000000000000000
+                  Size.Height = 18.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 9.000000000000000000
+                  TextSettings.Font.StyleExt = {00070000000000000004000000}
+                  TextSettings.FontColor = xFF708096
+                  Text = 'CLIENTE'
+                  TabOrder = 0
+                end
+                object lblDetalheCliente: TLabel
+                  StyledSettings = []
+                  Position.X = 16.000000000000000000
+                  Position.Y = 38.000000000000000000
+                  Size.Width = 360.000000000000000000
+                  Size.Height = 22.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 11.000000000000000000
+                  TextSettings.Font.StyleExt = {00070000000000000004000000}
+                  TextSettings.FontColor = xFFF2F5F9
+                  Text = 'Nome do Cliente'
+                  TabOrder = 1
+                end
+                object lblDetalheTelefone: TLabel
+                  StyledSettings = []
+                  Position.X = 16.000000000000000000
+                  Position.Y = 68.000000000000000000
+                  Size.Width = 360.000000000000000000
+                  Size.Height = 20.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 10.000000000000000000
+                  TextSettings.FontColor = xFF8D9AAD
+                  Text = '(00) 00000-0000'
+                  TabOrder = 2
+                end
+              end
+              object rctDetalheEntrega: TRectangle
+                Align = Top
+                Fill.Color = xFF111F31
+                Margins.Top = 12.000000000000000000
+                Position.Y = 478.000000000000000000
+                Size.Width = 342.000000000000000000
+                Size.Height = 130.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Color = xFF26384F
+                XRadius = 10.000000000000000000
+                YRadius = 10.000000000000000000
+                object lblTituloEntrega: TLabel
+                  StyledSettings = []
+                  Position.X = 16.000000000000000000
+                  Position.Y = 12.000000000000000000
+                  Size.Width = 200.000000000000000000
+                  Size.Height = 18.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 9.000000000000000000
+                  TextSettings.Font.StyleExt = {00070000000000000004000000}
+                  TextSettings.FontColor = xFF708096
+                  Text = 'ENTREGA'
+                  TabOrder = 0
+                end
+                object lblDetalheTipo: TLabel
+                  StyledSettings = []
+                  Position.X = 16.000000000000000000
+                  Position.Y = 38.000000000000000000
+                  Size.Width = 360.000000000000000000
+                  Size.Height = 22.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 11.000000000000000000
+                  TextSettings.Font.StyleExt = {00070000000000000004000000}
+                  TextSettings.FontColor = xFFF2F5F9
+                  Text = 'Delivery'
+                  TabOrder = 1
+                end
+                object lblDetalheEndereco: TLabel
+                  StyledSettings = []
+                  Position.X = 16.000000000000000000
+                  Position.Y = 68.000000000000000000
+                  Size.Width = 360.000000000000000000
+                  Size.Height = 48.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 10.000000000000000000
+                  TextSettings.Font.StyleExt = {00070000000000000004000000}
+                  TextSettings.FontColor = xFF8D9AAD
+                  Text = 'Rua exemplo, 123 - Centro'
+                  TabOrder = 2
+                end
+              end
+              object rctDetalheValores: TRectangle
+                Align = Top
+                Fill.Color = xFF111F31
+                Margins.Left = 16.000000000000000000
+                Margins.Top = 14.000000000000000000
+                Margins.Right = 16.000000000000000000
+                Margins.Bottom = 14.000000000000000000
+                Position.X = 16.000000000000000000
+                Position.Y = 622.000000000000000000
+                Size.Width = 310.000000000000000000
+                Size.Height = 164.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Color = xFF26384F
+                XRadius = 10.000000000000000000
+                YRadius = 10.000000000000000000
+                object lytSubtotal: TLayout
+                  Align = Top
+                  Size.Width = 310.000000000000000000
+                  Size.Height = 26.000000000000000000
+                  Size.PlatformDefault = False
+                  TabOrder = 1
+                  object lblSubtotalTitulo: TLabel
+                    Align = Left
+                    StyledSettings = []
+                    Margins.Left = 16.000000000000000000
+                    Position.X = 16.000000000000000000
+                    Size.Width = 160.000000000000000000
+                    Size.Height = 26.000000000000000000
+                    Size.PlatformDefault = False
+                    TextSettings.Font.Family = 'Manrope'
+                    TextSettings.Font.Size = 11.000000000000000000
+                    TextSettings.Font.StyleExt = {00070000000000000004000000}
+                    TextSettings.FontColor = xFF8F9EB2
+                    Text = 'SubTotal'
+                    TabOrder = 3
+                  end
+                  object lblSubtotalValor: TLabel
+                    Align = Client
+                    StyledSettings = []
+                    Margins.Left = 8.000000000000000000
+                    Margins.Right = 16.000000000000000000
+                    Size.Width = 110.000000000000000000
+                    Size.Height = 26.000000000000000000
+                    Size.PlatformDefault = False
+                    TextSettings.Font.Family = 'Manrope'
+                    TextSettings.Font.Size = 11.000000000000000000
+                    TextSettings.Font.StyleExt = {00070000000000000004000000}
+                    TextSettings.FontColor = xFFF2F5F9
+                    TextSettings.HorzAlign = Trailing
+                    Text = 'R$ 0,00'
+                    TabOrder = 2
+                  end
+                end
+                object lytTaxaEntrega: TLayout
+                  Align = Top
+                  Margins.Top = 2.000000000000000000
+                  Position.Y = 28.000000000000000000
+                  Size.Width = 310.000000000000000000
+                  Size.Height = 26.000000000000000000
+                  Size.PlatformDefault = False
+                  TabOrder = 2
+                  object lblTaxaValor: TLabel
+                    Align = Client
+                    StyledSettings = []
+                    Margins.Left = 8.000000000000000000
+                    Margins.Right = 16.000000000000000000
+                    Size.Width = 110.000000000000000000
+                    Size.Height = 26.000000000000000000
+                    Size.PlatformDefault = False
+                    TextSettings.Font.Family = 'Manrope'
+                    TextSettings.Font.Size = 11.000000000000000000
+                    TextSettings.Font.StyleExt = {00070000000000000004000000}
+                    TextSettings.FontColor = xFFF2F5F9
+                    TextSettings.HorzAlign = Trailing
+                    Text = 'R$ 0,00'
+                    TabOrder = 0
+                  end
+                  object lblTaxaTitulo: TLabel
+                    Align = Left
+                    StyledSettings = []
+                    Margins.Left = 16.000000000000000000
+                    Position.X = 16.000000000000000000
+                    Size.Width = 160.000000000000000000
+                    Size.Height = 26.000000000000000000
+                    Size.PlatformDefault = False
+                    TextSettings.Font.Family = 'Manrope'
+                    TextSettings.Font.Size = 11.000000000000000000
+                    TextSettings.Font.StyleExt = {00070000000000000004000000}
+                    TextSettings.FontColor = xFF8F9EB2
+                    Text = 'Taxa de Entrega'
+                    TabOrder = 1
+                  end
+                end
+                object lytDesconto: TLayout
+                  Align = Top
+                  Margins.Top = 2.000000000000000000
+                  Position.Y = 56.000000000000000000
+                  Size.Width = 310.000000000000000000
+                  Size.Height = 26.000000000000000000
+                  Size.PlatformDefault = False
+                  TabOrder = 3
+                  object lblDescontoTitulo: TLabel
+                    Align = Left
+                    StyledSettings = [Style]
+                    Margins.Left = 16.000000000000000000
+                    Position.X = 16.000000000000000000
+                    Size.Width = 160.000000000000000000
+                    Size.Height = 26.000000000000000000
+                    Size.PlatformDefault = False
+                    TextSettings.Font.Family = 'Manrope'
+                    TextSettings.Font.Size = 11.000000000000000000
+                    TextSettings.FontColor = xFF8F9EB2
+                    Text = 'Desconto'
+                    TabOrder = 0
+                  end
+                  object lblDescontoValor: TLabel
+                    Align = Client
+                    StyledSettings = []
+                    Margins.Left = 8.000000000000000000
+                    Margins.Right = 16.000000000000000000
+                    Size.Width = 110.000000000000000000
+                    Size.Height = 26.000000000000000000
+                    Size.PlatformDefault = False
+                    TextSettings.Font.Family = 'Manrope'
+                    TextSettings.Font.Size = 11.000000000000000000
+                    TextSettings.Font.StyleExt = {00070000000000000004000000}
+                    TextSettings.FontColor = xFFFF6570
+                    TextSettings.HorzAlign = Trailing
+                    Text = '- R$ 0,00'
+                    TabOrder = 1
+                  end
+                end
+                object linValores: TLine
+                  Align = Top
+                  LineType = Top
+                  Margins.Top = 12.000000000000000000
+                  Margins.Bottom = 10.000000000000000000
+                  Position.Y = 94.000000000000000000
+                  Size.Width = 310.000000000000000000
+                  Size.Height = 1.000000000000000000
+                  Size.PlatformDefault = False
+                  Stroke.Color = xFF26384F
+                end
+                object lytTotal: TLayout
+                  Align = Bottom
+                  Position.Y = 122.000000000000000000
+                  Size.Width = 310.000000000000000000
+                  Size.Height = 42.000000000000000000
+                  Size.PlatformDefault = False
+                  TabOrder = 5
+                  object lblDetalheTotal: TLabel
+                    Align = Client
+                    StyledSettings = []
+                    Margins.Left = 8.000000000000000000
+                    Margins.Right = 16.000000000000000000
+                    Size.Width = 120.000000000000000000
+                    Size.Height = 42.000000000000000000
+                    Size.PlatformDefault = False
+                    TextSettings.Font.Family = 'Manrope'
+                    TextSettings.Font.Size = 17.000000000000000000
+                    TextSettings.Font.StyleExt = {00070000000000000004000000}
+                    TextSettings.FontColor = xFF8C63FF
+                    TextSettings.HorzAlign = Trailing
+                    Text = 'R$ 0,00'
+                    TabOrder = 5
+                  end
+                  object lblTotalTitulo: TLabel
+                    Align = Left
+                    StyledSettings = []
+                    Margins.Left = 16.000000000000000000
+                    Position.X = 16.000000000000000000
+                    Size.Width = 150.000000000000000000
+                    Size.Height = 42.000000000000000000
+                    Size.PlatformDefault = False
+                    TextSettings.Font.Family = 'Manrope'
+                    TextSettings.Font.Size = 11.000000000000000000
+                    TextSettings.Font.StyleExt = {00070000000000000004000000}
+                    TextSettings.FontColor = xFF8F9EB2
+                    Text = 'Total'
+                    TabOrder = 6
+                  end
+                end
+              end
+              object rctProdutos: TRectangle
+                Align = Top
+                Fill.Color = xFF111F31
+                HitTest = False
+                Margins.Top = 12.000000000000000000
+                Position.Y = 246.000000000000000000
+                Size.Width = 342.000000000000000000
+                Size.Height = 220.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Color = xFF26384F
+                XRadius = 10.000000000000000000
+                YRadius = 10.000000000000000000
+                object lblTituloProdutos: TLabel
+                  StyledSettings = []
+                  Position.X = 16.000000000000000000
+                  Position.Y = 12.000000000000000000
+                  Size.Width = 200.000000000000000000
+                  Size.Height = 20.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 9.000000000000000000
+                  TextSettings.Font.StyleExt = {00070000000000000004000000}
+                  TextSettings.FontColor = xFF8F9EB2
+                  Text = 'PRODUTOS'
+                  TabOrder = 0
+                end
+                object vsbProdutos: TVertScrollBox
+                  Align = Client
+                  ClipChildren = True
+                  Margins.Left = 12.000000000000000000
+                  Margins.Top = 40.000000000000000000
+                  Margins.Right = 12.000000000000000000
+                  Margins.Bottom = 12.000000000000000000
+                  Size.Width = 318.000000000000000000
+                  Size.Height = 168.000000000000000000
+                  Size.PlatformDefault = False
+                  TabOrder = 1
+                  Viewport.Width = 318.000000000000000000
+                  Viewport.Height = 168.000000000000000000
+                  object lytProdutos: TLayout
+                    Align = Top
+                    Size.Width = 318.000000000000000000
+                    Size.Height = 0.000000000000000000
+                    Size.PlatformDefault = False
+                    TabOrder = 0
+                  end
+                end
+              end
+            end
+          end
+          object lytRodapeDetalhes: TLayout
+            Align = Bottom
+            Padding.Left = 16.000000000000000000
+            Padding.Top = 12.000000000000000000
+            Padding.Right = 16.000000000000000000
+            Padding.Bottom = 12.000000000000000000
+            Position.Y = 416.000000000000000000
+            Size.Width = 430.000000000000000000
+            Size.Height = 154.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 2
+            object rctFundoRodape: TRectangle
+              Align = Client
+              Fill.Color = xFF0C1726
+              Size.Width = 398.000000000000000000
+              Size.Height = 130.000000000000000000
+              Size.PlatformDefault = False
+              Stroke.Kind = None
+              object rctAlterarStatusDetalhe: TRectangle
+                Align = Top
+                Cursor = crHandPoint
+                Fill.Color = xFF8C63FF
+                Size.Width = 398.000000000000000000
+                Size.Height = 38.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Kind = None
+                XRadius = 8.000000000000000000
+                YRadius = 8.000000000000000000
+                OnClick = rctAlterarStatusDetalheClick
+                OnMouseEnter = BotaoAlterarMouseEnter
+                OnMouseLeave = BotaoAlterarMouseLeave
+                object lblAlterarStatusDetalhe: TLabel
+                  Align = Client
+                  StyledSettings = []
+                  Size.Width = 398.000000000000000000
+                  Size.Height = 38.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 11.000000000000000000
+                  TextSettings.Font.StyleExt = {00070000000000000004000000}
+                  TextSettings.FontColor = claWhite
+                  TextSettings.HorzAlign = Center
+                  Text = 'Alterar Status'
+                  TabOrder = 0
+                end
+              end
+              object rctImprimirDetalhe: TRectangle
+                Align = Top
+                Cursor = crHandPoint
+                Fill.Color = xFF152439
+                Padding.Top = 8.000000000000000000
+                Position.Y = 38.000000000000000000
+                Size.Width = 398.000000000000000000
+                Size.Height = 38.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Color = xFF2A405B
+                XRadius = 8.000000000000000000
+                YRadius = 8.000000000000000000
+                OnClick = rctImprimirDetalheClick
+                OnMouseEnter = BotaoSecundarioMouseEnter
+                OnMouseLeave = BotaoSecundarioMouseLeave
+                object lblImprimirPedido: TLabel
+                  Align = Client
+                  StyledSettings = []
+                  Size.Width = 398.000000000000000000
+                  Size.Height = 30.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 11.000000000000000000
+                  TextSettings.Font.StyleExt = {00070000000000000004000000}
+                  TextSettings.FontColor = xFFF2F5F9
+                  TextSettings.HorzAlign = Center
+                  Text = 'Imprimir Pedido'
+                  TabOrder = 0
+                end
+              end
+              object rctCancelarDetalhe: TRectangle
+                Align = Top
+                Cursor = crHandPoint
+                Fill.Color = x221F2A3A
+                Padding.Top = 8.000000000000000000
+                Position.Y = 76.000000000000000000
+                Size.Width = 398.000000000000000000
+                Size.Height = 38.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Color = x66FF6570
+                XRadius = 8.000000000000000000
+                YRadius = 8.000000000000000000
+                OnClick = rctCancelarDetalheClick
+                OnMouseEnter = BotaoCancelarMouseEnter
+                OnMouseLeave = BotaoCancelarMouseLeave
+                object lblCancelarDetalhe: TLabel
+                  Align = Client
+                  StyledSettings = []
+                  Size.Width = 398.000000000000000000
+                  Size.Height = 30.000000000000000000
+                  Size.PlatformDefault = False
+                  TextSettings.Font.Family = 'Manrope'
+                  TextSettings.Font.Size = 11.000000000000000000
+                  TextSettings.Font.StyleExt = {00070000000000000004000000}
+                  TextSettings.FontColor = xFFFF6570
+                  TextSettings.HorzAlign = Center
+                  Text = 'Cancelar Pedido'
+                  TabOrder = 0
+                end
+              end
+            end
+          end
+        end
+        object rctMenuStatus: TRectangle
+          Fill.Color = xFF101C2C
+          Padding.Left = 6.000000000000000000
+          Padding.Top = 6.000000000000000000
+          Padding.Right = 6.000000000000000000
+          Padding.Bottom = 6.000000000000000000
+          Position.X = 552.000000000000000000
+          Position.Y = 264.000000000000000000
+          Size.Width = 220.000000000000000000
+          Size.Height = 250.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Color = xFF2A405B
+          Visible = False
+          XRadius = 10.000000000000000000
+          YRadius = 10.000000000000000000
+          object rctStatusNovo: TRectangle
+            Align = Top
+            Cursor = crHandPoint
+            Fill.Color = x00FFFFFF
+            Position.X = 6.000000000000000000
+            Position.Y = 6.000000000000000000
+            Size.Width = 208.000000000000000000
+            Size.Height = 38.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Kind = None
+            XRadius = 6.000000000000000000
+            YRadius = 6.000000000000000000
+            OnClick = rctStatusNovoClick
+            OnMouseEnter = StatusMouseEnter
+            OnMouseLeave = StatusMouseLeave
+            object lblStatusNovo: TLabel
+              Align = Client
+              StyledSettings = [Style]
+              Margins.Left = 14.000000000000000000
+              Size.Width = 194.000000000000000000
+              Size.Height = 38.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Manrope'
+              TextSettings.Font.Size = 10.000000000000000000
+              TextSettings.FontColor = xFFD8E0EA
+              Text = 'lblStatusNovo'
+              TabOrder = 0
+            end
+          end
+          object rctStatusConfirmado: TRectangle
+            Align = Top
+            Cursor = crHandPoint
+            Fill.Color = x00FFFFFF
+            Position.X = 6.000000000000000000
+            Position.Y = 44.000000000000000000
+            Size.Width = 208.000000000000000000
+            Size.Height = 38.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Kind = None
+            XRadius = 6.000000000000000000
+            YRadius = 6.000000000000000000
+            OnClick = rctStatusConfirmadoClick
+            OnMouseEnter = StatusMouseEnter
+            OnMouseLeave = StatusMouseLeave
+            object lblStatusConfirmado: TLabel
+              Align = Client
+              StyledSettings = [Style]
+              Margins.Left = 14.000000000000000000
+              Size.Width = 194.000000000000000000
+              Size.Height = 38.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Manrope'
+              TextSettings.Font.Size = 10.000000000000000000
+              TextSettings.FontColor = xFFD8E0EA
+              Text = 'lblStatusNovo'
+              TabOrder = 0
+              object RectAnimation1: TRectAnimation
+                Duration = 0.200000002980232200
+              end
+            end
+          end
+          object rctStatusEmPreparo: TRectangle
+            Align = Top
+            Cursor = crHandPoint
+            Fill.Color = x00FFFFFF
+            Position.X = 6.000000000000000000
+            Position.Y = 82.000000000000000000
+            Size.Width = 208.000000000000000000
+            Size.Height = 38.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Kind = None
+            XRadius = 6.000000000000000000
+            YRadius = 6.000000000000000000
+            OnClick = rctStatusEmPreparoClick
+            OnMouseEnter = StatusMouseEnter
+            OnMouseLeave = StatusMouseLeave
+            object lblStatusEmPreparo: TLabel
+              Align = Client
+              StyledSettings = [Style]
+              Margins.Left = 14.000000000000000000
+              Size.Width = 194.000000000000000000
+              Size.Height = 38.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Manrope'
+              TextSettings.Font.Size = 10.000000000000000000
+              TextSettings.FontColor = xFFD8E0EA
+              Text = 'lblStatusNovo'
+              TabOrder = 0
+            end
+          end
+          object rctStatusPronto: TRectangle
+            Align = Top
+            Cursor = crHandPoint
+            Fill.Color = x00FFFFFF
+            Position.X = 6.000000000000000000
+            Position.Y = 120.000000000000000000
+            Size.Width = 208.000000000000000000
+            Size.Height = 38.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Kind = None
+            XRadius = 6.000000000000000000
+            YRadius = 6.000000000000000000
+            OnClick = rctStatusProntoClick
+            OnMouseEnter = StatusMouseEnter
+            OnMouseLeave = StatusMouseLeave
+            object lblStatusPronto: TLabel
+              Align = Client
+              StyledSettings = [Style]
+              Margins.Left = 14.000000000000000000
+              Size.Width = 194.000000000000000000
+              Size.Height = 38.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Manrope'
+              TextSettings.Font.Size = 10.000000000000000000
+              TextSettings.FontColor = xFFD8E0EA
+              Text = 'lblStatusNovo'
+              TabOrder = 0
+            end
+          end
+          object rctStatusEmEntrega: TRectangle
+            Align = Top
+            Cursor = crHandPoint
+            Fill.Color = x00FFFFFF
+            Position.X = 6.000000000000000000
+            Position.Y = 158.000000000000000000
+            Size.Width = 208.000000000000000000
+            Size.Height = 38.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Kind = None
+            XRadius = 6.000000000000000000
+            YRadius = 6.000000000000000000
+            OnClick = rctStatusEmEntregaClick
+            OnMouseEnter = StatusMouseEnter
+            OnMouseLeave = StatusMouseLeave
+            object lblStatusEmEntrega: TLabel
+              Align = Client
+              StyledSettings = [Style]
+              Margins.Left = 14.000000000000000000
+              Size.Width = 194.000000000000000000
+              Size.Height = 38.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Manrope'
+              TextSettings.Font.Size = 10.000000000000000000
+              TextSettings.FontColor = xFFD8E0EA
+              Text = 'lblStatusNovo'
+              TabOrder = 0
+            end
+          end
+          object rctStatusFinalizado: TRectangle
+            Align = Top
+            Cursor = crHandPoint
+            Fill.Color = x00FFFFFF
+            Position.X = 6.000000000000000000
+            Position.Y = 196.000000000000000000
+            Size.Width = 208.000000000000000000
+            Size.Height = 38.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Kind = None
+            XRadius = 6.000000000000000000
+            YRadius = 6.000000000000000000
+            OnClick = rctStatusFinalizadoClick
+            OnMouseEnter = StatusMouseEnter
+            OnMouseLeave = StatusMouseLeave
+            object lblStatusFinalizado: TLabel
+              Align = Client
+              StyledSettings = [Style]
+              Margins.Left = 14.000000000000000000
+              Size.Width = 194.000000000000000000
+              Size.Height = 38.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Manrope'
+              TextSettings.Font.Size = 10.000000000000000000
+              TextSettings.FontColor = xFFD8E0EA
+              Text = 'lblStatusNovo'
+              TabOrder = 0
+            end
+          end
+        end
+      end
+    end
+  end
+end

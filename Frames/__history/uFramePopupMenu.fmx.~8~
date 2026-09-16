@@ -1,0 +1,15 @@
+object fraPopupMenu: TfraPopupMenu
+  Size.Width = 220.000000000000000000
+  Size.Height = 220.000000000000000000
+  Size.PlatformDefault = False
+  object rctFundo: TRectangle
+    Align = Client
+    Fill.Color = xFF101C2C
+    Size.Width = 220.000000000000000000
+    Size.Height = 220.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Color = xFF2A405B
+    XRadius = 10.000000000000000000
+    YRadius = 10.000000000000000000
+  end
+end

@@ -1,0 +1,877 @@
+unit Sensor.Components.Button;
+
+interface
+
+uses
+  System.Classes,
+  System.SysUtils,
+  System.UITypes,
+  System.Types,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Graphics,
+  FMX.Objects,
+  FMX.StdCtrls,
+  Sensor.Components.Base,
+  Sensor.Components.Theme;
+
+type
+  TSensorButton = class(TSensorControl)
+  private
+    FLabelIcone: TLabel;
+    FLabelTexto: TLabel;
+    FSelectedBar: TRectangle;
+
+    FCaption: string;
+    FIcon: string;
+
+    FTextFont: TFont;
+    FIconFont: TFont;
+
+    FTextColor: TAlphaColor;
+    FHoverTextColor: TAlphaColor;
+    FSelectedTextColor: TAlphaColor;
+    FDisabledTextColor: TAlphaColor;
+
+    FIconColor: TAlphaColor;
+    FHoverIconColor: TAlphaColor;
+    FSelectedIconColor: TAlphaColor;
+    FDisabledIconColor: TAlphaColor;
+
+    FHoverBackgroundColor: TAlphaColor;
+    FPressedBackgroundColor: TAlphaColor;
+    FSelectedBackgroundColor: TAlphaColor;
+    FDisabledBackgroundColor: TAlphaColor;
+
+    FHoverBorderColor: TAlphaColor;
+    FPressedBorderColor: TAlphaColor;
+    FSelectedBorderColor: TAlphaColor;
+    FDisabledBorderColor: TAlphaColor;
+
+    FSelectedBorderThickness: Single;
+
+    FIconAreaWidth: Single;
+    FIconSpacing: Single;
+
+    FSelected: Boolean;
+    FMouseOver: Boolean;
+    FMousePressed: Boolean;
+
+    FShowSelectedBar: Boolean;
+    FSelectedBarColor: TAlphaColor;
+    FSelectedBarWidth: Single;
+
+    procedure SetCaption(const Value: string);
+    procedure SetIcon(const Value: string);
+
+    procedure SetTextFont(const Value: TFont);
+    procedure SetIconFont(const Value: TFont);
+
+    procedure TextFontChanged(Sender: TObject);
+    procedure IconFontChanged(Sender: TObject);
+
+    procedure SetTextColor(const Value: TAlphaColor);
+    procedure SetHoverTextColor(const Value: TAlphaColor);
+    procedure SetSelectedTextColor(const Value: TAlphaColor);
+    procedure SetDisabledTextColor(const Value: TAlphaColor);
+
+    procedure SetIconColor(const Value: TAlphaColor);
+    procedure SetHoverIconColor(const Value: TAlphaColor);
+    procedure SetSelectedIconColor(const Value: TAlphaColor);
+    procedure SetDisabledIconColor(const Value: TAlphaColor);
+
+    procedure SetHoverBackgroundColor(const Value: TAlphaColor);
+    procedure SetPressedBackgroundColor(const Value: TAlphaColor);
+    procedure SetSelectedBackgroundColor(const Value: TAlphaColor);
+    procedure SetDisabledBackgroundColor(const Value: TAlphaColor);
+
+    procedure SetHoverBorderColor(const Value: TAlphaColor);
+    procedure SetPressedBorderColor(const Value: TAlphaColor);
+    procedure SetSelectedBorderColor(const Value: TAlphaColor);
+    procedure SetDisabledBorderColor(const Value: TAlphaColor);
+
+    procedure SetSelectedBorderThickness(const Value: Single);
+
+    procedure SetIconAreaWidth(const Value: Single);
+    procedure SetIconSpacing(const Value: Single);
+
+    procedure SetSelected(const Value: Boolean);
+
+    procedure SetShowSelectedBar(const Value: Boolean);
+    procedure SetSelectedBarColor(const Value: TAlphaColor);
+    procedure SetSelectedBarWidth(const Value: Single);
+
+    procedure UpdateLayout;
+    procedure UpdateVisualState;
+    procedure UpdateTextAndIcon;
+
+  protected
+    procedure ApplyTheme; override;
+    procedure ApplyStyle; override;
+    procedure Resize; override;
+
+    procedure DoMouseEnter; override;
+    procedure DoMouseLeave; override;
+
+    procedure MouseDown(
+      Button: TMouseButton;
+      Shift: TShiftState;
+      X, Y: Single
+    ); override;
+
+    procedure MouseUp(
+      Button: TMouseButton;
+      Shift: TShiftState;
+      X, Y: Single
+    ); override;
+
+    procedure EnabledChanged; override;
+
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    procedure RefreshTheme; override;
+
+  published
+    property Caption: string
+      read FCaption
+      write SetCaption;
+
+    property Icon: string
+      read FIcon
+      write SetIcon;
+
+    property TextFont: TFont
+      read FTextFont
+      write SetTextFont;
+
+    property IconFont: TFont
+      read FIconFont
+      write SetIconFont;
+
+    property TextColor: TAlphaColor
+      read FTextColor
+      write SetTextColor;
+
+    property HoverTextColor: TAlphaColor
+      read FHoverTextColor
+      write SetHoverTextColor;
+
+    property SelectedTextColor: TAlphaColor
+      read FSelectedTextColor
+      write SetSelectedTextColor;
+
+    property DisabledTextColor: TAlphaColor
+      read FDisabledTextColor
+      write SetDisabledTextColor;
+
+    property IconColor: TAlphaColor
+      read FIconColor
+      write SetIconColor;
+
+    property HoverIconColor: TAlphaColor
+      read FHoverIconColor
+      write SetHoverIconColor;
+
+    property SelectedIconColor: TAlphaColor
+      read FSelectedIconColor
+      write SetSelectedIconColor;
+
+    property DisabledIconColor: TAlphaColor
+      read FDisabledIconColor
+      write SetDisabledIconColor;
+
+    property HoverBackgroundColor: TAlphaColor
+      read FHoverBackgroundColor
+      write SetHoverBackgroundColor;
+
+    property PressedBackgroundColor: TAlphaColor
+      read FPressedBackgroundColor
+      write SetPressedBackgroundColor;
+
+    property SelectedBackgroundColor: TAlphaColor
+      read FSelectedBackgroundColor
+      write SetSelectedBackgroundColor;
+
+    property DisabledBackgroundColor: TAlphaColor
+      read FDisabledBackgroundColor
+      write SetDisabledBackgroundColor;
+
+    property HoverBorderColor: TAlphaColor
+      read FHoverBorderColor
+      write SetHoverBorderColor;
+
+    property PressedBorderColor: TAlphaColor
+      read FPressedBorderColor
+      write SetPressedBorderColor;
+
+    property SelectedBorderColor: TAlphaColor
+      read FSelectedBorderColor
+      write SetSelectedBorderColor;
+
+    property DisabledBorderColor: TAlphaColor
+      read FDisabledBorderColor
+      write SetDisabledBorderColor;
+
+    property SelectedBorderThickness: Single
+      read FSelectedBorderThickness
+      write SetSelectedBorderThickness;
+
+    property IconAreaWidth: Single
+      read FIconAreaWidth
+      write SetIconAreaWidth;
+
+    property IconSpacing: Single
+      read FIconSpacing
+      write SetIconSpacing;
+
+    property Selected: Boolean
+      read FSelected
+      write SetSelected
+      default False;
+
+    property ShowSelectedBar: Boolean
+      read FShowSelectedBar
+      write SetShowSelectedBar
+      default True;
+
+    property SelectedBarColor: TAlphaColor
+      read FSelectedBarColor
+      write SetSelectedBarColor;
+
+    property SelectedBarWidth: Single
+      read FSelectedBarWidth
+      write SetSelectedBarWidth;
+
+    property Align;
+    property Anchors;
+    property Cursor;
+    property Enabled;
+    property Height;
+    property HitTest;
+    property Margins;
+    property Opacity;
+    property Padding;
+    property Position;
+    property RotationAngle;
+    property Scale;
+    property Size;
+    property TabOrder;
+    property TabStop;
+    property Visible;
+    property Width;
+
+    property OnClick;
+    property OnDblClick;
+    property OnMouseDown;
+    property OnMouseMove;
+    property OnMouseUp;
+  end;
+
+implementation
+
+{ TSensorButton }
+
+constructor TSensorButton.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+
+  Width := 220;
+  Height := 48;
+
+  Cursor := crHandPoint;
+  HitTest := True;
+  ClipChildren := False;
+
+  FCaption := 'Sensor Button';
+  FIcon := '';
+
+  FSelected := False;
+  FMouseOver := False;
+  FMousePressed := False;
+
+  FIconAreaWidth := 42;
+  FIconSpacing := 8;
+
+  FShowSelectedBar := True;
+  FSelectedBarWidth := 4;
+
+  FSelectedBorderThickness := 1;
+
+  FTextFont := TFont.Create;
+  FTextFont.Family := TSensorTheme.FontFamily;
+  FTextFont.Size := 14;
+  FTextFont.Style := [];
+  FTextFont.OnChanged := TextFontChanged;
+
+  FIconFont := TFont.Create;
+  FIconFont.Family := TSensorTheme.IconFontFamily;
+  FIconFont.Size := 20;
+  FIconFont.Style := [];
+  FIconFont.OnChanged := IconFontChanged;
+
+  FSelectedBar := TRectangle.Create(Self);
+  FSelectedBar.Parent := Self;
+  FSelectedBar.Stored := False;
+  FSelectedBar.HitTest := False;
+  FSelectedBar.Align := TAlignLayout.Left;
+  FSelectedBar.Width := FSelectedBarWidth;
+  FSelectedBar.Fill.Kind := TBrushKind.Solid;
+  FSelectedBar.Stroke.Kind := TBrushKind.None;
+  FSelectedBar.XRadius := 2;
+  FSelectedBar.YRadius := 2;
+  FSelectedBar.Visible := False;
+
+  FLabelIcone := TLabel.Create(Self);
+  FLabelIcone.Parent := Self;
+  FLabelIcone.Stored := False;
+  FLabelIcone.HitTest := False;
+  FLabelIcone.AutoSize := False;
+  FLabelIcone.TextSettings.HorzAlign := TTextAlign.Center;
+  FLabelIcone.TextSettings.VertAlign := TTextAlign.Center;
+  FLabelIcone.TextSettings.WordWrap := False;
+
+  FLabelTexto := TLabel.Create(Self);
+  FLabelTexto.Parent := Self;
+  FLabelTexto.Stored := False;
+  FLabelTexto.HitTest := False;
+  FLabelTexto.AutoSize := False;
+  FLabelTexto.TextSettings.HorzAlign := TTextAlign.Leading;
+  FLabelTexto.TextSettings.VertAlign := TTextAlign.Center;
+  FLabelTexto.TextSettings.WordWrap := False;
+
+  ApplyTheme;
+
+  TextFontChanged(nil);
+  IconFontChanged(nil);
+
+  UpdateTextAndIcon;
+  UpdateLayout;
+  UpdateVisualState;
+end;
+
+destructor TSensorButton.Destroy;
+begin
+  FTextFont.Free;
+  FIconFont.Free;
+
+  inherited;
+end;
+
+procedure TSensorButton.ApplyTheme;
+begin
+  inherited;
+
+  FTextColor := TSensorTheme.TextPrimary;
+  FHoverTextColor := TSensorTheme.TextPrimary;
+  FSelectedTextColor := TSensorTheme.TextPrimary;
+  FDisabledTextColor := TSensorTheme.TextDisabled;
+
+  FIconColor := TSensorTheme.TextSecondary;
+  FHoverIconColor := TSensorTheme.TextPrimary;
+  FSelectedIconColor := TSensorTheme.Primary;
+  FDisabledIconColor := TSensorTheme.TextDisabled;
+
+  FHoverBackgroundColor := TSensorTheme.SurfaceHover;
+  FPressedBackgroundColor := TSensorTheme.SurfacePressed;
+  FSelectedBackgroundColor := TSensorTheme.SurfaceHover;
+  FDisabledBackgroundColor := TSensorTheme.SurfaceDisabled;
+
+  FHoverBorderColor := TSensorTheme.BorderHover;
+  FPressedBorderColor := TSensorTheme.BorderPressed;
+  FSelectedBorderColor := TSensorTheme.Primary;
+  FDisabledBorderColor := TSensorTheme.BorderDisabled;
+
+  FSelectedBarColor := TSensorTheme.Primary;
+end;
+
+procedure TSensorButton.ApplyStyle;
+begin
+  inherited;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.RefreshTheme;
+begin
+  inherited;
+
+  if UseTheme then
+  begin
+    ApplyTheme;
+
+    FTextFont.Family := TSensorTheme.FontFamily;
+    FIconFont.Family := TSensorTheme.IconFontFamily;
+  end;
+
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.UpdateVisualState;
+var
+  LBackgroundColor: TAlphaColor;
+  LBorderColor: TAlphaColor;
+  LTextColor: TAlphaColor;
+  LIconColor: TAlphaColor;
+  LBorderThickness: Single;
+begin
+  LBackgroundColor := BackgroundColor;
+  LBorderColor := BorderColor;
+  LTextColor := FTextColor;
+  LIconColor := FIconColor;
+  LBorderThickness := BorderThickness;
+
+  if not Enabled then
+  begin
+    LBackgroundColor := FDisabledBackgroundColor;
+    LBorderColor := FDisabledBorderColor;
+    LTextColor := FDisabledTextColor;
+    LIconColor := FDisabledIconColor;
+  end
+  else if FMousePressed then
+  begin
+    LBackgroundColor := FPressedBackgroundColor;
+    LBorderColor := FPressedBorderColor;
+    LTextColor := FHoverTextColor;
+    LIconColor := FHoverIconColor;
+  end
+  else if FSelected then
+  begin
+    LBackgroundColor := FSelectedBackgroundColor;
+    LBorderColor := FSelectedBorderColor;
+    LTextColor := FSelectedTextColor;
+    LIconColor := FSelectedIconColor;
+    LBorderThickness := FSelectedBorderThickness;
+  end
+  else if FMouseOver then
+  begin
+    LBackgroundColor := FHoverBackgroundColor;
+    LBorderColor := FHoverBorderColor;
+    LTextColor := FHoverTextColor;
+    LIconColor := FHoverIconColor;
+  end;
+
+  Fill.Kind := TBrushKind.Solid;
+  Fill.Color := LBackgroundColor;
+
+  if LBorderThickness <= 0 then
+    Stroke.Kind := TBrushKind.None
+  else
+  begin
+    Stroke.Kind := TBrushKind.Solid;
+    Stroke.Color := LBorderColor;
+    Stroke.Thickness := LBorderThickness;
+  end;
+
+  XRadius := CornerRadius;
+  YRadius := CornerRadius;
+
+  FLabelTexto.TextSettings.FontColor := LTextColor;
+  FLabelIcone.TextSettings.FontColor := LIconColor;
+
+  FSelectedBar.Fill.Color := FSelectedBarColor;
+  FSelectedBar.Visible :=
+    Enabled and
+    FSelected and
+    FShowSelectedBar and
+    (FSelectedBarWidth > 0);
+
+  Repaint;
+end;
+
+procedure TSensorButton.UpdateTextAndIcon;
+begin
+  FLabelTexto.Text := FCaption;
+  FLabelIcone.Text := FIcon;
+
+  FLabelIcone.Visible := FIcon <> '';
+
+  UpdateLayout;
+end;
+
+procedure TSensorButton.UpdateLayout;
+var
+  LLeft: Single;
+  LIconWidth: Single;
+begin
+  if not Assigned(FLabelTexto) or
+     not Assigned(FLabelIcone) or
+     not Assigned(FSelectedBar) then
+    Exit;
+
+  FSelectedBar.Width := FSelectedBarWidth;
+
+  LLeft := 12;
+
+  if FShowSelectedBar then
+    LLeft := LLeft + FSelectedBarWidth;
+
+  if FIcon <> '' then
+  begin
+    LIconWidth := FIconAreaWidth;
+
+    FLabelIcone.SetBounds(
+      LLeft,
+      0,
+      LIconWidth,
+      Height
+    );
+
+    FLabelTexto.SetBounds(
+      LLeft + LIconWidth + FIconSpacing,
+      0,
+      Max(
+        0,
+        Width - LLeft - LIconWidth - FIconSpacing - 12
+      ),
+      Height
+    );
+  end
+  else
+  begin
+    FLabelIcone.SetBounds(0, 0, 0, Height);
+
+    FLabelTexto.SetBounds(
+      LLeft,
+      0,
+      Max(0, Width - LLeft - 12),
+      Height
+    );
+  end;
+end;
+
+procedure TSensorButton.Resize;
+begin
+  inherited;
+  UpdateLayout;
+end;
+
+procedure TSensorButton.DoMouseEnter;
+begin
+  inherited;
+
+  FMouseOver := True;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.DoMouseLeave;
+begin
+  inherited;
+
+  FMouseOver := False;
+  FMousePressed := False;
+
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.MouseDown(
+  Button: TMouseButton;
+  Shift: TShiftState;
+  X, Y: Single);
+begin
+  inherited;
+
+  if Enabled and (Button = TMouseButton.mbLeft) then
+  begin
+    FMousePressed := True;
+    UpdateVisualState;
+  end;
+end;
+
+procedure TSensorButton.MouseUp(
+  Button: TMouseButton;
+  Shift: TShiftState;
+  X, Y: Single);
+begin
+  inherited;
+
+  if Button = TMouseButton.mbLeft then
+  begin
+    FMousePressed := False;
+    UpdateVisualState;
+  end;
+end;
+
+procedure TSensorButton.EnabledChanged;
+begin
+  inherited;
+
+  if not Enabled then
+  begin
+    FMouseOver := False;
+    FMousePressed := False;
+  end;
+
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetCaption(const Value: string);
+begin
+  if FCaption = Value then
+    Exit;
+
+  FCaption := Value;
+  UpdateTextAndIcon;
+end;
+
+procedure TSensorButton.SetIcon(const Value: string);
+begin
+  if FIcon = Value then
+    Exit;
+
+  FIcon := Value;
+  UpdateTextAndIcon;
+end;
+
+procedure TSensorButton.SetTextFont(const Value: TFont);
+begin
+  if Assigned(Value) then
+    FTextFont.Assign(Value);
+end;
+
+procedure TSensorButton.SetIconFont(const Value: TFont);
+begin
+  if Assigned(Value) then
+    FIconFont.Assign(Value);
+end;
+
+procedure TSensorButton.TextFontChanged(Sender: TObject);
+begin
+  if Assigned(FLabelTexto) then
+  begin
+    FLabelTexto.TextSettings.Font.Assign(FTextFont);
+    FLabelTexto.Repaint;
+  end;
+end;
+
+procedure TSensorButton.IconFontChanged(Sender: TObject);
+begin
+  if Assigned(FLabelIcone) then
+  begin
+    FLabelIcone.TextSettings.Font.Assign(FIconFont);
+    FLabelIcone.Repaint;
+  end;
+end;
+
+procedure TSensorButton.SetTextColor(const Value: TAlphaColor);
+begin
+  if FTextColor = Value then
+    Exit;
+
+  FTextColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetHoverTextColor(const Value: TAlphaColor);
+begin
+  if FHoverTextColor = Value then
+    Exit;
+
+  FHoverTextColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetSelectedTextColor(const Value: TAlphaColor);
+begin
+  if FSelectedTextColor = Value then
+    Exit;
+
+  FSelectedTextColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetDisabledTextColor(const Value: TAlphaColor);
+begin
+  if FDisabledTextColor = Value then
+    Exit;
+
+  FDisabledTextColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetIconColor(const Value: TAlphaColor);
+begin
+  if FIconColor = Value then
+    Exit;
+
+  FIconColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetHoverIconColor(const Value: TAlphaColor);
+begin
+  if FHoverIconColor = Value then
+    Exit;
+
+  FHoverIconColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetSelectedIconColor(const Value: TAlphaColor);
+begin
+  if FSelectedIconColor = Value then
+    Exit;
+
+  FSelectedIconColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetDisabledIconColor(const Value: TAlphaColor);
+begin
+  if FDisabledIconColor = Value then
+    Exit;
+
+  FDisabledIconColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetHoverBackgroundColor(
+  const Value: TAlphaColor);
+begin
+  if FHoverBackgroundColor = Value then
+    Exit;
+
+  FHoverBackgroundColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetPressedBackgroundColor(
+  const Value: TAlphaColor);
+begin
+  if FPressedBackgroundColor = Value then
+    Exit;
+
+  FPressedBackgroundColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetSelectedBackgroundColor(
+  const Value: TAlphaColor);
+begin
+  if FSelectedBackgroundColor = Value then
+    Exit;
+
+  FSelectedBackgroundColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetDisabledBackgroundColor(
+  const Value: TAlphaColor);
+begin
+  if FDisabledBackgroundColor = Value then
+    Exit;
+
+  FDisabledBackgroundColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetHoverBorderColor(
+  const Value: TAlphaColor);
+begin
+  if FHoverBorderColor = Value then
+    Exit;
+
+  FHoverBorderColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetPressedBorderColor(
+  const Value: TAlphaColor);
+begin
+  if FPressedBorderColor = Value then
+    Exit;
+
+  FPressedBorderColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetSelectedBorderColor(
+  const Value: TAlphaColor);
+begin
+  if FSelectedBorderColor = Value then
+    Exit;
+
+  FSelectedBorderColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetDisabledBorderColor(
+  const Value: TAlphaColor);
+begin
+  if FDisabledBorderColor = Value then
+    Exit;
+
+  FDisabledBorderColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetSelectedBorderThickness(
+  const Value: Single);
+begin
+  if FSelectedBorderThickness = Value then
+    Exit;
+
+  FSelectedBorderThickness := Max(0, Value);
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetIconAreaWidth(const Value: Single);
+begin
+  if FIconAreaWidth = Value then
+    Exit;
+
+  FIconAreaWidth := Max(0, Value);
+  UpdateLayout;
+end;
+
+procedure TSensorButton.SetIconSpacing(const Value: Single);
+begin
+  if FIconSpacing = Value then
+    Exit;
+
+  FIconSpacing := Max(0, Value);
+  UpdateLayout;
+end;
+
+procedure TSensorButton.SetSelected(const Value: Boolean);
+begin
+  if FSelected = Value then
+    Exit;
+
+  FSelected := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetShowSelectedBar(const Value: Boolean);
+begin
+  if FShowSelectedBar = Value then
+    Exit;
+
+  FShowSelectedBar := Value;
+
+  UpdateLayout;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetSelectedBarColor(
+  const Value: TAlphaColor);
+begin
+  if FSelectedBarColor = Value then
+    Exit;
+
+  FSelectedBarColor := Value;
+  UpdateVisualState;
+end;
+
+procedure TSensorButton.SetSelectedBarWidth(const Value: Single);
+begin
+  if FSelectedBarWidth = Value then
+    Exit;
+
+  FSelectedBarWidth := Max(0, Value);
+
+  UpdateLayout;
+  UpdateVisualState;
+end;
+
+end.

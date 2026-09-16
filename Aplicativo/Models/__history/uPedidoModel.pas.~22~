@@ -1,0 +1,547 @@
+unit uPedidoModel;
+
+interface
+
+uses
+  System.SysUtils,
+  System.Classes,
+  System.JSON,
+  System.Generics.Collections,
+  uCarrinhoModel,
+  uFrameFinalizarPedido;
+
+type
+  TSaborPedido = class
+  public
+    Id: String;
+    Descricao: string;
+    Valor: Currency;
+
+    function ToJSON: TJSONObject;
+  end;
+
+  TItemPedido = class
+  private
+    FSabores: TObjectList<TSaborPedido>;
+  public
+    Identificador: string;
+
+    ProdutoId: string;
+    ProdutoDescricao: string;
+    TipoProduto: string;
+
+    TamanhoId: string;
+    TamanhoDescricao: string;
+    ValorBase: Currency;
+
+    BordaId: string;
+    BordaDescricao: string;
+    ValorBorda: Currency;
+
+    Quantidade: Integer;
+    Observacao: string;
+
+    ValorUnitario: Currency;
+    ValorTotal: Currency;
+
+    constructor Create;
+    destructor Destroy; override;
+
+    property Sabores: TObjectList<TSaborPedido>
+      read FSabores;
+
+    function ToJSON: TJSONObject;
+  end;
+
+  TPedido = class
+  private
+    FItens: TObjectList<TItemPedido>;
+  public
+    EmpresaId: String;
+
+    ClienteNome: string;
+    ClienteTelefone: string;
+
+    TipoRecebimento: string;
+
+    Cep: string;
+    Endereco: string;
+    Numero: string;
+    Complemento: string;
+    Bairro: string;
+    Referencia: string;
+
+    FormaPagamento: string;
+    ValorTroco: Currency;
+    Observacao: string;
+
+    Subtotal: Currency;
+    Desconto: Currency;
+    TaxaEntrega: Currency;
+    Acrescimo: Currency;
+    Total: Currency;
+
+    constructor Create;
+    destructor Destroy; override;
+
+    property Itens: TObjectList<TItemPedido>
+      read FItens;
+
+    procedure CarregarDoCarrinho;
+    procedure CarregarDadosFinalizacao(
+      ADados: TDadosFinalizacaoPedido
+    );
+
+    function ToJSON: TJSONObject;
+    function ToJSONString: string;
+  end;
+
+implementation
+
+function CurrencyToJSONValue(
+  const AValor: Currency
+): TJSONNumber;
+var
+  LTexto: string;
+  LFormatSettings: TFormatSettings;
+begin
+  LFormatSettings :=
+    TFormatSettings.Create('en-US');
+
+  LTexto :=
+    FloatToStr(
+      AValor,
+      LFormatSettings
+    );
+
+  Result := TJSONNumber.Create(LTexto);
+end;
+
+{ TSaborPedido }
+
+function TSaborPedido.ToJSON: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+
+  Result.AddPair(
+    'id',
+    TJSONNumber.Create(Id)
+  );
+
+  Result.AddPair(
+    'descricao',
+    Descricao
+  );
+
+  Result.AddPair(
+    'valor',
+    CurrencyToJSONValue(Valor)
+  );
+end;
+
+{ TItemPedido }
+
+constructor TItemPedido.Create;
+begin
+  inherited;
+
+  FSabores :=
+    TObjectList<TSaborPedido>.Create(True);
+end;
+
+destructor TItemPedido.Destroy;
+begin
+  FSabores.Free;
+
+  inherited;
+end;
+
+function TItemPedido.ToJSON: TJSONObject;
+var
+  LArraySabores: TJSONArray;
+  LSabor: TSaborPedido;
+begin
+  Result := TJSONObject.Create;
+
+  Result.AddPair(
+    'identificador',
+    Identificador
+  );
+
+  Result.AddPair(
+    'produto_id',
+    ProdutoId
+  );
+
+  Result.AddPair(
+    'produto_descricao',
+    ProdutoDescricao
+  );
+
+  Result.AddPair(
+    'tipo_produto',
+    TipoProduto
+  );
+
+  Result.AddPair(
+    'tamanho_id',
+    TamanhoId
+  );
+
+  Result.AddPair(
+    'tamanho_descricao',
+    TamanhoDescricao
+  );
+
+  Result.AddPair(
+    'valor_base',
+    CurrencyToJSONValue(ValorBase)
+  );
+
+  if not BordaId.Trim.IsEmpty then
+    Result.AddPair(
+      'borda_id',
+      BordaId
+    )
+  else
+    Result.AddPair(
+      'borda_id',
+      TJSONNull.Create
+    );
+
+  Result.AddPair(
+    'borda_descricao',
+    BordaDescricao
+  );
+
+  Result.AddPair(
+    'valor_borda',
+    CurrencyToJSONValue(ValorBorda)
+  );
+
+  Result.AddPair(
+    'quantidade',
+    TJSONNumber.Create(Quantidade)
+  );
+
+  Result.AddPair(
+    'observacao',
+    Observacao
+  );
+
+  Result.AddPair(
+    'valor_unitario',
+    CurrencyToJSONValue(ValorUnitario)
+  );
+
+  Result.AddPair(
+    'valor_total',
+    CurrencyToJSONValue(ValorTotal)
+  );
+
+  LArraySabores := TJSONArray.Create;
+
+  for LSabor in FSabores do
+    LArraySabores.AddElement(
+      LSabor.ToJSON
+    );
+
+  Result.AddPair(
+    'sabores',
+    LArraySabores
+  );
+end;
+
+{ TPedido }
+
+constructor TPedido.Create;
+begin
+  inherited;
+
+  FItens :=
+    TObjectList<TItemPedido>.Create(True);
+
+  EmpresaId := '1';
+  Desconto := 0;
+  Acrescimo := 0;
+end;
+
+destructor TPedido.Destroy;
+begin
+  FItens.Free;
+
+  inherited;
+end;
+
+procedure TPedido.CarregarDoCarrinho;
+var
+  LItemCarrinho: TItemCarrinho;
+  LSaborCarrinho: TSaborCarrinho;
+
+  LItemPedido: TItemPedido;
+  LSaborPedido: TSaborPedido;
+begin
+  FItens.Clear;
+
+  for LItemCarrinho in
+    TCarrinho.Instancia.Itens do
+  begin
+    LItemPedido := TItemPedido.Create;
+
+    LItemPedido.Identificador :=
+      LItemCarrinho.Identificador;
+
+    LItemPedido.ProdutoId :=
+      LItemCarrinho.ProdutoId;
+
+    LItemPedido.ProdutoDescricao :=
+      LItemCarrinho.ProdutoDescricao;
+
+    LItemPedido.TipoProduto := 'PIZZA';
+
+    LItemPedido.TamanhoId :=
+      LItemCarrinho.TamanhoId;
+
+    LItemPedido.TamanhoDescricao :=
+      LItemCarrinho.TamanhoDescricao;
+
+    LItemPedido.ValorBase :=
+      LItemCarrinho.ValorBase;
+
+    LItemPedido.BordaId :=
+      LItemCarrinho.BordaId;
+
+    LItemPedido.BordaDescricao :=
+      LItemCarrinho.BordaDescricao;
+
+    LItemPedido.ValorBorda :=
+      LItemCarrinho.ValorBorda;
+
+    LItemPedido.Quantidade :=
+      LItemCarrinho.Quantidade;
+
+    LItemPedido.Observacao :=
+      LItemCarrinho.Observacao;
+
+    LItemPedido.ValorUnitario :=
+      LItemCarrinho.ValorUnitario;
+
+    LItemPedido.ValorTotal :=
+      LItemCarrinho.ValorTotal;
+
+    for LSaborCarrinho in
+      LItemCarrinho.Sabores do
+    begin
+      LSaborPedido := TSaborPedido.Create;
+
+      LSaborPedido.Id :=
+        LSaborCarrinho.Id;
+
+      LSaborPedido.Descricao :=
+        LSaborCarrinho.Descricao;
+
+      LSaborPedido.Valor :=
+        LSaborCarrinho.Valor;
+
+      LItemPedido.Sabores.Add(
+        LSaborPedido
+      );
+    end;
+
+    FItens.Add(LItemPedido);
+  end;
+end;
+
+procedure TPedido.CarregarDadosFinalizacao(
+  ADados: TDadosFinalizacaoPedido);
+begin
+  if not Assigned(ADados) then
+    Exit;
+
+  ClienteNome := ADados.Nome;
+  ClienteTelefone := ADados.Telefone;
+
+  case ADados.TipoRecebimento of
+    trEntrega:
+      TipoRecebimento := 'DELIVERY';
+
+    trRetirada:
+      TipoRecebimento := 'RETIRADA';
+  end;
+
+  Cep := ADados.Cep;
+  Endereco := ADados.Endereco;
+  Numero := ADados.Numero;
+  Complemento := ADados.Complemento;
+  Bairro := ADados.Bairro;
+  Referencia := ADados.Referencia;
+
+  FormaPagamento := ADados.FormaPagamento;
+  ValorTroco := ADados.ValorTroco;
+  Observacao := ADados.Observacao;
+
+  Subtotal := ADados.Subtotal;
+  TaxaEntrega := ADados.TaxaEntrega;
+  Total := ADados.Total;
+
+  Desconto := 0;
+  Acrescimo := 0;
+end;
+
+function TPedido.ToJSON: TJSONObject;
+var
+  LCliente: TJSONObject;
+  LEndereco: TJSONObject;
+  LPagamento: TJSONObject;
+  LValores: TJSONObject;
+  LArrayItens: TJSONArray;
+  LItem: TItemPedido;
+begin
+  Result := TJSONObject.Create;
+
+  Result.AddPair(
+  'empresa_id',
+  EmpresaId
+);
+
+  LCliente := TJSONObject.Create;
+
+  LCliente.AddPair(
+    'nome',
+    ClienteNome
+  );
+
+  LCliente.AddPair(
+    'telefone',
+    ClienteTelefone
+  );
+
+  Result.AddPair(
+    'cliente',
+    LCliente
+  );
+
+  Result.AddPair(
+    'tipo_recebimento',
+    TipoRecebimento
+  );
+
+  LEndereco := TJSONObject.Create;
+
+  LEndereco.AddPair(
+    'cep',
+    Cep
+  );
+
+  LEndereco.AddPair(
+    'logradouro',
+    Endereco
+  );
+
+  LEndereco.AddPair(
+    'numero',
+    Numero
+  );
+
+  LEndereco.AddPair(
+    'complemento',
+    Complemento
+  );
+
+  LEndereco.AddPair(
+    'bairro',
+    Bairro
+  );
+
+  LEndereco.AddPair(
+    'referencia',
+    Referencia
+  );
+
+  Result.AddPair(
+    'endereco',
+    LEndereco
+  );
+
+  LPagamento := TJSONObject.Create;
+
+  LPagamento.AddPair(
+    'forma',
+    FormaPagamento
+  );
+
+  LPagamento.AddPair(
+    'troco_para',
+    CurrencyToJSONValue(ValorTroco)
+  );
+
+  Result.AddPair(
+    'pagamento',
+    LPagamento
+  );
+
+  Result.AddPair(
+    'observacao',
+    Observacao
+  );
+
+  LValores := TJSONObject.Create;
+
+  LValores.AddPair(
+    'subtotal',
+    CurrencyToJSONValue(Subtotal)
+  );
+
+  LValores.AddPair(
+    'desconto',
+    CurrencyToJSONValue(Desconto)
+  );
+
+  LValores.AddPair(
+    'taxa_entrega',
+    CurrencyToJSONValue(TaxaEntrega)
+  );
+
+  LValores.AddPair(
+   'acrescimo',
+    CurrencyToJSONValue(Acrescimo)
+  );
+
+  LValores.AddPair(
+    'total',
+    CurrencyToJSONValue(Total)
+  );
+
+  Result.AddPair(
+    'valores',
+    LValores
+  );
+
+  LArrayItens := TJSONArray.Create;
+
+  for LItem in FItens do
+    LArrayItens.AddElement(
+      LItem.ToJSON
+    );
+
+  Result.AddPair(
+    'itens',
+    LArrayItens
+  );
+end;
+
+function TPedido.ToJSONString: string;
+var
+  LJSON: TJSONObject;
+begin
+  LJSON := ToJSON;
+
+  try
+    Result :=
+      LJSON.ToJSON;
+  finally
+    LJSON.Free;
+  end;
+end;
+
+end.

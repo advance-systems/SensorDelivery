@@ -1,0 +1,40 @@
+unit uFrameSituacaoLoja;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Objects, FMX.Controls.Presentation, System.JSON;
+
+type
+  TfraSituacaoLoja = class(TFrame)
+    rctFundo: TRectangle;
+    rctConteudo: TRectangle;
+    cirStatus: TCircle;
+    lblFiguraStatus: TLabel;
+    lblStatus: TLabel;
+    lblMensagem: TLabel;
+    rctHorario: TRectangle;
+    lblHorarioTitulo: TLabel;
+    lblHorarios: TLabel;
+    rctTentarNovamente: TRectangle;
+    lblTentarNovamente: TLabel;
+  private
+    FOnTentarNovamente: TNotifyEvent;
+
+    procedure MontarHorarios(AHorarios: TJSONArray);
+  public
+    procedure MostrarFechada(const AMensagem: string; AHorarios: TJSONArray);
+    procedure MostrarIndisponivel;
+
+    property OnTentarNovamente: TNotifyEvent
+      read FOnTentarNovamente
+      write FOnTentarNovamente;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+end.

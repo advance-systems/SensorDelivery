@@ -1,0 +1,1136 @@
+unit uPrincipalAdmin;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
+  FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Edit,
+  uFramePedidoKanban, System.Math, uFrameCentralPedidos, uFrameCardapio,
+  uFrameClientes, uFrameConfiguracoes, uFrameEntregadores, uFrameFinanceiro,
+  uFramePedidos, uFramePromocoes, uFrameRelatorios;
+
+type
+  TMenuAdmin = (
+    maCentralPedidos,
+    maPedidos,
+    maClientes,
+    maCardapio,
+    maPromocoes,
+    maEntregadores,
+    maFinanceiro,
+    maRelatorios,
+    maConfiguracoes
+  );
+
+  TfrmPrincipalAdmin = class(TForm)
+    rctFundo: TRectangle;
+    lytMenuLateral: TLayout;
+    rctMenuLateral: TRectangle;
+    lytLogo: TLayout;
+    imgLogoIcone: TImage;
+    vsbMenu: TVertScrollBox;
+    lytItensMenu: TLayout;
+    rctSair: TRectangle;
+    lytConteudo: TLayout;
+    lytTopo: TLayout;
+    rctPesquisa: TRectangle;
+    edtPesquisa: TEdit;
+    lblIconePesquisa: TLabel;
+    lytAcoesTopo: TLayout;
+    rctNotificacoes: TRectangle;
+    lblNotificacoes: TLabel;
+    rctConfiguracoes: TRectangle;
+    lblConfiguracoes: TLabel;
+    rctUsuario: TRectangle;
+    lytUsuarioConteudo: TLayout;
+    crcUsuario: TCircle;
+    lblUsuarioNome: TLabel;
+    lblUsuarioPerfil: TLabel;
+    lblAvatar: TLabel;
+    pthUsuarioSeta: TPath;
+    lytContainerPagina: TLayout;
+    rctMenuCentralPedidos: TRectangle;
+    rctIndicadorCentralPedidos: TRectangle;
+    pthMenuCentralPedidos: TPath;
+    lblMenuCentralPedidos: TLabel;
+    rctMenuPedidos: TRectangle;
+    rctIndicadorPedidos: TRectangle;
+    pthMenuPedidos: TPath;
+    lblMenuPedidos: TLabel;
+    rctMenuClientes: TRectangle;
+    rctIndicadorClientes: TRectangle;
+    pthMenuClientes: TPath;
+    lblMenuClientes: TLabel;
+    rctMenuCardapio: TRectangle;
+    rctIndicadorCardapio: TRectangle;
+    pthMenuCardapio: TPath;
+    lblMenuCardapio: TLabel;
+    rctMenuPromocoes: TRectangle;
+    rctIndicadorPromocoes: TRectangle;
+    pthMenuPromocoes: TPath;
+    lblMenuPromocoes: TLabel;
+    rctMenuConfiguracoes: TRectangle;
+    rctIndicadorConfiguracoes: TRectangle;
+    pthMenuConfiguracoes: TPath;
+    lblMenuConfiguracoes: TLabel;
+    rctMenuRelatorios: TRectangle;
+    rctIndicadorRelatorios: TRectangle;
+    pthMenuRelatorios: TPath;
+    lblMenuRelatorios: TLabel;
+    rctMenuFinanceiro: TRectangle;
+    rctIndicadorFinanceiro: TRectangle;
+    pthMenuFinanceiro: TPath;
+    lblMenuFinanceiro: TLabel;
+    rctMenuEntregadores: TRectangle;
+    rctIndicadorEntregadores: TRectangle;
+    pthMenuEntregadores: TPath;
+    lblMenuEntregadores: TLabel;
+    lblSair: TLabel;
+    pthSair: TPath;
+    lytPaginaCentralPedidos: TLayout;
+    lytPaginaPedidos: TLayout;
+    lytPaginaClientes: TLayout;
+    lytPaginaCardapio: TLayout;
+    lytPaginaPromocoes: TLayout;
+    lytPaginaEntregadores: TLayout;
+    lytPaginaFinanceiro: TLayout;
+    lytPaginaRelatorios: TLayout;
+    lytPaginaConfiguracoes: TLayout;
+    procedure rctUsuarioClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure hsbKanbanViewportPositionChange(Sender: TObject;
+      const OldViewportPosition, NewViewportPosition: TPointF;
+      const ContentSizeChanged: Boolean);
+    procedure FormResize(Sender: TObject);
+    procedure rctTrilhoHorizontalMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+    procedure rctIndicadorHorizontalMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+    procedure rctIndicadorHorizontalMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
+    procedure rctIndicadorHorizontalMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+    procedure rctSairMouseEnter(Sender: TObject);
+    procedure rctSairMouseLeave(Sender: TObject);
+    procedure rctSairClick(Sender: TObject);
+    procedure rctMenuCentralPedidosClick(Sender: TObject);
+    procedure rctMenuPedidosClick(Sender: TObject);
+    procedure rctMenuClientesClick(Sender: TObject);
+    procedure rctMenuCardapioClick(Sender: TObject);
+    procedure rctMenuPromocoesClick(Sender: TObject);
+    procedure rctMenuEntregadoresClick(Sender: TObject);
+    procedure rctMenuFinanceiroClick(Sender: TObject);
+    procedure rctMenuRelatoriosClick(Sender: TObject);
+    procedure rctMenuConfiguracoesClick(Sender: TObject);
+    procedure rctMenuPedidosMouseEnter(Sender: TObject);
+    procedure rctMenuPedidosMouseLeave(Sender: TObject);
+    procedure rctMenuClientesMouseEnter(Sender: TObject);
+    procedure rctMenuClientesMouseLeave(Sender: TObject);
+    procedure rctMenuCardapioMouseEnter(Sender: TObject);
+    procedure rctMenuCardapioMouseLeave(Sender: TObject);
+    procedure rctMenuPromocoesMouseEnter(Sender: TObject);
+    procedure rctMenuPromocoesMouseLeave(Sender: TObject);
+    procedure rctMenuEntregadoresMouseEnter(Sender: TObject);
+    procedure rctMenuEntregadoresMouseLeave(Sender: TObject);
+    procedure rctMenuFinanceiroMouseEnter(Sender: TObject);
+    procedure rctMenuFinanceiroMouseLeave(Sender: TObject);
+    procedure rctMenuRelatoriosMouseEnter(Sender: TObject);
+    procedure rctMenuRelatoriosMouseLeave(Sender: TObject);
+    procedure rctMenuConfiguracoesMouseEnter(Sender: TObject);
+    procedure rctMenuConfiguracoesMouseLeave(Sender: TObject);
+    procedure rctMenuCentralPedidosMouseEnter(Sender: TObject);
+    procedure rctMenuCentralPedidosMouseLeave(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+  private
+    FArrastandoBarra: Boolean;
+    FMouseInicialAbsoluto: Single;
+    FIndicadorInicialX: Single;
+    FMenuSelecionado: TMenuAdmin;
+    FFrameAtual: TFrame;
+    FCentralPedidos: TfraCentralPedidos;
+    FPedidos: TfraPedidos;
+    FClientes: TfraClientes;
+    FCardapio: TfraCardapio;
+    FPromocoes: TfraPromocoes;
+    FEntregadores: TfraEntregadores;
+    FFinanceiro: TfraFinanceiro;
+    FRelatorios: TfraRelatorios;
+    FConfiguracoes: TfraConfiguracoes;
+
+    procedure AdicionarPedidoTeste;
+    procedure PedidoAvancarStatus(Sender: TObject; const APedidoId: Integer; const AStatusAtual: TStatusPedidoKanban);
+    procedure AtualizarContadores;
+    function ContarCards(const AContainer: TFmxObject): Integer;
+    procedure ConfigurarBarrasRolagem;
+    procedure AtualizarBarraHorizontal;
+    procedure AplicarPosicaoIndicador(const AX: Single);
+    procedure MoverFrameParaContainer(const AFrame: TfraPedidoKanban; const AContainer: TFmxObject);
+    procedure SelecionarMenu(const AMenu: TMenuAdmin);
+    procedure ConfigurarItemMenu(const ARectangle: TRectangle; const APath: TPath; const ALabel: TLabel; const ASelecionado: Boolean);
+    procedure ConfigurarIndicadorMenu(const ARectangle: TRectangle; const ASelecionado: Boolean);
+    procedure AplicarHoverMenu(const ARectangle: TRectangle; const APath: TPath; const ALabel: TLabel; const AMenu: TMenuAdmin; const AEntrou: Boolean);
+    procedure CriarFrames;
+    procedure OcultarFrames;
+    procedure MostrarFrame(const AFrame: TFrame);
+    procedure ExibirFrame(const AMenu: TMenuAdmin);
+    procedure PrepararFrame(const AFrame: TFrame);
+    procedure ConfigurarIcones;
+
+    function ProximoStatusPedido(const AStatusAtual: TStatusPedidoKanban; const ATipoEntrega: TTipoEntrega): TStatusPedidoKanban;
+    function ObterContainerStatus(const AStatus: TStatusPedidoKanban): TFmxObject;
+    function DescricaoStatus(const AStatus: TStatusPedidoKanban): string;
+  public
+    { Public declarations }
+  end;
+
+var
+  frmPrincipalAdmin: TfrmPrincipalAdmin;
+
+implementation
+
+{$R *.fmx}
+
+uses uMensagem, uSensorIcons;
+
+procedure TfrmPrincipalAdmin.CarregarPedidosTeste;
+begin
+end;
+
+procedure TfrmPrincipalAdmin.AdicionarCardTeste(
+  const AContainer: TFmxObject;
+  const APedidoId: Integer;
+  const ANumero: string;
+  const ACliente: string;
+  const AHorario: TTime;
+  const ATempoEspera: Integer;
+  const AItens: string;
+  const AObservacao: string;
+  const ATotal: Currency;
+  const ATipoEntrega: TTipoEntrega;
+  const AStatus: TStatusPedidoKanban);
+var
+  LFrame: TfraPedidoKanban;
+  LDestinoReal: TFmxObject;
+begin
+  if not Assigned(AContainer) then
+    Exit;
+
+  if AContainer is TVertScrollBox then
+    LDestinoReal := TVertScrollBox(AContainer).Content
+  else
+    LDestinoReal := AContainer;
+
+  LFrame := TfraPedidoKanban.Create(LDestinoReal);
+
+  LFrame.Name := '';
+  LFrame.Parent := LDestinoReal;
+  LFrame.Align := TAlignLayout.Top;
+  LFrame.Height := 178;
+
+  LFrame.Preencher(
+    APedidoId,
+    ANumero,
+    ACliente,
+    AHorario,
+    ATempoEspera,
+    AItens,
+    AObservacao,
+    ATotal,
+    ATipoEntrega,
+    AStatus
+  );
+
+  LFrame.OnAvancarStatus := PedidoAvancarStatus;
+end;
+
+procedure TfrmPrincipalAdmin.AdicionarPedidoTeste;
+var
+  LFrame: TfraPedidoKanban;
+begin
+{  LFrame := TfraPedidoKanban.Create(vsbPedidosNovos);
+
+  LFrame.Name := '';
+  LFrame.Parent := vsbPedidosNovos;
+  LFrame.Align := TAlignLayout.Top;
+  LFrame.Margins.Bottom := 10;
+
+{  LFrame.Preencher(
+    1,
+    'Pedido #1024',
+    'João da Silva',
+    EncodeTime(19, 42, 0, 0),
+    8,
+    '1x Pizza Grande Calabresa' + sLineBreak +
+    '1x Coca-Cola 2L',
+    'Sem cebola',
+    78.90,
+    teDelivery,
+    spNovo
+  );
+}
+//  LFrame.OnAvancarStatus := PedidoAvancarStatus;
+end;
+
+procedure TfrmPrincipalAdmin.FormCreate(Sender: TObject);
+begin
+  FFrameAtual := nil;
+
+  ConfigurarIcones;
+  ConfigurarBarrasRolagem;
+  AdicionarPedidoTeste;
+  AtualizarContadores;
+
+  CriarFrames;
+
+//  rctIndicadorHorizontal.BringToFront;
+
+  TThread.ForceQueue(nil,
+  procedure
+    begin
+      AtualizarBarraHorizontal;
+    end
+  );
+
+  SelecionarMenu(maCentralPedidos);
+end;
+
+procedure TfrmPrincipalAdmin.FormDestroy(Sender: TObject);
+begin
+  FFrameAtual := nil;
+  FCentralPedidos := nil;
+end;
+
+procedure TfrmPrincipalAdmin.FormResize(Sender: TObject);
+begin
+  AtualizarBarraHorizontal;
+end;
+
+procedure TfrmPrincipalAdmin.hsbKanbanViewportPositionChange(Sender: TObject;
+  const OldViewportPosition, NewViewportPosition: TPointF;
+  const ContentSizeChanged: Boolean);
+begin
+  if not FArrastandoBarra then
+    AtualizarBarraHorizontal;
+end;
+
+procedure TfrmPrincipalAdmin.PedidoAvancarStatus(
+  Sender: TObject;
+  const APedidoId: Integer;
+  const AStatusAtual: TStatusPedidoKanban);
+var
+  LFrame: TfraPedidoKanban;
+  LProximoStatus: TStatusPedidoKanban;
+  LDestino: TFmxObject;
+  LConfirmado: Boolean;
+begin
+  if not (Sender is TfraPedidoKanban) then
+    Exit;
+
+  LFrame := TfraPedidoKanban(Sender);
+
+  LProximoStatus := ProximoStatusPedido(
+    AStatusAtual,
+    LFrame.TipoEntrega
+  );
+
+  LConfirmado := TfrmMensagem.Exibir(
+    'Alterar status',
+    'Deseja avançar o pedido para "' +
+    DescricaoStatus(LProximoStatus) + '"?',
+    tmConfirmacao,
+    True,
+    'Avançar',
+    'Cancelar'
+  );
+
+  if not LConfirmado then
+    Exit;
+
+  if LProximoStatus = spFinalizado then
+  begin
+    LFrame.AlterarStatus(spFinalizado);
+
+    LFrame.DisposeOf;
+
+    AtualizarContadores;
+
+    TfrmMensagem.Exibir(
+      'Pedido finalizado',
+      'O pedido foi finalizado com sucesso.',
+      tmSucesso
+    );
+
+    Exit;
+  end;
+
+  LDestino := ObterContainerStatus(LProximoStatus);
+
+  if not Assigned(LDestino) then
+  begin
+    TfrmMensagem.Exibir(
+      'Erro',
+      'Não foi possível localizar a coluna de destino.',
+      tmErro
+    );
+
+    Exit;
+  end;
+
+  MoverFrameParaContainer(
+    LFrame,
+    LDestino
+  );
+
+  LFrame.AlterarStatus(
+    LProximoStatus
+  );
+
+  AtualizarContadores;
+end;
+
+procedure TfrmPrincipalAdmin.AtualizarContadores;
+begin
+{  lblContadorNovos.Text :=
+    ContarCards(vsbPedidosNovos).ToString;
+
+  lblContadorConfirmados.Text :=
+    ContarCards(vsbPedidosConfirmados).ToString;
+
+  lblContadorEmPreparo.Text :=
+    ContarCards(vsbPedidosEmPreparo).ToString;
+
+  lblContadorProntos.Text :=
+    ContarCards(vsbPedidosProntos).ToString;
+
+  lblContadorEmEntrega.Text :=
+    ContarCards(vsbPedidosEmEntrega).ToString;}
+end;
+
+function TfrmPrincipalAdmin.ContarCards(
+  const AContainer: TFmxObject): Integer;
+var
+  I: Integer;
+  LContainerReal: TFmxObject;
+begin
+  Result := 0;
+
+  if not Assigned(AContainer) then
+    Exit;
+
+  if AContainer is TVertScrollBox then
+    LContainerReal := TVertScrollBox(AContainer).Content
+  else
+    LContainerReal := AContainer;
+
+  for I := 0 to LContainerReal.ChildrenCount - 1 do
+  begin
+    if LContainerReal.Children[I] is TfraPedidoKanban then
+      Inc(Result);
+  end;
+end;
+
+procedure TfrmPrincipalAdmin.ConfigurarBarrasRolagem;
+begin
+{  vsbPedidosNovos.ShowScrollBars := False;
+  vsbPedidosConfirmados.ShowScrollBars := False;
+  vsbPedidosEmPreparo.ShowScrollBars := False;
+  vsbPedidosProntos.ShowScrollBars := False;
+  vsbPedidosEmEntrega.ShowScrollBars := False;
+
+  hsbKanban.ShowScrollBars := False;}
+end;
+
+procedure TfrmPrincipalAdmin.AtualizarBarraHorizontal;
+var
+  LAreaVisivel: Single;
+  LAreaTotal: Single;
+  LLarguraTrilho: Single;
+  LLarguraIndicador: Single;
+  LMaxScroll: Single;
+  LMaxIndicador: Single;
+  LPercentual: Single;
+begin
+{  LAreaVisivel := hsbKanban.Width;
+  LAreaTotal := lytColunasKanban.Width;
+  LLarguraTrilho := rctTrilhoHorizontal.Width;
+
+  if (LAreaVisivel <= 0) or
+     (LAreaTotal <= 0) or
+     (LLarguraTrilho <= 0) then
+    Exit;
+
+  if LAreaTotal <= LAreaVisivel then
+  begin
+    lytBarraHorizontal.Visible := False;
+    Exit;
+  end;
+
+  lytBarraHorizontal.Visible := True;
+
+  LLarguraIndicador :=
+    LLarguraTrilho *
+    (LAreaVisivel / LAreaTotal);
+
+  LLarguraIndicador := EnsureRange(
+    LLarguraIndicador,
+    80,
+    LLarguraTrilho
+  );
+
+  rctIndicadorHorizontal.Width :=
+    LLarguraIndicador;
+
+  LMaxScroll :=
+    LAreaTotal - LAreaVisivel;
+
+  LMaxIndicador :=
+    LLarguraTrilho - LLarguraIndicador;
+
+  if (LMaxScroll <= 0) or
+     (LMaxIndicador <= 0) then
+  begin
+    rctIndicadorHorizontal.Position.X := 0;
+    Exit;
+  end;
+
+  LPercentual :=
+    hsbKanban.ViewportPosition.X /
+    LMaxScroll;
+
+  LPercentual :=
+    EnsureRange(LPercentual, 0, 1);
+
+  rctIndicadorHorizontal.Position.X :=
+    LMaxIndicador * LPercentual;}
+end;
+
+procedure TfrmPrincipalAdmin.AplicarPosicaoIndicador(
+  const AX: Single);
+var
+  LNovaPosicao: Single;
+  LMaxIndicador: Single;
+  LMaxScroll: Single;
+  LPercentual: Single;
+begin
+{  LMaxIndicador :=
+    rctTrilhoHorizontal.Width -
+    rctIndicadorHorizontal.Width;
+
+  if LMaxIndicador <= 0 then
+    Exit;
+
+  LNovaPosicao := EnsureRange(
+    AX,
+    0,
+    LMaxIndicador
+  );
+
+  rctIndicadorHorizontal.Position.X := LNovaPosicao;
+
+  LMaxScroll :=
+    lytColunasKanban.Width -
+    hsbKanban.Width;
+
+  if LMaxScroll <= 0 then
+    Exit;
+
+  LPercentual :=
+    LNovaPosicao / LMaxIndicador;
+
+  hsbKanban.ViewportPosition := PointF(
+    LMaxScroll * LPercentual,
+    hsbKanban.ViewportPosition.Y
+  );}
+end;
+
+procedure TfrmPrincipalAdmin.rctUsuarioClick(Sender: TObject);
+begin
+  if pthUsuarioSeta.RotationAngle = 0 then
+    pthUsuarioSeta.RotationAngle := 180
+  else
+    pthUsuarioSeta.RotationAngle := 0;
+end;
+
+procedure TfrmPrincipalAdmin.rctIndicadorHorizontalMouseDown(
+  Sender: TObject;
+  Button: TMouseButton;
+  Shift: TShiftState;
+  X, Y: Single);
+var
+  LPontoAbsoluto: TPointF;
+begin
+{  if Button <> TMouseButton.mbLeft then
+    Exit;
+
+  FArrastandoBarra := True;
+
+  LPontoAbsoluto :=
+    rctIndicadorHorizontal.LocalToAbsolute(
+      PointF(X, Y)
+    );
+
+  FMouseInicialAbsoluto := LPontoAbsoluto.X;
+
+  FIndicadorInicialX :=
+    rctIndicadorHorizontal.Position.X;}
+end;
+
+procedure TfrmPrincipalAdmin.rctIndicadorHorizontalMouseMove(
+  Sender: TObject;
+  Shift: TShiftState;
+  X, Y: Single);
+var
+  LPontoAbsoluto: TPointF;
+  LDeslocamento: Single;
+  LNovaPosicao: Single;
+begin
+{  if not FArrastandoBarra then
+    Exit;
+
+  if not (ssLeft in Shift) then
+  begin
+    FArrastandoBarra := False;
+    Exit;
+  end;
+
+  LPontoAbsoluto :=
+    rctIndicadorHorizontal.LocalToAbsolute(
+      PointF(X, Y)
+    );
+
+  LDeslocamento :=
+    LPontoAbsoluto.X -
+    FMouseInicialAbsoluto;
+
+  LNovaPosicao :=
+    FIndicadorInicialX +
+    LDeslocamento;
+
+  AplicarPosicaoIndicador(LNovaPosicao);}
+end;
+
+procedure TfrmPrincipalAdmin.rctIndicadorHorizontalMouseUp(
+  Sender: TObject;
+  Button: TMouseButton;
+  Shift: TShiftState;
+  X, Y: Single);
+begin
+  FArrastandoBarra := False;
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuCardapioClick(Sender: TObject);
+begin
+  SelecionarMenu(maCardapio);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuCardapioMouseEnter(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuCardapio, pthMenuCardapio, lblMenuCardapio, maCardapio, True);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuCardapioMouseLeave(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuCardapio, pthMenuCardapio, lblMenuCardapio, maCardapio, False);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuCentralPedidosClick(Sender: TObject);
+begin
+  SelecionarMenu(maCentralPedidos);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuCentralPedidosMouseEnter(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuCentralPedidos, pthMenuCentralPedidos, lblMenuCentralPedidos, maCentralPedidos, True);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuCentralPedidosMouseLeave(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuCentralPedidos, pthMenuCentralPedidos, lblMenuCentralPedidos, maCentralPedidos, False);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuClientesClick(Sender: TObject);
+begin
+  SelecionarMenu(maClientes);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuClientesMouseEnter(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuClientes, pthMenuClientes, lblMenuClientes, maClientes, True);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuClientesMouseLeave(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuClientes, pthMenuClientes, lblMenuClientes, maClientes, False);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuConfiguracoesClick(Sender: TObject);
+begin
+  SelecionarMenu(maConfiguracoes);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuConfiguracoesMouseEnter(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuConfiguracoes, pthMenuConfiguracoes, lblMenuConfiguracoes, maConfiguracoes, True);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuConfiguracoesMouseLeave(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuConfiguracoes, pthMenuConfiguracoes, lblMenuConfiguracoes, maConfiguracoes, False);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuEntregadoresClick(Sender: TObject);
+begin
+  SelecionarMenu(maEntregadores);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuEntregadoresMouseEnter(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuEntregadores, pthMenuEntregadores, lblMenuEntregadores, maEntregadores, True);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuEntregadoresMouseLeave(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuEntregadores, pthMenuEntregadores, lblMenuEntregadores, maEntregadores, False);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuFinanceiroClick(Sender: TObject);
+begin
+  SelecionarMenu(maFinanceiro);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuFinanceiroMouseEnter(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuFinanceiro, pthMenuFinanceiro, lblMenuFinanceiro, maFinanceiro, True);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuFinanceiroMouseLeave(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuFinanceiro, pthMenuFinanceiro, lblMenuFinanceiro, maFinanceiro, False);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuPedidosClick(Sender: TObject);
+begin
+  SelecionarMenu(maPedidos);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuPedidosMouseEnter(Sender: TObject);
+begin
+   AplicarHoverMenu(rctMenuPedidos, pthMenuPedidos, lblMenuPedidos, maPedidos, True);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuPedidosMouseLeave(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuPedidos, pthMenuPedidos, lblMenuPedidos, maPedidos, False);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuPromocoesClick(Sender: TObject);
+begin
+  SelecionarMenu(maPromocoes);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuPromocoesMouseEnter(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuPromocoes, pthMenuPromocoes, lblMenuPromocoes, maPromocoes, True);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuPromocoesMouseLeave(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuPromocoes, pthMenuPromocoes, lblMenuPromocoes, maPromocoes, False);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuRelatoriosClick(Sender: TObject);
+begin
+  SelecionarMenu(maRelatorios);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuRelatoriosMouseEnter(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuRelatorios, pthMenuRelatorios, lblMenuRelatorios, maRelatorios, True);
+end;
+
+procedure TfrmPrincipalAdmin.rctMenuRelatoriosMouseLeave(Sender: TObject);
+begin
+  AplicarHoverMenu(rctMenuRelatorios, pthMenuRelatorios, lblMenuRelatorios, maRelatorios, False);
+end;
+
+procedure TfrmPrincipalAdmin.rctSairClick(Sender: TObject);
+begin
+  if not TfrmMensagem.Exibir(
+    'Sair do sistema',
+    'Deseja realmente encerrar o painel administrativo?',
+    tmConfirmacao,
+    True,
+    'Sair',
+    'Cancelar'
+  ) then
+    Exit;
+
+  Close;
+end;
+
+procedure TfrmPrincipalAdmin.rctSairMouseEnter(Sender: TObject);
+begin
+  rctSair.Fill.Color := $28FF5A65;
+  rctSair.Stroke.Color := $66FF5A65;
+
+  pthSair.Fill.Color := $FFFF7A83;
+  lblSair.TextSettings.FontColor := $FFFF7A83;
+end;
+
+procedure TfrmPrincipalAdmin.rctSairMouseLeave(Sender: TObject);
+begin
+  rctSair.Fill.Color := $141F2A3A;
+  rctSair.Stroke.Color := $3346576D;
+
+  pthSair.Fill.Color := $FFFF5A65;
+  lblSair.TextSettings.FontColor := $FFFF6B75;
+end;
+
+function TfrmPrincipalAdmin.ProximoStatusPedido(
+  const AStatusAtual: TStatusPedidoKanban;
+  const ATipoEntrega: TTipoEntrega
+): TStatusPedidoKanban;
+begin
+  case AStatusAtual of
+    spNovo:
+      Result := spConfirmado;
+
+    spConfirmado:
+      Result := spEmPreparo;
+
+    spEmPreparo:
+      Result := spPronto;
+
+    spPronto:
+      begin
+        if ATipoEntrega = teDelivery then
+          Result := spEmEntrega
+        else
+          Result := spFinalizado;
+      end;
+
+    spEmEntrega:
+      Result := spFinalizado;
+
+  else
+    Result := spFinalizado;
+  end;
+end;
+
+function TfrmPrincipalAdmin.ObterContainerStatus(
+  const AStatus: TStatusPedidoKanban
+): TFmxObject;
+begin
+{  case AStatus of
+    spNovo:
+      Result := vsbPedidosNovos;
+
+    spConfirmado:
+      Result := vsbPedidosConfirmados;
+
+    spEmPreparo:
+      Result := vsbPedidosEmPreparo;
+
+    spPronto:
+      Result := vsbPedidosProntos;
+
+    spEmEntrega:
+      Result := vsbPedidosEmEntrega;
+
+  else
+    Result := nil;
+  end;}
+end;
+
+function TfrmPrincipalAdmin.DescricaoStatus(
+  const AStatus: TStatusPedidoKanban
+): string;
+begin
+  case AStatus of
+    spNovo:
+      Result := 'Novo';
+
+    spConfirmado:
+      Result := 'Confirmado';
+
+    spEmPreparo:
+      Result := 'Em preparo';
+
+    spPronto:
+      Result := 'Pronto';
+
+    spEmEntrega:
+      Result := 'Em entrega';
+
+    spFinalizado:
+      Result := 'Finalizado';
+
+  else
+    Result := '';
+  end;
+end;
+
+procedure TfrmPrincipalAdmin.MoverFrameParaContainer(
+  const AFrame: TfraPedidoKanban;
+  const AContainer: TFmxObject);
+var
+  LDestinoReal: TFmxObject;
+begin
+  if not Assigned(AFrame) then
+    Exit;
+
+  if not Assigned(AContainer) then
+    Exit;
+
+  if AContainer is TVertScrollBox then
+    LDestinoReal := TVertScrollBox(AContainer).Content
+  else
+    LDestinoReal := AContainer;
+
+  AFrame.Align := TAlignLayout.None;
+  AFrame.Parent := LDestinoReal;
+
+  AFrame.Align := TAlignLayout.Top;
+  AFrame.Height := 178;
+
+  AFrame.Margins.Left := 0;
+  AFrame.Margins.Top := 0;
+  AFrame.Margins.Right := 0;
+  AFrame.Margins.Bottom := 10;
+
+  AFrame.BringToFront;
+end;
+
+procedure TfrmPrincipalAdmin.ConfigurarItemMenu(const ARectangle: TRectangle; const APath: TPath; const ALabel: TLabel; const ASelecionado: Boolean);
+begin
+  if not Assigned(ARectangle) then
+    Exit;
+
+  if ASelecionado then
+  begin
+    ARectangle.Fill.Color := $2A9B6CFF;
+
+    if Assigned(APath) then
+      APath.Fill.Color := $FFB996FF;
+
+    if Assigned(ALabel) then
+    begin
+      ALabel.TextSettings.FontColor := $FFCAB5FF;
+      ALabel.TextSettings.Font.Style := [TFontStyle.fsBold];
+    end;
+  end
+  else
+  begin
+    ARectangle.Fill.Color := $00000000;
+
+    if Assigned(APath) then
+      APath.Fill.Color := $FF9CAABC;
+
+    if Assigned(ALabel) then
+    begin
+      ALabel.TextSettings.FontColor := $FFD5DCE6;
+      ALabel.TextSettings.Font.Style := [];
+    end;
+  end;
+end;
+
+procedure TfrmPrincipalAdmin.ConfigurarIcones;
+begin
+  TSensorIcon.Pedido(pthMenuPedidos, $FF9CAABC);
+  TSensorIcon.Usuario(pthMenuClientes, $FF9CAABC);
+  TSensorIcon.Pizza(pthMenuCardapio, $FF9CAABC);
+  TSensorIcon.Entrega(pthMenuEntregadores, $FF9CAABC);
+  TSensorIcon.Dinheiro(pthMenuFinanceiro, $FF9CAABC);
+  TSensorIcon.Relatorio(pthMenuRelatorios, $FF9CAABC);
+  TSensorIcon.Configuracao(pthMenuConfiguracoes, $FF9CAABC);
+  TSensorIcon.Sair(pthSair, $FFFF5A65);
+end;
+
+procedure TfrmPrincipalAdmin.ConfigurarIndicadorMenu(
+  const ARectangle: TRectangle;
+  const ASelecionado: Boolean);
+begin
+  if not Assigned(ARectangle) then
+    Exit;
+
+  ARectangle.Visible := ASelecionado;
+end;
+
+procedure TfrmPrincipalAdmin.SelecionarMenu(const AMenu: TMenuAdmin);
+begin
+  FMenuSelecionado := AMenu;
+
+  ConfigurarItemMenu(rctMenuCentralPedidos, pthMenuCentralPedidos, lblMenuCentralPedidos, AMenu = maCentralPedidos);
+  ConfigurarIndicadorMenu(rctIndicadorCentralPedidos, AMenu = maCentralPedidos);
+  ConfigurarItemMenu(rctMenuPedidos, pthMenuPedidos, lblMenuPedidos, AMenu = maPedidos);
+  ConfigurarIndicadorMenu(rctIndicadorPedidos, AMenu = maPedidos);
+  ConfigurarItemMenu(rctMenuClientes, pthMenuClientes, lblMenuClientes, AMenu = maClientes);
+  ConfigurarIndicadorMenu(rctIndicadorClientes, AMenu = maClientes);
+  ConfigurarItemMenu(rctMenuCardapio, pthMenuCardapio, lblMenuCardapio, AMenu = maCardapio);
+  ConfigurarIndicadorMenu(rctIndicadorCardapio, AMenu = maCardapio);
+  ConfigurarItemMenu(rctMenuPromocoes, pthMenuPromocoes, lblMenuPromocoes, AMenu = maPromocoes);
+  ConfigurarIndicadorMenu(rctIndicadorPromocoes, AMenu = maPromocoes);
+  ConfigurarItemMenu(rctMenuEntregadores, pthMenuEntregadores, lblMenuEntregadores, AMenu = maEntregadores);
+  ConfigurarIndicadorMenu(rctIndicadorEntregadores, AMenu = maEntregadores);
+  ConfigurarItemMenu(rctMenuFinanceiro, pthMenuFinanceiro, lblMenuFinanceiro, AMenu = maFinanceiro);
+  ConfigurarIndicadorMenu(rctIndicadorFinanceiro, AMenu = maFinanceiro);
+  ConfigurarItemMenu(rctMenuRelatorios, pthMenuRelatorios, lblMenuRelatorios, AMenu = maRelatorios);
+  ConfigurarIndicadorMenu(rctIndicadorRelatorios, AMenu = maRelatorios);
+  ConfigurarItemMenu(rctMenuConfiguracoes, pthMenuConfiguracoes, lblMenuConfiguracoes, AMenu = maConfiguracoes);
+  ConfigurarIndicadorMenu(rctIndicadorConfiguracoes, AMenu = maConfiguracoes);
+
+  ExibirFrame(AMenu);
+end;
+
+procedure TfrmPrincipalAdmin.AplicarHoverMenu(
+  const ARectangle: TRectangle;
+  const APath: TPath;
+  const ALabel: TLabel;
+  const AMenu: TMenuAdmin;
+  const AEntrou: Boolean);
+begin
+  if not Assigned(ARectangle) then
+    Exit;
+
+  if FMenuSelecionado = AMenu then
+    Exit;
+
+  if AEntrou then
+  begin
+    ARectangle.Fill.Color := $FF18273A;
+
+    if Assigned(APath) then
+      APath.Fill.Color := $FFB6C1D0;
+
+    if Assigned(ALabel) then
+      ALabel.TextSettings.FontColor := $FFFFFFFF;
+  end
+  else
+  begin
+    ARectangle.Fill.Color := $00000000;
+
+    if Assigned(APath) then
+      APath.Fill.Color := $FF9CAABC;
+
+    if Assigned(ALabel) then
+      ALabel.TextSettings.FontColor := $FFD5DCE6;
+  end;
+end;
+
+procedure TfrmPrincipalAdmin.CriarFrames;
+begin
+  FCentralPedidos := TfraCentralPedidos.Create(Self);
+  PrepararFrame(FCentralPedidos);
+
+  FPedidos := TfraPedidos.Create(Self);
+  PrepararFrame(FPedidos);
+
+  FClientes := TfraClientes.Create(Self);
+  PrepararFrame(FClientes);
+
+  FCardapio := TfraCardapio.Create(Self);
+  PrepararFrame(FCardapio);
+
+  FPromocoes := TfraPromocoes.Create(Self);
+  PrepararFrame(FPromocoes);
+
+  FEntregadores := TfraEntregadores.Create(Self);
+  PrepararFrame(FEntregadores);
+
+  FFinanceiro := TfraFinanceiro.Create(Self);
+  PrepararFrame(FFinanceiro);
+
+  FRelatorios := TfraRelatorios.Create(Self);
+  PrepararFrame(FRelatorios);
+
+  FConfiguracoes := TfraConfiguracoes.Create(Self);
+  PrepararFrame(FConfiguracoes);
+end;
+
+procedure TfrmPrincipalAdmin.OcultarFrames;
+begin
+  if Assigned(FCentralPedidos) then
+    FCentralPedidos.Visible := False;
+end;
+
+procedure TfrmPrincipalAdmin.ExibirFrame(
+  const AMenu: TMenuAdmin);
+begin
+  case AMenu of
+    maCentralPedidos:
+      MostrarFrame(FCentralPedidos);
+
+    maPedidos:
+    begin
+      FPedidos.PrepararTela;
+      MostrarFrame(FPedidos);
+    end;
+
+    maClientes:
+      MostrarFrame(FClientes);
+
+    maCardapio:
+      MostrarFrame(FCardapio);
+
+    maPromocoes:
+      MostrarFrame(FPromocoes);
+
+    maEntregadores:
+      MostrarFrame(FEntregadores);
+
+    maFinanceiro:
+      MostrarFrame(FFinanceiro);
+
+    maRelatorios:
+      MostrarFrame(FRelatorios);
+
+    maConfiguracoes:
+      MostrarFrame(FConfiguracoes);
+  end;
+end;
+
+procedure TfrmPrincipalAdmin.MostrarFrame(
+  const AFrame: TFrame);
+begin
+  if not Assigned(AFrame) then
+    Exit;
+
+  if FFrameAtual = AFrame then
+    Exit;
+
+  if Assigned(FFrameAtual) then
+    FFrameAtual.Visible := False;
+
+  FFrameAtual := AFrame;
+
+  FFrameAtual.Visible := True;
+  FFrameAtual.BringToFront;
+end;
+
+procedure TfrmPrincipalAdmin.PrepararFrame(
+  const AFrame: TFrame);
+begin
+  if not Assigned(AFrame) then
+    Exit;
+
+  AFrame.Parent := lytContainerPagina;
+  AFrame.Align := TAlignLayout.Client;
+  AFrame.Visible := False;
+end;
+
+procedure TfrmPrincipalAdmin.rctTrilhoHorizontalMouseDown(
+  Sender: TObject;
+  Button: TMouseButton;
+  Shift: TShiftState;
+  X, Y: Single);
+var
+  LNovaPosicao: Single;
+begin
+{  if Button <> TMouseButton.mbLeft then
+    Exit;
+
+  // Centraliza o indicador no ponto clicado
+  LNovaPosicao :=
+    X - (rctIndicadorHorizontal.Width / 2);
+
+  AplicarPosicaoIndicador(LNovaPosicao);}
+end;
+
+end.

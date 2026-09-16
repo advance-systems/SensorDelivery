@@ -1,0 +1,383 @@
+object fraMontarPizza: TfraMontarPizza
+  Align = Client
+  ClipChildren = True
+  Size.Width = 390.000000000000000000
+  Size.Height = 844.000000000000000000
+  Size.PlatformDefault = False
+  OnResize = FrameResize
+  object rctTopo: TRectangle
+    Align = Top
+    Fill.Color = claWhite
+    Size.Width = 390.000000000000000000
+    Size.Height = 98.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object rctVoltar: TRectangle
+      Cursor = crHandPoint
+      Fill.Color = xFFFFF2EC
+      Position.X = 12.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 44.000000000000000000
+      Size.Height = 44.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Kind = None
+      XRadius = 22.000000000000000000
+      YRadius = 22.000000000000000000
+      OnClick = rctVoltarClick
+      object lblVoltar: TLabel
+        Align = Client
+        StyledSettings = [Family]
+        Size.Width = 44.000000000000000000
+        Size.Height = 44.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 30.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.FontColor = xFFFF4B0A
+        TextSettings.HorzAlign = Center
+        Text = #8249
+        TabOrder = 0
+      end
+    end
+    object lblTitulo: TLabel
+      StyledSettings = [Family]
+      Position.X = 68.000000000000000000
+      Position.Y = 13.000000000000000000
+      Size.Width = 285.000000000000000000
+      Size.Height = 27.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 19.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = xFF202332
+      Text = 'Monte sua pizza'
+      TabOrder = 1
+    end
+    object lblSubtitulo: TLabel
+      StyledSettings = [Family, Size, Style]
+      Position.X = 68.000000000000000000
+      Position.Y = 40.000000000000000000
+      Size.Width = 285.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.FontColor = xFF7B8190
+      Text = 'Escolha o tamanho e os sabores'
+      TabOrder = 2
+    end
+  end
+  object vsbConteudo: TVertScrollBox
+    Align = Client
+    Padding.Left = 16.000000000000000000
+    Padding.Top = 12.000000000000000000
+    Padding.Right = 16.000000000000000000
+    Padding.Bottom = 20.000000000000000000
+    Size.Width = 390.000000000000000000
+    Size.Height = 670.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    ShowScrollBars = False
+    Viewport.Width = 390.000000000000000000
+    Viewport.Height = 670.000000000000000000
+    object rctImagemPizza: TRectangle
+      Align = Top
+      Fill.Color = xFFFFF2EC
+      Margins.Bottom = 20.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 12.000000000000000000
+      Size.Width = 358.000000000000000000
+      Size.Height = 170.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Kind = None
+      XRadius = 20.000000000000000000
+      YRadius = 20.000000000000000000
+      object lblImagemPizza: TLabel
+        Align = Client
+        StyledSettings = [Family, Style, FontColor]
+        Size.Width = 358.000000000000000000
+        Size.Height = 170.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 78.000000000000000000
+        TextSettings.HorzAlign = Center
+        Text = #55356#57173
+        TabOrder = 0
+      end
+    end
+    object lblTituloTamanho: TLabel
+      Align = Top
+      StyledSettings = [Family]
+      Position.X = 16.000000000000000000
+      Position.Y = 202.000000000000000000
+      Size.Width = 358.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 18.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = xFF202332
+      Text = 'Escolha o tamanho'
+      TabOrder = 1
+    end
+    object lblDescricaoTamanho: TLabel
+      Align = Top
+      StyledSettings = [Family, Style]
+      Padding.Bottom = 8.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 230.000000000000000000
+      Size.Width = 358.000000000000000000
+      Size.Height = 24.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 11.000000000000000000
+      TextSettings.FontColor = xFF7B8190
+      Text = 'O tamanho define o valor base e o limite de sabores'
+      TabOrder = 2
+    end
+    object flwTamanhos: TFlowLayout
+      Align = Top
+      Margins.Bottom = 20.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 254.000000000000000000
+      Size.Width = 358.000000000000000000
+      Size.Height = 118.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      Justify = Justify
+      JustifyLastLine = Left
+      FlowDirection = LeftToRight
+    end
+    object lblTituloSabores: TLabel
+      Align = Top
+      StyledSettings = [Family]
+      Position.X = 16.000000000000000000
+      Position.Y = 392.000000000000000000
+      Size.Width = 358.000000000000000000
+      Size.Height = 29.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 18.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = xFF202332
+      Text = 'Escolha os sabores'
+      TabOrder = 4
+    end
+    object lblContadorSabores: TLabel
+      Align = Top
+      StyledSettings = [Family, Style]
+      Margins.Bottom = 8.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 421.000000000000000000
+      Size.Width = 358.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 11.000000000000000000
+      TextSettings.FontColor = xFF7B8190
+      Text = 'Selecione um tamanho primeiro'
+      TabOrder = 5
+    end
+    object lytSabores: TLayout
+      Align = Top
+      Margins.Bottom = 20.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 452.000000000000000000
+      Size.Width = 358.000000000000000000
+      Size.Height = 0.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 6
+    end
+    object lblTituloBordas: TLabel
+      Align = Top
+      StyledSettings = [Family]
+      Position.X = 16.000000000000000000
+      Position.Y = 472.000000000000000000
+      Size.Width = 358.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 18.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = xFF202332
+      Text = 'Escolha a borda'
+      TabOrder = 7
+    end
+    object lytBordas: TLayout
+      Align = Top
+      Margins.Bottom = 20.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 502.000000000000000000
+      Size.Width = 358.000000000000000000
+      Size.Height = 0.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 8
+    end
+    object lblTituloObservacao: TLabel
+      Align = Top
+      StyledSettings = [Family]
+      Position.X = 16.000000000000000000
+      Position.Y = 522.000000000000000000
+      Size.Width = 358.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 18.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = xFF202332
+      Text = 'Alguma observa'#231#227'o?'
+      TabOrder = 9
+    end
+    object rctObservacao: TRectangle
+      Align = Top
+      Fill.Color = claWhite
+      Margins.Bottom = 24.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 552.000000000000000000
+      Size.Width = 358.000000000000000000
+      Size.Height = 100.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFFE8EAF0
+      XRadius = 14.000000000000000000
+      YRadius = 14.000000000000000000
+      object memObservacao: TMemo
+        Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+        DataDetectorTypes = []
+        StyledSettings = [Family, Size, Style]
+        TextSettings.FontColor = xFF202332
+        TextPrompt = 'Ex.: sem cebola, bem assada...'
+        Align = Client
+        Margins.Left = 10.000000000000000000
+        Margins.Top = 8.000000000000000000
+        Margins.Right = 10.000000000000000000
+        Margins.Bottom = 8.000000000000000000
+        Size.Width = 338.000000000000000000
+        Size.Height = 84.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Viewport.Width = 334.000000000000000000
+        Viewport.Height = 80.000000000000000000
+      end
+    end
+  end
+  object rctRodape: TRectangle
+    Align = Bottom
+    Fill.Color = claWhite
+    Position.Y = 768.000000000000000000
+    Size.Width = 390.000000000000000000
+    Size.Height = 76.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Color = xFFE8EAF0
+    object lytQuantidade: TLayout
+      Position.X = 16.000000000000000000
+      Position.Y = 24.000000000000000000
+      Size.Width = 116.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object rctMenos: TRectangle
+        Align = Left
+        Fill.Color = xFFFFF2EC
+        Size.Width = 38.000000000000000000
+        Size.Height = 48.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        XRadius = 12.000000000000000000
+        YRadius = 12.000000000000000000
+        OnClick = rctMenosClick
+        object lblMenos: TLabel
+          Align = Client
+          StyledSettings = [Family]
+          Size.Width = 38.000000000000000000
+          Size.Height = 48.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Size = 22.000000000000000000
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          TextSettings.FontColor = xFFFF4B0A
+          TextSettings.HorzAlign = Center
+          Text = #8722
+          TabOrder = 0
+        end
+      end
+      object lblQuantidade: TLabel
+        Align = Client
+        StyledSettings = [Family]
+        Size.Width = 40.000000000000000000
+        Size.Height = 48.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 16.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.FontColor = xFF202332
+        TextSettings.HorzAlign = Center
+        Text = '0'
+        TabOrder = 1
+      end
+      object rctMais: TRectangle
+        Align = Right
+        Fill.Color = xFFFFF2EC
+        Position.X = 78.000000000000000000
+        Size.Width = 38.000000000000000000
+        Size.Height = 48.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        XRadius = 12.000000000000000000
+        YRadius = 12.000000000000000000
+        OnClick = rctMaisClick
+        object lblMais: TLabel
+          Align = Client
+          StyledSettings = [Family]
+          Size.Width = 38.000000000000000000
+          Size.Height = 48.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Size = 22.000000000000000000
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          TextSettings.FontColor = xFFFF4B0A
+          TextSettings.HorzAlign = Center
+          Text = '+'
+          TabOrder = 0
+        end
+      end
+    end
+    object lblTextoTotal: TLabel
+      StyledSettings = [Family, Style]
+      Position.X = 144.000000000000000000
+      Position.Y = 20.000000000000000000
+      Size.Width = 100.000000000000000000
+      Size.Height = 18.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 11.000000000000000000
+      TextSettings.FontColor = xFF7B8190
+      Text = 'Total'
+      TabOrder = 1
+    end
+    object lblTotal: TLabel
+      Cursor = crHandPoint
+      StyledSettings = [Family]
+      Position.X = 144.000000000000000000
+      Position.Y = 38.000000000000000000
+      Size.Width = 112.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 19.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = xFF202332
+      Text = 'R$ 0,00'
+      TabOrder = 2
+    end
+    object rctAdicionar: TRectangle
+      Cursor = crHandPoint
+      Fill.Color = xFFFF4B0A
+      Position.X = 260.000000000000000000
+      Position.Y = 24.000000000000000000
+      Size.Width = 114.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Kind = None
+      XRadius = 14.000000000000000000
+      YRadius = 14.000000000000000000
+      OnClick = rctAdicionarClick
+      object lblAdicionar: TLabel
+        Align = Client
+        StyledSettings = [Family]
+        Size.Width = 114.000000000000000000
+        Size.Height = 48.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 13.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.FontColor = claWhite
+        TextSettings.HorzAlign = Center
+        Text = 'Adicionar'
+        TabOrder = 0
+      end
+    end
+  end
+end

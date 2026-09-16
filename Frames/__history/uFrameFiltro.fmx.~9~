@@ -1,0 +1,25 @@
+object fraFiltro: TfraFiltro
+  Size.Width = 150.000000000000000000
+  Size.Height = 42.000000000000000000
+  Size.PlatformDefault = False
+  object Rectangle1: TRectangle
+    Align = Client
+    Cursor = crHandPoint
+    Fill.Color = xFF121F30
+    Size.Width = 150.000000000000000000
+    Size.Height = 42.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Color = xFF26374C
+    XRadius = 9.000000000000000000
+    YRadius = 9.000000000000000000
+    object lblTexto: TLabel
+      StyledSettings = []
+      Position.X = 14.000000000000000000
+      Size.Width = 118.000000000000000000
+      Size.Height = 42.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Todos os status'
+      TabOrder = 0
+    end
+  end
+end

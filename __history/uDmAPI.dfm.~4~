@@ -1,0 +1,22 @@
+object dmAPI: TdmAPI
+  Height = 480
+  Width = 640
+  object RESTClient: TRESTClient
+    Params = <>
+    SynchronizedEvents = False
+    Left = 32
+    Top = 32
+  end
+  object RESTRequest: TRESTRequest
+    Client = RESTClient
+    Params = <>
+    Response = RESTResponse
+    SynchronizedEvents = False
+    Left = 128
+    Top = 32
+  end
+  object RESTResponse: TRESTResponse
+    Left = 216
+    Top = 32
+  end
+end

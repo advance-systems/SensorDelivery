@@ -1,0 +1,29 @@
+unit uDmAPI;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, REST.Types, REST.Client,
+  Data.Bind.Components, Data.Bind.ObjectScope, System.JSON;
+
+type
+  TdmAPI = class(TDataModule)
+    RESTClient: TRESTClient;
+    reqPedidos: TRESTRequest;
+    resPedidos: TRESTResponse;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  dmAPI: TdmAPI;
+
+implementation
+
+{%CLASSGROUP 'FMX.Controls.TControl'}
+
+{$R *.dfm}
+
+end.

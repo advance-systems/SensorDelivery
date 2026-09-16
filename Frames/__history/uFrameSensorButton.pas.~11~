@@ -1,0 +1,77 @@
+unit uFrameSensorButton;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Objects, FMX.Layouts, FMX.Controls.Presentation, uSensorIcons;
+
+type
+  TSensorButtonStyle = (
+    sbsPrimary,
+    sbsSecondary,
+    sbsDanger
+  );
+
+  TSensorButtonIcon = (
+    sbiNone,
+    sbiPedido,
+    sbiSalvar,
+    sbiCancelar,
+    sbiImprimir,
+    sbiUsuario,
+    sbiPizza,
+    sbiEntrega,
+    sbiDinheiro,
+    sbiConfiguracao,
+    sbiRelatorio,
+    sbiSair
+  );
+
+  TSensorButton = class(TFrame)
+    rctFundo: TRectangle;
+    lytConteudo: TLayout;
+    pthIcone: TPath;
+    lblTexto: TLabel;
+
+    procedure rctFundoClick(Sender: TObject);
+    procedure rctFundoMouseEnter(Sender: TObject);
+    procedure rctFundoMouseLeave(Sender: TObject);
+  private
+    FTexto: string;
+    FIcone: TSensorButtonIcon;
+    FEstilo: TSensorButtonStyle;
+    FOnClick: TNotifyEvent;
+
+    procedure SetTexto(const Value: string);
+    procedure SetIcone(const Value: TSensorButtonIcon);
+    procedure SetEstilo(const Value: TSensorButtonStyle);
+
+    procedure AplicarIcone;
+    procedure AplicarEstilo;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    property Texto: string
+      read FTexto
+      write SetTexto;
+
+    property Icone: TSensorButtonIcon
+      read FIcone
+      write SetIcone;
+
+    property Estilo: TSensorButtonStyle
+      read FEstilo
+      write SetEstilo;
+
+    property OnButtonClick: TNotifyEvent
+      read FOnClick
+      write FOnClick;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+end.

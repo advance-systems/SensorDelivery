@@ -1,0 +1,404 @@
+unit uFrameSensorEdit;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Layouts, FMX.Controls.Presentation, FMX.Objects, FMX.Edit, uSensorIcons;
+
+type
+  TSensorEditLayoutChanged = procedure(Sender: TObject) of object;
+
+  TSensorEditIcon = (
+    seiNenhum,
+    seiUsuario,
+    seiTelefone,
+    seiEntrega,
+    seiDinheiro,
+    seiPedido,
+    seiConfiguracao
+  );
+
+  TfraSensorEdit = class(TFrame)
+    lytPrincipal: TLayout;
+    lblTitulo: TLabel;
+    rctFundo: TRectangle;
+    pthIcone: TPath;
+    edtValor: TEdit;
+    rctLinhaFoco: TRectangle;
+    lblErro: TLabel;
+    procedure EditEnter(Sender: TObject);
+    procedure EditExit(Sender: TObject);
+    procedure edtValorChange(Sender: TObject);
+    procedure edtValorKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
+    procedure edtValorEnter(Sender: TObject);
+  private
+    FTitulo: string;
+    FTexto: string;
+    FPlaceholder: string;
+    FSomenteLeitura: Boolean;
+    FTipoTeclado: TVirtualKeyboardType;
+    FIcone: TSensorEditIcon;
+    FObrigatorio: Boolean;
+    FMensagemErro: string;
+    FOnLayoutChanged: TSensorEditLayoutChanged;
+    FProximoCampo: TfraSensorEdit;
+    FCampoAnterior: TfraSensorEdit;
+    FOnEnterFinal: TNotifyEvent;
+    FOnReceberFoco: TNotifyEvent;
+
+    procedure SetTitulo(const Value: string);
+    procedure SetTexto(const Value: string);
+    procedure SetPlaceholder(const Value: string);
+    procedure SetSomenteLeitura(const Value: Boolean);
+    procedure SetTipoTeclado(const Value: TVirtualKeyboardType);
+    procedure SetIcone(const Value: TSensorEditIcon);
+    procedure SetObrigatorio(const Value: Boolean);
+    procedure SetMensagemErro(const Value: string);
+    procedure AplicarIcone;
+    procedure AjustarLayoutIcone;
+    procedure AtualizarEstadoErro;
+    procedure GarantirVisibilidadeNoScroll;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    property Titulo: string
+      read FTitulo
+      write SetTitulo;
+
+    property Texto: string
+      read FTexto
+      write SetTexto;
+
+    property Placeholder: string
+      read FPlaceholder
+      write SetPlaceholder;
+
+    property SomenteLeitura: Boolean
+      read FSomenteLeitura
+      write SetSomenteLeitura;
+
+    property TipoTeclado: TVirtualKeyboardType
+      read FTipoTeclado
+      write SetTipoTeclado;
+
+    property Icone: TSensorEditIcon
+      read FIcone
+      write SetIcone;
+
+    property Obrigatorio: Boolean
+      read FObrigatorio
+      write SetObrigatorio;
+
+    property MensagemErro: string
+      read FMensagemErro
+      write SetMensagemErro;
+
+    property OnLayoutChanged: TSensorEditLayoutChanged
+      read FOnLayoutChanged
+      write FOnLayoutChanged;
+
+    property ProximoCampo: TfraSensorEdit
+      read FProximoCampo
+      write FProximoCampo;
+
+    property CampoAnterior: TfraSensorEdit
+      read FCampoAnterior
+      write FCampoAnterior;
+
+    property OnEnterFinal: TNotifyEvent
+      read FOnEnterFinal
+      write FOnEnterFinal;
+
+    property OnReceberFoco: TNotifyEvent
+      read FOnReceberFoco
+      write FOnReceberFoco;
+
+    procedure ReceberFoco;
+    procedure LimparErro;
+
+    function Validar: Boolean;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+constructor TfraSensorEdit.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FTitulo := 'Cliente';
+  FTexto := '';
+  FPlaceholder := 'Digite...';
+  FSomenteLeitura := False;
+  FTipoTeclado := TVirtualKeyboardType.Default;
+  FIcone := seiNenhum;
+  FObrigatorio := False;
+  FMensagemErro := '';
+  FProximoCampo := nil;
+  FCampoAnterior := nil;
+  FOnEnterFinal := nil;
+
+  lblTitulo.Text := FTitulo;
+  edtValor.Text := FTexto;
+  edtValor.TextPrompt := FPlaceholder;
+  edtValor.ReadOnly := FSomenteLeitura;
+  edtValor.KeyboardType := FTipoTeclado;
+
+  lblErro.Visible := False;
+  lblErro.StyledSettings := [];
+  lblErro.TextSettings.FontColor := $FFFF6570;
+  lblErro.TextSettings.Font.Size := 9;
+
+  AplicarIcone;
+  AjustarLayoutIcone;
+end;
+
+procedure TfraSensorEdit.SetTitulo(const Value: string);
+begin
+  FTitulo := Value;
+  lblTitulo.Text := Value;
+end;
+
+procedure TfraSensorEdit.SetTexto(const Value: string);
+begin
+  FTexto := Value;
+
+  if edtValor.Text <> Value then
+    edtValor.Text := Value;
+end;
+
+procedure TfraSensorEdit.SetPlaceholder(const Value: string);
+begin
+  FPlaceholder := Value;
+  edtValor.TextPrompt := Value;
+end;
+
+procedure TfraSensorEdit.SetSomenteLeitura(
+  const Value: Boolean);
+begin
+  FSomenteLeitura := Value;
+  edtValor.ReadOnly := Value;
+
+  if Value then
+  begin
+    rctFundo.Fill.Color := $FF101C2C;
+    edtValor.TextSettings.FontColor := $FF8F9EB2;
+    edtValor.Cursor := crDefault;
+  end
+  else
+  begin
+    rctFundo.Fill.Color := $FF152439;
+    edtValor.TextSettings.FontColor := $FFF2F5F9;
+    edtValor.Cursor := crIBeam;
+  end;
+end;
+
+procedure TfraSensorEdit.SetTipoTeclado(
+  const Value: TVirtualKeyboardType);
+begin
+  FTipoTeclado := Value;
+  edtValor.KeyboardType := Value;
+end;
+
+procedure TfraSensorEdit.SetIcone(const Value: TSensorEditIcon);
+begin
+  if FIcone = Value then
+    Exit;
+
+  FIcone := Value;
+
+  AplicarIcone;
+  AjustarLayoutIcone;
+end;
+
+procedure TfraSensorEdit.SetObrigatorio(
+  const Value: Boolean);
+begin
+  FObrigatorio := Value;
+end;
+
+procedure TfraSensorEdit.SetMensagemErro(
+  const Value: string);
+begin
+  FMensagemErro := Value;
+  AtualizarEstadoErro;
+end;
+
+procedure TfraSensorEdit.AplicarIcone;
+begin
+  pthIcone.Visible := FIcone <> seiNenhum;
+
+  case FIcone of
+    seiUsuario:
+      TSensorIcon.Usuario(
+        pthIcone,
+        $FF8F9EB2
+      );
+
+    seiTelefone:
+      TSensorIcon.Informacao(
+        pthIcone,
+        $FF8F9EB2
+      );
+
+    seiEntrega:
+      TSensorIcon.Entrega(
+        pthIcone,
+        $FF8F9EB2
+      );
+
+    seiDinheiro:
+      TSensorIcon.Dinheiro(
+        pthIcone,
+        $FF8F9EB2
+      );
+
+    seiPedido:
+      TSensorIcon.Pedido(
+        pthIcone,
+        $FF8F9EB2
+      );
+
+    seiConfiguracao:
+      TSensorIcon.Configuracao(
+        pthIcone,
+        $FF8F9EB2
+      );
+
+    seiNenhum:
+      begin
+        pthIcone.Data.Data := '';
+        pthIcone.Visible := False;
+      end;
+  end;
+end;
+
+procedure TfraSensorEdit.AjustarLayoutIcone;
+begin
+  pthIcone.Visible := FIcone <> seiNenhum;
+
+  if pthIcone.Visible then
+  begin
+    pthIcone.Width := 18;
+    pthIcone.Margins.Left := 0;
+    pthIcone.Margins.Right := 10;
+  end
+  else
+  begin
+    pthIcone.Width := 0;
+    pthIcone.Margins.Left := 0;
+    pthIcone.Margins.Right := 0;
+  end;
+end;
+
+procedure TfraSensorEdit.AtualizarEstadoErro;
+var
+  LTemErro: Boolean;
+begin
+  LTemErro := not FMensagemErro.Trim.IsEmpty;
+
+  lblErro.Text := FMensagemErro;
+  lblErro.Visible := LTemErro;
+
+  if LTemErro then
+  begin
+    rctFundo.Stroke.Kind := TBrushKind.Solid;
+    rctFundo.Stroke.Color := $FFFF6570;
+
+    rctLinhaFoco.Fill.Color := $FFFF6570;
+
+    lblErro.StyledSettings := [];
+    lblErro.TextSettings.FontColor := $FFFF6570;
+    lblErro.TextSettings.Font.Size := 8;
+  end
+  else
+  begin
+    rctFundo.Stroke.Kind := TBrushKind.Solid;
+    rctFundo.Stroke.Color := $FF2A405B;
+
+    rctLinhaFoco.Fill.Color := TAlphaColors.Null;
+  end;
+end;
+
+function TfraSensorEdit.Validar: Boolean;
+begin
+  if FObrigatorio and edtValor.Text.Trim.IsEmpty then
+  begin
+    MensagemErro := 'Campo obrigatório.';
+    Exit(False);
+  end;
+
+  LimparErro;
+  Result := True;
+end;
+
+procedure TfraSensorEdit.LimparErro;
+begin
+  FMensagemErro := '';
+  AtualizarEstadoErro;
+end;
+
+procedure TfraSensorEdit.EditEnter(Sender: TObject);
+begin
+  rctLinhaFoco.Fill.Color := $FF8C63FF;
+end;
+
+procedure TfraSensorEdit.EditExit(Sender: TObject);
+begin
+  rctLinhaFoco.Fill.Color := TAlphaColors.Null;
+end;
+
+procedure TfraSensorEdit.edtValorChange(Sender: TObject);
+begin
+  FTexto := edtValor.Text;
+
+  if lblErro.Visible then
+    LimparErro;
+end;
+
+procedure TfraSensorEdit.ReceberFoco;
+begin
+  if edtValor.CanFocus then
+    edtValor.SetFocus;
+end;
+
+procedure TfraSensorEdit.edtValorKeyDown(
+  Sender: TObject;
+  var Key: Word;
+  var KeyChar: Char;
+  Shift: TShiftState);
+begin
+  if Key <> vkReturn then
+    Exit;
+
+  Key := 0;
+  KeyChar := #0;
+
+  if ssShift in Shift then
+  begin
+    if Assigned(FCampoAnterior) then
+      FCampoAnterior.ReceberFoco;
+
+    Exit;
+  end;
+
+  if Assigned(FProximoCampo) then
+  begin
+    FProximoCampo.ReceberFoco;
+    Exit;
+  end;
+
+  if Assigned(FOnEnterFinal) then
+    FOnEnterFinal(Self);
+end;
+
+procedure TfraSensorEdit.edtValorEnter(Sender: TObject);
+begin
+  if Assigned(FOnReceberFoco) then
+    FOnReceberFoco(Self);
+end;
+
+end.

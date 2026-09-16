@@ -1,0 +1,1212 @@
+unit uFrameCentralPedidos;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Layouts, FMX.Objects, FMX.Controls.Presentation, uFramePedidoKanban,
+  uMensagem, System.Math, System.JSON, System.Net.HttpClient, System.Net.HttpClientComponent,
+  System.Net.URLClient, System.DateUtils;
+
+type
+  TfraCentralPedidos = class(TFrame)
+    lytPrincipal: TLayout;
+    lytCardsResumo: TLayout;
+    flwCardsResumo: TFlowLayout;
+    rctCardNovos: TRectangle;
+    crcIconeNovos: TCircle;
+    pthIconeNovos: TPath;
+    lblTituloNovos: TLabel;
+    lblValorNovos: TLabel;
+    lblDescricaoNovos: TLabel;
+    lblVariacaoNovos: TLabel;
+    rctCardEmPreparo: TRectangle;
+    crcIconeEmPreparo: TCircle;
+    pthIconeEmPreparo: TPath;
+    lblTituloEmPreparo: TLabel;
+    lblValorEmPreparo: TLabel;
+    lblDescricaoEmPreparo: TLabel;
+    lblVariacaoEmPreparo: TLabel;
+    rctCardProntos: TRectangle;
+    crcIconeProntos: TCircle;
+    pthIconeProntos: TPath;
+    lblTituloProntos: TLabel;
+    lblValorProntos: TLabel;
+    lblDescricaoProntos: TLabel;
+    lblVariacaoProntos: TLabel;
+    rctCardEmEntrega: TRectangle;
+    crcIconeEmEntrega: TCircle;
+    pthIconeEmEntrega: TPath;
+    lblTituloEmEntrega: TLabel;
+    lblValorEmEntrega: TLabel;
+    lblDescricaoEmEntrega: TLabel;
+    lblVariacaoEmEntrega: TLabel;
+    rctCardFinalizados: TRectangle;
+    crcIconeFinalizados: TCircle;
+    pthIconeFinalizados: TPath;
+    lblTituloFinalizados: TLabel;
+    lblValorFinalizados: TLabel;
+    lblDescricaoFinalizados: TLabel;
+    lblVariacaoFinalizados: TLabel;
+    rctCardFaturamento: TRectangle;
+    crcIconeFaturamento: TCircle;
+    pthIconeFaturamento: TPath;
+    lblTituloFaturamento: TLabel;
+    lblValorFaturamento: TLabel;
+    lblDescricaoFaturamento: TLabel;
+    lblVariacaoFaturamento: TLabel;
+    lytKanban: TLayout;
+    lblTituloKanban: TLabel;
+    hsbKanban: THorzScrollBox;
+    lytColunasKanban: TLayout;
+    rctColunaNovos: TRectangle;
+    rctBarraStatus: TRectangle;
+    lytCabecalhoNovos: TLayout;
+    lblTituloNovosCentral: TLabel;
+    rctContadorNovos: TRectangle;
+    lblContadorNovos: TLabel;
+    lnSeparador: TLine;
+    vsbPedidosNovos: TVertScrollBox;
+    rctColunaConfirmados: TRectangle;
+    rctBarraStatusConfirmados: TRectangle;
+    lytCabecalhoConfirmados: TLayout;
+    lblTituloConfirmados: TLabel;
+    rctContadorConfirmados: TRectangle;
+    lblContadorConfirmados: TLabel;
+    lnSeparadorConfirmados: TLine;
+    vsbPedidosConfirmados: TVertScrollBox;
+    rctColunaEmPreparo: TRectangle;
+    rctBarraStatusEmPreparo: TRectangle;
+    lytCabecalhoEmPreparo: TLayout;
+    lblTituloEmPreparoCentral: TLabel;
+    rctContadorEmPreparo: TRectangle;
+    lblContadorEmPreparo: TLabel;
+    lnSeparadorEmPreparo: TLine;
+    vsbPedidosEmPreparo: TVertScrollBox;
+    rctColunaProntos: TRectangle;
+    rctBarraStatusProntos: TRectangle;
+    lytCabecalhoProntos: TLayout;
+    lblTituloProntosCentral: TLabel;
+    rctContadorProntos: TRectangle;
+    lblContadorProntos: TLabel;
+    lnSeparadorProntos: TLine;
+    vsbPedidosProntos: TVertScrollBox;
+    rctColunaEmEntrega: TRectangle;
+    rctBarraStatusEmEntrega: TRectangle;
+    lytCabecalhoEmEntrega: TLayout;
+    lblTituloEmEntregaCentral: TLabel;
+    rctContadorEmEntrega: TRectangle;
+    lblContadorEmEntrega: TLabel;
+    lnSeparadorEmEntrega: TLine;
+    vsbPedidosEmEntrega: TVertScrollBox;
+    lytBarraHorizontal: TLayout;
+    rctTrilhoHorizontal: TRectangle;
+    rctIndicadorHorizontal: TRectangle;
+    lytCabecalhoKanban: TLayout;
+    tmrCentralPedidos: TTimer;
+    procedure lytColunasKanbanResize(Sender: TObject);
+    procedure tmrCentralPedidosTimer(Sender: TObject);
+  private
+    FUltimoNumeroPedidoCentral: Integer;
+    FPrimeiraCargaCentral: Boolean;
+    FCarregandoCentral: Boolean;
+
+    procedure PedidoAvancarStatus(Sender: TObject; const APedidoId: string;
+      const AStatusAtual: TStatusPedidoKanban);
+    procedure AtualizarContadores;
+    procedure ConfigurarBarrasRolagem;
+    procedure AtualizarBarraHorizontal;
+    procedure AplicarPosicaoIndicador(const AX: Single);
+    procedure MoverFrameParaContainer(const AFrame: TfraPedidoKanban; const AContainer: TFmxObject);
+    procedure CarregarPedidosTeste;
+    procedure AdicionarCardTeste(const AContainer: TFmxObject; const APedidoId: string;
+      const ANumero: string; const ACliente: string; const AHorario: TTime;
+      const ATempoEspera: Integer; const AItens: string; const AObservacao: string;
+      const ATotal: Currency; const ATipoEntrega: TTipoEntrega; const AStatus: TStatusPedidoKanban);
+    procedure CarregarPedidosCentralAPI;
+    procedure VerificarNovoPedidoCentral(const ANumero: Integer; const ACliente: string; const ATotal: Currency);
+    procedure AlertarNovoPedidoCentral(const ANumero: Integer; const ACliente: string; const ATotal: Currency);
+    procedure ColunaMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean);
+    procedure AtualizarAlturaColuna(const AScroll: TVertScrollBox);
+    procedure AjustarLarguraCards(const AScroll: TVertScrollBox);
+
+    function ContarCards(const AContainer: TFmxObject): Integer;
+    function ProximoStatusPedido(const AStatusAtual: TStatusPedidoKanban; const ATipoEntrega: TTipoEntrega): TStatusPedidoKanban;
+    function ObterContainerStatus(const AStatus: TStatusPedidoKanban): TFmxObject;
+    function DescricaoStatus(const AStatus: TStatusPedidoKanban): string;
+    function AtualizarStatusPedidoAPI(const APedidoId: string; const AStatus: TStatusPedidoKanban;
+      out AErro: string): Boolean;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+  end;
+
+implementation
+
+type
+  TControlAccess = class(TControl);
+
+{$R *.fmx}
+
+constructor TfraCentralPedidos.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FUltimoNumeroPedidoCentral := 0;
+  FPrimeiraCargaCentral := True;
+
+  FCarregandoCentral := False;
+
+  vsbPedidosNovos.OnMouseWheel := ColunaMouseWheel;
+  vsbPedidosConfirmados.OnMouseWheel := ColunaMouseWheel;
+  vsbPedidosEmPreparo.OnMouseWheel := ColunaMouseWheel;
+  vsbPedidosProntos.OnMouseWheel := ColunaMouseWheel;
+  vsbPedidosEmEntrega.OnMouseWheel := ColunaMouseWheel;
+
+  ConfigurarBarrasRolagem;
+  lytColunasKanbanResize(lytColunasKanban);
+  CarregarPedidosCentralAPI;
+  tmrCentralPedidos.Enabled := True;
+end;
+
+procedure TfraCentralPedidos.AdicionarCardTeste(
+  const AContainer: TFmxObject;
+  const APedidoId: string;
+  const ANumero: string;
+  const ACliente: string;
+  const AHorario: TTime;
+  const ATempoEspera: Integer;
+  const AItens: string;
+  const AObservacao: string;
+  const ATotal: Currency;
+  const ATipoEntrega: TTipoEntrega;
+  const AStatus: TStatusPedidoKanban);
+const
+  ESPACO = 10;
+var
+  LFrame: TfraPedidoKanban;
+  LDestinoReal: TFmxObject;
+  LControle: TControl;
+  LPosicaoY: Single;
+  I: Integer;
+begin
+  if not Assigned(AContainer) then
+    Exit;
+
+  if AContainer is TVertScrollBox then
+    LDestinoReal := TVertScrollBox(AContainer).Content
+  else
+    LDestinoReal := AContainer;
+
+  LPosicaoY := 0;
+
+  for I := 0 to LDestinoReal.ChildrenCount - 1 do
+  begin
+    if LDestinoReal.Children[I] is TfraPedidoKanban then
+    begin
+      LControle :=
+        TControl(LDestinoReal.Children[I]);
+
+      LPosicaoY := Max(
+        LPosicaoY,
+        LControle.Position.Y +
+        LControle.Height +
+        ESPACO
+      );
+    end;
+  end;
+
+  LFrame := TfraPedidoKanban.Create(LDestinoReal);
+
+  LFrame.Name := '';
+  LFrame.Parent := LDestinoReal;
+  LFrame.Align := TAlignLayout.None;
+
+  LFrame.Position.X := 0;
+  LFrame.Position.Y := LPosicaoY;
+  LFrame.Height := 218;
+
+  if AContainer is TVertScrollBox then
+    LFrame.Width :=
+      TVertScrollBox(AContainer).Width -
+      16
+  else
+    LFrame.Width := TControl(AContainer).Width;
+
+  LFrame.Anchors := [
+    TAnchorKind.akLeft,
+    TAnchorKind.akTop
+  ];
+
+  LFrame.Preencher(
+    APedidoId,
+    ANumero,
+    ACliente,
+    AHorario,
+    ATempoEspera,
+    AItens,
+    AObservacao,
+    ATotal,
+    ATipoEntrega,
+    AStatus
+  );
+
+  LFrame.Height := 218;
+
+  LFrame.OnAvancarStatus := PedidoAvancarStatus;
+end;
+
+procedure TfraCentralPedidos.CarregarPedidosCentralAPI;
+var
+  LHTTP: TNetHTTPClient;
+  LResposta: IHTTPResponse;
+  LJSON: TJSONObject;
+  LPedidos: TJSONArray;
+  LPedido: TJSONObject;
+  LStatusTexto: string;
+  LPedidoId: string;
+  LNumero: Integer;
+  LCliente: string;
+  LItens: string;
+  LObservacao: string;
+  LTipoTexto: string;
+  LDataTexto: string;
+  LDataPedido: TDateTime;
+  LHorario: TTime;
+  LMinutos: Integer;
+  LTotal: Currency;
+  LStatus: TStatusPedidoKanban;
+  LTipoEntrega: TTipoEntrega;
+  LContainer: TFmxObject;
+  LMaiorNumero: Integer;
+  LMaiorCliente: string;
+  LMaiorTotal: Currency;
+  I: Integer;
+
+  procedure LimparContainer(const AScroll: TVertScrollBox);
+  begin
+    if not Assigned(AScroll) then
+      Exit;
+
+    while AScroll.Content.ChildrenCount > 0 do
+      AScroll.Content.Children[
+        AScroll.Content.ChildrenCount - 1
+      ].DisposeOf;
+  end;
+
+begin
+  if FCarregandoCentral then
+    Exit;
+
+  FCarregandoCentral := True;
+  LHTTP := TNetHTTPClient.Create(nil);
+  LJSON := nil;
+
+  try
+    try
+      LHTTP.Accept := 'application/json';
+
+      LResposta := LHTTP.Get(
+        'http://127.0.0.1:3001/api/pedidos'
+      );
+
+      if LResposta.StatusCode <> 200 then
+        Exit;
+
+      LJSON :=
+        TJSONObject.ParseJSONValue(
+          LResposta.ContentAsString(TEncoding.UTF8)
+        ) as TJSONObject;
+
+      if not Assigned(LJSON) then
+        Exit;
+
+      LPedidos := LJSON.GetValue<TJSONArray>('pedidos');
+
+      if not Assigned(LPedidos) then
+        Exit;
+
+      LimparContainer(vsbPedidosNovos);
+      LimparContainer(vsbPedidosConfirmados);
+      LimparContainer(vsbPedidosEmPreparo);
+      LimparContainer(vsbPedidosProntos);
+      LimparContainer(vsbPedidosEmEntrega);
+
+      LMaiorNumero := 0;
+      LMaiorCliente := '';
+      LMaiorTotal := 0;
+
+      for I := 0 to LPedidos.Count - 1 do
+      begin
+        LPedido := LPedidos.Items[I] as TJSONObject;
+
+        LPedidoId :=
+          LPedido.GetValue<string>('id', '');
+
+        LNumero :=
+          StrToIntDef(
+            LPedido.GetValue<string>('numero', '0'),
+            0
+          );
+
+        LCliente :=
+          LPedido.GetValue<string>('cliente_nome', '');
+
+        LStatusTexto :=
+          UpperCase(
+            LPedido.GetValue<string>('status', '')
+          );
+
+        { Pedidos concluídos não aparecem na operação }
+        if (LStatusTexto = 'ENTREGUE') or
+           (LStatusTexto = 'FINALIZADO') or
+           (LStatusTexto = 'CANCELADO') then
+          Continue;
+
+        if (LStatusTexto = 'RASCUNHO') or
+           (LStatusTexto = 'AGUARDANDO_CONFIRMACAO') or
+           (LStatusTexto = 'NOVO') then
+          LStatus := spNovo
+        else if LStatusTexto = 'CONFIRMADO' then
+          LStatus := spConfirmado
+        else if LStatusTexto = 'EM_PREPARO' then
+          LStatus := spEmPreparo
+        else if LStatusTexto = 'PRONTO' then
+          LStatus := spPronto
+        else if (LStatusTexto = 'SAIU_PARA_ENTREGA') or
+                (LStatusTexto = 'EM_ENTREGA') or
+                (LStatusTexto = 'SAIU_ENTREGA') then
+          LStatus := spEmEntrega
+        else
+          Continue;
+
+        LContainer := ObterContainerStatus(LStatus);
+
+        if not Assigned(LContainer) then
+          Continue;
+
+        LTipoTexto :=
+          UpperCase(
+            LPedido.GetValue<string>(
+              'tipo_atendimento',
+              ''
+            )
+          );
+
+        if LTipoTexto = 'RETIRADA' then
+          LTipoEntrega := teRetirada
+        else
+          LTipoEntrega := teDelivery;
+
+        LItens :=
+          LPedido.GetValue<string>(
+            'itens_resumo',
+            ''
+          );
+
+        LObservacao :=
+          LPedido.GetValue<string>(
+            'observacoes',
+            ''
+          );
+
+        LTotal :=
+          StrToCurrDef(
+            LPedido.GetValue<string>(
+              'valor_total',
+              '0'
+            ),
+            0,
+            TFormatSettings.Invariant
+          );
+
+        LDataTexto :=
+          LPedido.GetValue<string>(
+            'criado_em',
+            ''
+          );
+
+        if not TryISO8601ToDate(
+          LDataTexto,
+          LDataPedido,
+          False
+        ) then
+          LDataPedido := Now;
+
+        LHorario := TimeOf(LDataPedido);
+        LMinutos := MinutesBetween(Now, LDataPedido);
+
+        AdicionarCardTeste(
+          LContainer,
+          LPedidoId,
+          'Pedido #' + LNumero.ToString,
+          LCliente,
+          LHorario,
+          LMinutos,
+          LItens,
+          LObservacao,
+          LTotal,
+          LTipoEntrega,
+          LStatus
+        );
+
+        if LNumero > LMaiorNumero then
+        begin
+          LMaiorNumero := LNumero;
+          LMaiorCliente := LCliente;
+          LMaiorTotal := LTotal;
+        end;
+      end;
+
+      AtualizarAlturaColuna(vsbPedidosNovos);
+      AtualizarAlturaColuna(vsbPedidosConfirmados);
+      AtualizarAlturaColuna(vsbPedidosEmPreparo);
+      AtualizarAlturaColuna(vsbPedidosProntos);
+      AtualizarAlturaColuna(vsbPedidosEmEntrega);
+
+      AjustarLarguraCards(vsbPedidosNovos);
+      AjustarLarguraCards(vsbPedidosConfirmados);
+      AjustarLarguraCards(vsbPedidosEmPreparo);
+      AjustarLarguraCards(vsbPedidosProntos);
+      AjustarLarguraCards(vsbPedidosEmEntrega);
+
+      TControlAccess(vsbPedidosNovos.Content).Realign;
+      TControlAccess(vsbPedidosConfirmados.Content).Realign;
+      TControlAccess(vsbPedidosEmPreparo.Content).Realign;
+      TControlAccess(vsbPedidosProntos.Content).Realign;
+      TControlAccess(vsbPedidosEmEntrega.Content).Realign;
+
+      AtualizarContadores;
+
+      VerificarNovoPedidoCentral(
+        LMaiorNumero,
+        LMaiorCliente,
+        LMaiorTotal
+      );
+
+    except
+      on E: Exception do
+      begin
+        { O timer tentará novamente sem interromper o painel }
+      end;
+    end;
+  finally
+    LJSON.Free;
+    LHTTP.Free;
+    FCarregandoCentral := False;
+  end;
+end;
+
+procedure TfraCentralPedidos.CarregarPedidosTeste;
+begin
+  AdicionarCardTeste(
+    vsbPedidosNovos,
+    '1',
+    'Pedido #1024',
+    'João da Silva',
+    EncodeTime(19, 42, 0, 0),
+    8,
+    '1x Pizza Grande Calabresa' + sLineBreak +
+    '1x Coca-Cola 2L',
+    'Sem cebola',
+    78.90,
+    teDelivery,
+    spNovo
+  );
+
+  AdicionarCardTeste(
+    vsbPedidosConfirmados,
+    '2',
+    'Pedido #1023',
+    'Maria Oliveira',
+    EncodeTime(19, 35, 0, 0),
+    15,
+    '1x Pizza Média Frango' + sLineBreak +
+    '1x Suco de laranja',
+    '',
+    54.50,
+    teRetirada,
+    spConfirmado
+  );
+
+  AdicionarCardTeste(
+    vsbPedidosEmPreparo,
+    '3',
+    'Pedido #1022',
+    'Carlos Souza',
+    EncodeTime(19, 28, 0, 0),
+    22,
+    '2x Pizza Grande Portuguesa' + sLineBreak +
+    '1x Refrigerante 2L',
+    'Uma pizza sem azeitona',
+    126.00,
+    teDelivery,
+    spEmPreparo
+  );
+
+  AdicionarCardTeste(
+    vsbPedidosProntos,
+    '4',
+    'Pedido #1021',
+    'Ana Pereira',
+    EncodeTime(19, 20, 0, 0),
+    30,
+    '1x Pizza Família Marguerita',
+    '',
+    89.90,
+    teRetirada,
+    spPronto
+  );
+
+  AdicionarCardTeste(
+    vsbPedidosEmEntrega,
+    '5',
+    'Pedido #1020',
+    'Roberto Martins',
+    EncodeTime(19, 10, 0, 0),
+    40,
+    '1x Pizza Grande Bacon' + sLineBreak +
+    '1x Coca-Cola 2L',
+    'Entregar no portão lateral',
+    84.90,
+    teDelivery,
+    spEmEntrega
+  );
+end;
+
+function TfraCentralPedidos.AtualizarStatusPedidoAPI(
+  const APedidoId: string;
+  const AStatus: TStatusPedidoKanban;
+  out AErro: string
+): Boolean;
+var
+  LHTTP: TNetHTTPClient;
+  LResposta: IHTTPResponse;
+  LJSON: TJSONObject;
+  LStream: TStringStream;
+  LStatusAPI: string;
+  LURL: string;
+begin
+  Result := False;
+  AErro := '';
+
+  if APedidoId.Trim.IsEmpty then
+  begin
+    AErro := 'O pedido não possui um identificador válido.';
+    Exit;
+  end;
+
+  case AStatus of
+    spNovo:
+      LStatusAPI := 'RASCUNHO';
+
+    spConfirmado:
+      LStatusAPI := 'CONFIRMADO';
+
+    spEmPreparo:
+      LStatusAPI := 'EM_PREPARO';
+
+    spPronto:
+      LStatusAPI := 'PRONTO';
+
+    spEmEntrega:
+      LStatusAPI := 'SAIU_PARA_ENTREGA';
+
+    spFinalizado:
+      LStatusAPI := 'ENTREGUE';
+  else
+    begin
+      AErro := 'Status de destino inválido.';
+      Exit;
+    end;
+  end;
+
+  LHTTP := TNetHTTPClient.Create(nil);
+  LJSON := TJSONObject.Create;
+  LStream := nil;
+  LResposta := nil;
+
+  try
+    try
+      LHTTP.Accept := 'application/json';
+      LHTTP.ContentType := 'application/json';
+      LHTTP.ConnectionTimeout := 5000;
+      LHTTP.ResponseTimeout := 15000;
+
+      LJSON.AddPair('status', LStatusAPI);
+
+      LStream := TStringStream.Create(
+        LJSON.ToJSON,
+        TEncoding.UTF8
+      );
+
+      LURL :=
+        'http://127.0.0.1:3001/api/pedidos/' +
+        APedidoId +
+        '/status';
+
+      LResposta := LHTTP.Patch(LURL, LStream);
+
+      if LResposta.StatusCode <> 200 then
+      begin
+        AErro :=
+          'A API retornou o código ' +
+          LResposta.StatusCode.ToString +
+          '.' +
+          sLineBreak +
+          LResposta.ContentAsString(TEncoding.UTF8);
+
+        Exit;
+      end;
+
+      Result := True;
+    except
+      on E: Exception do
+        AErro :=
+          'Não foi possível alterar o status.' +
+          sLineBreak +
+          E.Message;
+    end;
+  finally
+    LResposta := nil;
+    LStream.Free;
+    LJSON.Free;
+    LHTTP.Free;
+  end;
+end;
+
+procedure TfraCentralPedidos.PedidoAvancarStatus(
+  Sender: TObject;
+  const APedidoId: string;
+  const AStatusAtual: TStatusPedidoKanban);
+var
+  LFrame: TfraPedidoKanban;
+  LProximoStatus: TStatusPedidoKanban;
+  LConfirmado: Boolean;
+  LErro: string;
+begin
+  if not (Sender is TfraPedidoKanban) then
+    Exit;
+
+  LFrame := TfraPedidoKanban(Sender);
+
+  LProximoStatus := ProximoStatusPedido(
+    AStatusAtual,
+    LFrame.TipoEntrega
+  );
+
+  tmrCentralPedidos.Enabled := False;
+
+  try
+    LConfirmado := TfrmMensagem.Exibir(
+      'Alterar status',
+      'Deseja avançar o pedido para "' +
+      DescricaoStatus(LProximoStatus) + '"?',
+      tmConfirmacao,
+      True,
+      'Avançar',
+      'Cancelar'
+    );
+
+    if not LConfirmado then
+      Exit;
+
+    if not AtualizarStatusPedidoAPI(
+      APedidoId,
+      LProximoStatus,
+      LErro
+    ) then
+    begin
+      TfrmMensagem.Exibir(
+        'Não foi possível alterar o status',
+        LErro,
+        tmErro,
+        False,
+        'OK',
+        ''
+      );
+
+      Exit;
+    end;
+
+    { Recarrega todas as colunas a partir do banco }
+    CarregarPedidosCentralAPI;
+
+    if LProximoStatus = spFinalizado then
+      TfrmMensagem.Exibir(
+        'Pedido finalizado',
+        'O pedido foi finalizado com sucesso.',
+        tmSucesso
+      );
+
+  finally
+    tmrCentralPedidos.Enabled := True;
+  end;
+end;
+
+procedure TfraCentralPedidos.AtualizarContadores;
+begin
+  lblContadorNovos.Text :=
+    ContarCards(vsbPedidosNovos).ToString;
+
+  lblContadorConfirmados.Text :=
+    ContarCards(vsbPedidosConfirmados).ToString;
+
+  lblContadorEmPreparo.Text :=
+    ContarCards(vsbPedidosEmPreparo).ToString;
+
+  lblContadorProntos.Text :=
+    ContarCards(vsbPedidosProntos).ToString;
+
+  lblContadorEmEntrega.Text :=
+    ContarCards(vsbPedidosEmEntrega).ToString;
+end;
+
+function TfraCentralPedidos.ContarCards(
+  const AContainer: TFmxObject): Integer;
+var
+  I: Integer;
+  LContainerReal: TFmxObject;
+begin
+  Result := 0;
+
+  if not Assigned(AContainer) then
+    Exit;
+
+  if AContainer is TVertScrollBox then
+    LContainerReal := TVertScrollBox(AContainer).Content
+  else
+    LContainerReal := AContainer;
+
+  for I := 0 to LContainerReal.ChildrenCount - 1 do
+  begin
+    if LContainerReal.Children[I] is TfraPedidoKanban then
+      Inc(Result);
+  end;
+end;
+
+procedure TfraCentralPedidos.ConfigurarBarrasRolagem;
+begin
+  vsbPedidosNovos.ShowScrollBars := True;
+  vsbPedidosConfirmados.ShowScrollBars := True;
+  vsbPedidosEmPreparo.ShowScrollBars := True;
+  vsbPedidosProntos.ShowScrollBars := True;
+  vsbPedidosEmEntrega.ShowScrollBars := True;
+  hsbKanban.ShowScrollBars := True;
+  lytBarraHorizontal.Visible := False;
+end;
+
+procedure TfraCentralPedidos.AtualizarBarraHorizontal;
+var
+  LAreaVisivel: Single;
+  LAreaTotal: Single;
+  LLarguraTrilho: Single;
+  LLarguraIndicador: Single;
+  LMaxScroll: Single;
+  LMaxIndicador: Single;
+  LPercentual: Single;
+begin
+  lytBarraHorizontal.Visible := False;
+  Exit;
+
+  LAreaVisivel := hsbKanban.Width;
+  LAreaTotal := lytColunasKanban.Width;
+  LLarguraTrilho := rctTrilhoHorizontal.Width;
+
+  if (LAreaVisivel <= 0) or
+     (LAreaTotal <= 0) or
+     (LLarguraTrilho <= 0) then
+    Exit;
+
+  if LAreaTotal <= LAreaVisivel then
+  begin
+    lytBarraHorizontal.Visible := False;
+    Exit;
+  end;
+
+  lytBarraHorizontal.Visible := True;
+
+  LLarguraIndicador :=
+    LLarguraTrilho *
+    (LAreaVisivel / LAreaTotal);
+
+  LLarguraIndicador := EnsureRange(
+    LLarguraIndicador,
+    80,
+    LLarguraTrilho
+  );
+
+  rctIndicadorHorizontal.Width :=
+    LLarguraIndicador;
+
+  LMaxScroll :=
+    LAreaTotal - LAreaVisivel;
+
+  LMaxIndicador :=
+    LLarguraTrilho - LLarguraIndicador;
+
+  if (LMaxScroll <= 0) or
+     (LMaxIndicador <= 0) then
+  begin
+    rctIndicadorHorizontal.Position.X := 0;
+    Exit;
+  end;
+
+  LPercentual :=
+    hsbKanban.ViewportPosition.X /
+    LMaxScroll;
+
+  LPercentual :=
+    EnsureRange(LPercentual, 0, 1);
+
+  rctIndicadorHorizontal.Position.X :=
+    LMaxIndicador * LPercentual;
+end;
+
+procedure TfraCentralPedidos.AlertarNovoPedidoCentral(
+  const ANumero: Integer;
+  const ACliente: string;
+  const ATotal: Currency);
+begin
+  TfrmMensagem.Exibir(
+    'Novo Pedido',
+    Format(
+      'Pedido #%d' + sLineBreak +
+      '%s' + sLineBreak +
+      'Total: %s',
+      [
+        ANumero,
+        ACliente,
+        FormatFloat('"R$ " #,##0.00', ATotal)
+      ]
+    ),
+    tmInformacao,
+    False,
+    'OK',
+    ''
+  );
+end;
+
+procedure TfraCentralPedidos.AplicarPosicaoIndicador(
+  const AX: Single);
+var
+  LNovaPosicao: Single;
+  LMaxIndicador: Single;
+  LMaxScroll: Single;
+  LPercentual: Single;
+begin
+  LMaxIndicador :=
+    rctTrilhoHorizontal.Width -
+    rctIndicadorHorizontal.Width;
+
+  if LMaxIndicador <= 0 then
+    Exit;
+
+  LNovaPosicao := EnsureRange(
+    AX,
+    0,
+    LMaxIndicador
+  );
+
+  rctIndicadorHorizontal.Position.X := LNovaPosicao;
+
+  LMaxScroll :=
+    lytColunasKanban.Width -
+    hsbKanban.Width;
+
+  if LMaxScroll <= 0 then
+    Exit;
+
+  LPercentual :=
+    LNovaPosicao / LMaxIndicador;
+
+  hsbKanban.ViewportPosition := PointF(
+    LMaxScroll * LPercentual,
+    hsbKanban.ViewportPosition.Y
+  );
+end;
+
+procedure TfraCentralPedidos.MoverFrameParaContainer(
+  const AFrame: TfraPedidoKanban;
+  const AContainer: TFmxObject);
+var
+  LDestinoReal: TFmxObject;
+begin
+  if not Assigned(AFrame) then
+    Exit;
+
+  if not Assigned(AContainer) then
+    Exit;
+
+  if AContainer is TVertScrollBox then
+    LDestinoReal := TVertScrollBox(AContainer).Content
+  else
+    LDestinoReal := AContainer;
+
+  AFrame.Align := TAlignLayout.None;
+  AFrame.Parent := LDestinoReal;
+
+  AFrame.Align := TAlignLayout.Top;
+  AFrame.Height := 218;
+
+  AFrame.Margins.Left := 0;
+  AFrame.Margins.Top := 0;
+  AFrame.Margins.Right := 0;
+  AFrame.Margins.Bottom := 10;
+
+  AFrame.BringToFront;
+end;
+
+function TfraCentralPedidos.ProximoStatusPedido(
+  const AStatusAtual: TStatusPedidoKanban;
+  const ATipoEntrega: TTipoEntrega
+): TStatusPedidoKanban;
+begin
+  case AStatusAtual of
+    spNovo:
+      Result := spConfirmado;
+
+    spConfirmado:
+      Result := spEmPreparo;
+
+    spEmPreparo:
+      Result := spPronto;
+
+    spPronto:
+      begin
+        if ATipoEntrega = teDelivery then
+          Result := spEmEntrega
+        else
+          Result := spFinalizado;
+      end;
+
+    spEmEntrega:
+      Result := spFinalizado;
+
+  else
+    Result := spFinalizado;
+  end;
+end;
+
+procedure TfraCentralPedidos.tmrCentralPedidosTimer(Sender: TObject);
+begin
+  if not Visible then
+    Exit;
+
+  CarregarPedidosCentralAPI;
+end;
+
+procedure TfraCentralPedidos.VerificarNovoPedidoCentral(
+  const ANumero: Integer;
+  const ACliente: string;
+  const ATotal: Currency);
+begin
+  if ANumero <= 0 then
+    Exit;
+
+  if FPrimeiraCargaCentral then
+  begin
+    FUltimoNumeroPedidoCentral := ANumero;
+    FPrimeiraCargaCentral := False;
+    Exit;
+  end;
+
+  if ANumero <= FUltimoNumeroPedidoCentral then
+    Exit;
+
+  AlertarNovoPedidoCentral(
+    ANumero,
+    ACliente,
+    ATotal
+  );
+
+  FUltimoNumeroPedidoCentral := ANumero;
+end;
+
+function TfraCentralPedidos.ObterContainerStatus(
+  const AStatus: TStatusPedidoKanban
+): TFmxObject;
+begin
+  case AStatus of
+    spNovo:
+      Result := vsbPedidosNovos;
+
+    spConfirmado:
+      Result := vsbPedidosConfirmados;
+
+    spEmPreparo:
+      Result := vsbPedidosEmPreparo;
+
+    spPronto:
+      Result := vsbPedidosProntos;
+
+    spEmEntrega:
+      Result := vsbPedidosEmEntrega;
+
+  else
+    Result := nil;
+  end;
+end;
+
+function TfraCentralPedidos.DescricaoStatus(
+  const AStatus: TStatusPedidoKanban
+): string;
+begin
+  case AStatus of
+    spNovo:
+      Result := 'Novo';
+
+    spConfirmado:
+      Result := 'Confirmado';
+
+    spEmPreparo:
+      Result := 'Em preparo';
+
+    spPronto:
+      Result := 'Pronto';
+
+    spEmEntrega:
+      Result := 'Em entrega';
+
+    spFinalizado:
+      Result := 'Finalizado';
+
+  else
+    Result := '';
+  end;
+end;
+
+destructor TfraCentralPedidos.Destroy;
+begin
+
+  inherited;
+end;
+
+procedure TfraCentralPedidos.lytColunasKanbanResize(
+  Sender: TObject);
+var
+  LAlturaColuna: Single;
+begin
+  lytColunasKanban.Height :=
+    hsbKanban.Height;
+
+  LAlturaColuna := Max(
+    100,
+    lytColunasKanban.Height - 9
+  );
+
+  rctColunaNovos.Height :=
+    LAlturaColuna;
+
+  rctColunaConfirmados.Height :=
+    LAlturaColuna;
+
+  rctColunaEmPreparo.Height :=
+    LAlturaColuna;
+
+  rctColunaProntos.Height :=
+    LAlturaColuna;
+
+  rctColunaEmEntrega.Height :=
+    LAlturaColuna;
+end;
+
+procedure TfraCentralPedidos.ColunaMouseWheel(
+  Sender: TObject;
+  Shift: TShiftState;
+  WheelDelta: Integer;
+  var Handled: Boolean);
+var
+  LScroll: TVertScrollBox;
+  LPosicaoY: Single;
+  LMaximoY: Single;
+begin
+  if not (Sender is TVertScrollBox) then
+    Exit;
+
+  LScroll := TVertScrollBox(Sender);
+
+  LMaximoY := Max(
+    0,
+    LScroll.Content.Height -
+    LScroll.Height
+  );
+
+  LPosicaoY :=
+    LScroll.ViewportPosition.Y -
+    (WheelDelta / 2);
+
+  LPosicaoY := EnsureRange(
+    LPosicaoY,
+    0,
+    LMaximoY
+  );
+
+  LScroll.ViewportPosition := PointF(
+    LScroll.ViewportPosition.X,
+    LPosicaoY
+  );
+
+  Handled := True;
+end;
+
+procedure TfraCentralPedidos.AtualizarAlturaColuna(
+  const AScroll: TVertScrollBox);
+var
+  I: Integer;
+  LControle: TControl;
+  LAltura: Single;
+begin
+  if not Assigned(AScroll) then
+    Exit;
+
+  LAltura := 0;
+
+  for I := 0 to AScroll.Content.ChildrenCount - 1 do
+  begin
+    if AScroll.Content.Children[I] is TfraPedidoKanban then
+    begin
+      LControle :=
+        TControl(AScroll.Content.Children[I]);
+
+      LAltura := Max(
+        LAltura,
+        LControle.Position.Y +
+        LControle.Height +
+        10
+      );
+    end;
+  end;
+
+  AScroll.Content.Height := Max(
+    AScroll.Height,
+    LAltura
+  );
+end;
+
+procedure TfraCentralPedidos.AjustarLarguraCards(
+  const AScroll: TVertScrollBox);
+var
+  I: Integer;
+  LLargura: Single;
+begin
+  if not Assigned(AScroll) then
+    Exit;
+
+  LLargura := AScroll.Width;
+
+  { Reserva espaço somente quando existe rolagem vertical }
+  if AScroll.Content.Height > AScroll.Height then
+    LLargura := LLargura - 16;
+
+  for I := 0 to AScroll.Content.ChildrenCount - 1 do
+  begin
+    if AScroll.Content.Children[I] is TfraPedidoKanban then
+      TfraPedidoKanban(
+        AScroll.Content.Children[I]
+      ).Width := LLargura;
+  end;
+end;
+
+end.

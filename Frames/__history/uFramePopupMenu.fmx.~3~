@@ -1,0 +1,5 @@
+object fraPopupMenu: TfraPopupMenu
+  Size.Width = 220.000000000000000000
+  Size.Height = 220.000000000000000000
+  Size.PlatformDefault = False
+end

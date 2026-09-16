@@ -1,0 +1,205 @@
+﻿unit uCardapio;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
+  FMX.Objects, System.JSON, uSincronismoService; // 👈 Adicione a unit de sincronismo aqui
+
+type
+  TfrmCardapio = class(TForm)
+    VertScrollBoxCardapio: TVertScrollBox;
+    FlowLayoutCardapio: TFlowLayout;
+  private
+    FSincronismo: TSincronismoService;
+    procedure RenderizarCardapio(const AJsonCardapio: string);
+    procedure DoAcaoCard(Sender: TObject);
+    procedure CarregarDadosDoCardapio;
+  public
+    constructor Create(AOwner: TComponent; AServicoSinc: TSincronismoService); reintroduce;
+  end;
+
+var
+  frmCardapio: TfrmCardapio;
+
+implementation
+
+{$R *.fmx}
+
+{ TfrmCardapio }
+
+constructor TfrmCardapio.Create(AOwner: TComponent; AServicoSinc: TSincronismoService);
+begin
+  inherited Create(AOwner);
+  FSincronismo := AServicoSinc; // Recebe o serviço de sincronismo que já tem o Token JWT salvo
+  CarregarDadosDoCardapio;
+end;
+
+procedure TfrmCardapio.CarregarDadosDoCardapio;
+var
+  JsonRetornado: string;
+begin
+  // Busca os dados do Node.js de forma síncrona ou em Task
+  try
+    JsonRetornado := FSincronismo.ObterCardapio;
+    RenderizarCardapio(JsonRetornado);
+  except
+    on E: Exception do
+      ShowMessage('Erro ao carregar cardápio: ' + E.Message);
+  end;
+end;
+
+procedure TfrmCardapio.RenderizarCardapio(const AJsonCardapio: string);
+var
+  JSonArray: TJSONArray;
+  JSONValue: TJSONValue;
+  Card: TRectangle;
+  LytCabecalho, LytAcoes: TLayout;
+  TxtNome, TxtPreco, TxtCodigo: TText;
+  BtnEditar, BtnExcluir: TRectangle;
+  IconEdit, IconTrash: TText;
+begin
+  FlowLayoutCardapio.BeginUpdate;
+  try
+    FlowLayoutCardapio.DestroyChildren;
+
+    JSonArray := TJSONObject.ParseJSONValue(AJsonCardapio) as TJSONArray;
+    if not Assigned(JSonArray) then Exit;
+
+    for JSONValue in JSonArray do
+    begin
+      // Criando o Card (Fundo escuro arredondado)
+      Card := TRectangle.Create(Self);
+      Card.Parent := FlowLayoutCardapio;
+      Card.Width := 280;
+      Card.Height := 160;
+      Card.Margins.Rect := RectF(10, 10, 10, 10);
+      Card.XRadius := 12;
+      Card.YRadius := 12;
+      Card.Fill.Color := $FF0C161F;       // Azul escuro (Mesmo do Sensor CRM)
+      Card.Stroke.Color := $FF1A2834;     // Borda sutil
+      Card.Stroke.Thickness := 1;
+
+      // Layout de Cabeçalho (Código)
+      LytCabecalho := TLayout.Create(Self);
+      LytCabecalho.Parent := Card;
+      LytCabecalho.Align := TAlignLayout.Top;
+      LytCabecalho.Height := 30;
+      LytCabecalho.Margins.Rect := RectF(15, 10, 15, 0);
+
+      TxtCodigo := TText.Create(Self);
+      TxtCodigo.Parent := LytCabecalho;
+      TxtCodigo.Align := TAlignLayout.Left;
+      TxtCodigo.Width := 80;
+      TxtCodigo.Text := '#' + JSONValue.GetValue<string>('produto_id_menu');
+      TxtCodigo.Font.Size := 13;
+      TxtCodigo.Font.Style := [TFontStyle.fsBold];
+      TxtCodigo.Color := $FFDEFF9A;       // Verde lima
+
+      // Nome do Produto (No centro)
+      TxtNome := TText.Create(Self);
+      TxtNome.Parent := Card;
+      TxtNome.Align := TAlignLayout.Client;
+      TxtNome.Margins.Rect := RectF(15, 5, 15, 5);
+      TxtNome.Text := JSONValue.GetValue<string>('produto_descricao');
+      TxtNome.Font.Size := 16;
+      TxtNome.Font.Style := [TFontStyle.fsBold];
+      TxtNome.Color := $FFFFFFFF;         // Branco
+
+      // Layout Inferior (Preço e Botões)
+      LytAcoes := TLayout.Create(Self);
+      LytAcoes.Parent := Card;
+      LytAcoes.Align := TAlignLayout.Bottom;
+      LytAcoes.Height := 45;
+      LytAcoes.Margins.Rect := RectF(15, 0, 15, 15);
+
+      TxtPreco := TText.Create(Self);
+      TxtPreco.Parent := LytAcoes;
+      TxtPreco.Align := TAlignLayout.Left;
+      TxtPreco.Width := 120;
+      TxtPreco.Text := FormatFloat('R$ #,##0.00', JSONValue.GetValue<Double>('valor'));
+      TxtPreco.Font.Size := 18;
+      TxtPreco.Font.Style := [TFontStyle.fsBold];
+      TxtPreco.Color := $FFFFFFFF;
+
+      // Botão Excluir
+      BtnExcluir := TRectangle.Create(Self);
+      BtnExcluir.Parent := LytAcoes;
+      BtnExcluir.Align := TAlignLayout.Right;
+      BtnExcluir.Width := 32;
+      BtnExcluir.Height := 32;
+      BtnExcluir.XRadius := 6;
+      BtnExcluir.YRadius := 6;
+      BtnExcluir.Fill.Color := $FF1A1315;
+      BtnExcluir.Stroke.Color := $FF3D1F24;
+      BtnExcluir.Tag := JSONValue.GetValue<Integer>('id');
+      BtnExcluir.Cursor := crHandPoint;
+      BtnExcluir.TagString := 'EXCLUIR';
+      BtnExcluir.OnClick := DoAcaoCard;
+
+      IconTrash := TText.Create(Self);
+      IconTrash.Parent := BtnExcluir;
+      IconTrash.Align := TAlignLayout.Client;
+      IconTrash.Text := '🗑️';
+      IconTrash.Font.Size := 12;
+
+      // Botão Editar
+      BtnEditar := TRectangle.Create(Self);
+      BtnEditar.Parent := LytAcoes;
+      BtnEditar.Align := TAlignLayout.Right;
+      BtnEditar.Width := 32;
+      BtnEditar.Height := 32;
+      BtnEditar.Margins.Right := 8;
+      BtnEditar.XRadius := 6;
+      BtnEditar.YRadius := 6;
+      BtnEditar.Fill.Color := $FF131A24;
+      BtnEditar.Stroke.Color := $FF1E2F40;
+      BtnEditar.Tag := JSONValue.GetValue<Integer>('id');
+      BtnEditar.Cursor := crHandPoint;
+      BtnEditar.TagString := 'EDITAR';
+      BtnEditar.OnClick := DoAcaoCard;
+
+      IconEdit := TText.Create(Self);
+      IconEdit.Parent := BtnEditar;
+      IconEdit.Align := TAlignLayout.Client;
+      IconEdit.Text := '✏️';
+      IconEdit.Font.Size := 12;
+    end;
+
+  finally
+    FlowLayoutCardapio.EndUpdate;
+    JSonArray.Free;
+  end;
+end;
+
+procedure TfrmCardapio.DoAcaoCard(Sender: TObject);
+var
+  ID: Integer;
+  Acao: string;
+begin
+  // Como o Sender é quem disparou o OnClick (o retângulo do botão),
+  // fazemos um cast para TRectangle para pegar a Tag e TagString dele
+  ID := TRectangle(Sender).Tag;
+  Acao := TRectangle(Sender).TagString;
+
+  if Acao = 'EXCLUIR' then
+  begin
+    if MessageDlg('Deseja realmente excluir este item do cardápio?',
+                  TMsgDlgType.mtConfirmation, [TMsgDlgBtn.mbYes, TMsgDlgBtn.mbNo], 0) = mrYes then
+    begin
+      if FSincronismo.ExcluirItemCardapio(ID) then
+      begin
+        ShowMessage('Item removido com sucesso!');
+        CarregarDadosDoCardapio; // Atualiza a tela limpando e redesenhando os cards
+      end;
+    end;
+  end
+  else if Acao = 'EDITAR' then
+  begin
+    ShowMessage('Editar item ID: ' + ID.ToString);
+    // Aqui você pode abrir a tela de cadastro passando o ID
+  end;
+end;
+
+end.

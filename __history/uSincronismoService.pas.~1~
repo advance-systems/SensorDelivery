@@ -1,0 +1,131 @@
+unit uSincronismoService;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, System.Net.HttpClient, System.Net.Mime, System.JSON;
+
+type
+  TSincronismoService = class
+  private
+    FBaseURL: string;
+    FToken: string;
+    function EnviarRequisicao(const AMetodo, AEndpoint: string; const AJSONBody: string = ''): string;
+  public
+    constructor Create(const ABaseURL: string; const AToken: string = '');
+
+    // Sincronismo de Configurações do Robô
+    function ObterConfiguracoesRobo: string;
+    function SalvarConfiguracoesRobo(const AJsonConfig: string): Boolean;
+
+    // Sincronismo do Cardápio (Produtos)
+    function ObterCardapio: string;
+    function SalvarItemCardapio(const AJsonItem: string): Boolean;
+    function ExcluirItemCardapio(const AIdProduto: Integer): Boolean;
+
+    property Token: string read FToken write FToken;
+  end;
+
+implementation
+
+{ TSincronismoService }
+
+constructor TSincronismoService.Create(const ABaseURL: string; const AToken: string);
+begin
+  inherited Create;
+  FBaseURL := ABaseURL;
+  if not FBaseURL.EndsWith('/') then
+    FBaseURL := FBaseURL + '/';
+  FToken := AToken;
+end;
+
+function TSincronismoService.EnviarRequisicao(const AMetodo, AEndpoint: string; const AJSONBody: string): string;
+var
+  HTTP: TNetHTTPClient;
+  Response: IHTTPResponse;
+  SourceStream: TStringStream;
+begin
+  Result := '';
+  HTTP := TNetHTTPClient.Create(nil);
+  try
+    HTTP.ContentType := 'application/json';
+    HTTP.Accept := 'application/json';
+
+    // Se tivermos token JWT de autenticação ativa, injetamos no Header
+    if FToken <> '' then
+      HTTP.CustomHeaders['Authorization'] := 'Bearer ' + FToken;
+
+    if AMetodo = 'GET' then
+    begin
+      Response := HTTP.Get(FBaseURL + AEndpoint);
+    end
+    else if (AMetodo = 'POST') or (AMetodo = 'PUT') then
+    begin
+      SourceStream := TStringStream.Create(AJSONBody, TEncoding.UTF8);
+      try
+        if AMetodo = 'POST' then
+          Response := HTTP.Post(FBaseURL + AEndpoint, SourceStream)
+        else
+          Response := HTTP.Put(FBaseURL + AEndpoint, SourceStream);
+      finally
+        SourceStream.Free;
+      end;
+    end
+    else if AMetodo = 'DELETE' then
+    begin
+      Response := HTTP.Delete(FBaseURL + AEndpoint);
+    end;
+
+    if Response.StatusCode in [200, 201] then
+      Result := Response.ContentAsString
+    else
+      raise Exception.CreateFmt('Erro na API (%d): %s', [Response.StatusCode, Response.ContentAsString]);
+
+  finally
+    HTTP.Free;
+  end;
+end;
+
+function TSincronismoService.ObterConfiguracoesRobo: string;
+begin
+  // Rota do Express que retorna as regras atuais do bot (timeout, msg erro, etc.)
+  Result := EnviarRequisicao('GET', 'api/configuracoes/robo');
+end;
+
+function TSincronismoService.SalvarConfiguracoesRobo(const AJsonConfig: string): Boolean;
+begin
+  try
+    EnviarRequisicao('POST', 'api/configuracoes/robo', AJsonConfig);
+    Result := True;
+  except
+    Result := False;
+  end;
+end;
+
+function TSincronismoService.ObterCardapio: string;
+begin
+  // Rota que traz a lista completa de pizzas, bebidas e adicionais do Postgres
+  Result := EnviarRequisicao('GET', 'api/produtos');
+end;
+
+function TSincronismoService.SalvarItemCardapio(const AJsonItem: string): Boolean;
+begin
+  try
+    EnviarRequisicao('POST', 'api/produtos', AJsonItem);
+    Result := True;
+  except
+    Result := False;
+  end;
+end;
+
+function TSincronismoService.ExcluirItemCardapio(const AIdProduto: Integer): Boolean;
+begin
+  try
+    EnviarRequisicao('DELETE', 'api/produtos/' + AIdProduto.ToString);
+    Result := True;
+  except
+    Result := False;
+  end;
+end;
+
+end.

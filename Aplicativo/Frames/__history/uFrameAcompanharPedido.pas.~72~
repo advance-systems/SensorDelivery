@@ -1,0 +1,282 @@
+unit uFrameAcompanharPedido;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, System.JSON, System.Net.URLClient,
+  System.Net.HttpClient, System.Net.HttpClientComponent, uPedidoLocal;
+
+type
+  TVoltarInicioEvent = procedure(Sender: TObject) of object;
+
+  TfraAcompanharPedido = class(TFrame)
+    rctFundo: TRectangle;
+    rctTopo: TRectangle;
+    rctVoltar: TRectangle;
+    lblVoltar: TLabel;
+    lblTitulo: TLabel;
+    lblSubtitulo: TLabel;
+    vsbConteudo: TVertScrollBox;
+    rctPedido: TRectangle;
+    lblNumeroPedido: TLabel;
+    lblStatusAtual: TLabel;
+    lblHorario: TLabel;
+    rctEtapas: TRectangle;
+    cirRecebido: TCircle;
+    lblRecebido: TLabel;
+    lblRecebidoDesc: TLabel;
+    lin1: TLine;
+    cirPreparo: TCircle;
+    lblPreparo: TLabel;
+    lblPreparoDesc: TLabel;
+    cirEntrega: TCircle;
+    lblEntrega: TLabel;
+    lblEntregaDesc: TLabel;
+    cirFinalizado: TCircle;
+    lblFinalizado: TLabel;
+    lblFinalizadoDesc: TLabel;
+    lin2: TLine;
+    lin3: TLine;
+    rctRodape: TRectangle;
+    rctInicio: TRectangle;
+    lblInicio: TLabel;
+    tmrStatus: TTimer;
+    cirPronto: TCircle;
+    lblPronto: TLabel;
+    lblProntoDesc: TLabel;
+    procedure tmrStatusTimer(Sender: TObject);
+    procedure rctInicioClick(Sender: TObject);
+  private
+    FPedidoId: string;
+    FNumeroPedido: Integer;
+    FStatusAtual: string;
+    FOnVoltarInicio: TVoltarInicioEvent;
+
+    procedure CarregarStatusAPI;
+    procedure AtualizarVisualStatus;
+  public
+    procedure AbrirPedido(
+      const APedidoId: string;
+      const ANumeroPedido: Integer
+    );
+
+    property OnVoltarInicio: TVoltarInicioEvent
+      read FOnVoltarInicio
+      write FOnVoltarInicio;
+    end;
+
+implementation
+
+{$R *.fmx}
+
+procedure TfraAcompanharPedido.AbrirPedido(
+  const APedidoId: string;
+  const ANumeroPedido: Integer);
+begin
+  FPedidoId := APedidoId;
+  FNumeroPedido := ANumeroPedido;
+
+  lblNumeroPedido.Text :=
+    'Pedido #' + FNumeroPedido.ToString;
+
+  CarregarStatusAPI;
+
+  tmrStatus.Enabled := True;
+end;
+
+procedure TfraAcompanharPedido.CarregarStatusAPI;
+var
+  LHTTP: TNetHTTPClient;
+  LResposta: IHTTPResponse;
+  LJSON: TJSONObject;
+  LPedido: TJSONObject;
+begin
+  if FPedidoId.Trim.IsEmpty then
+    Exit;
+
+  LHTTP := TNetHTTPClient.Create(nil);
+  LJSON := nil;
+
+  try
+    LHTTP.Accept := 'application/json';
+
+    LResposta := LHTTP.Get(
+      'http://127.0.0.1:3001/api/pedidos/' +
+      FPedidoId +
+      '/status'
+    );
+
+    if LResposta.StatusCode <> 200 then
+      Exit;
+
+    LJSON :=
+      TJSONObject.ParseJSONValue(
+        LResposta.ContentAsString(TEncoding.UTF8)
+      ) as TJSONObject;
+
+    if not Assigned(LJSON) then
+      Exit;
+
+    LPedido :=
+      LJSON.GetValue<TJSONObject>('pedido');
+
+    if not Assigned(LPedido) then
+      Exit;
+
+    FStatusAtual :=
+      LPedido.GetValue<string>(
+        'status',
+        ''
+      );
+
+    AtualizarVisualStatus;
+
+  finally
+    LJSON.Free;
+    LHTTP.Free;
+  end;
+end;
+
+procedure TfraAcompanharPedido.rctInicioClick(Sender: TObject);
+begin
+  tmrStatus.Enabled := False;
+
+  if Assigned(FOnVoltarInicio) then
+    FOnVoltarInicio(Self);
+end;
+
+procedure TfraAcompanharPedido.tmrStatusTimer(Sender: TObject);
+begin
+  CarregarStatusAPI;
+end;
+
+procedure TfraAcompanharPedido.AtualizarVisualStatus;
+
+  procedure DesativarCirculo(ACirculo: TCircle);
+  begin
+    ACirculo.Fill.Color := $FFF3F4F7;
+    ACirculo.Stroke.Kind := TBrushKind.Solid;
+    ACirculo.Stroke.Color := $FFD5D8E0;
+    ACirculo.Stroke.Thickness := 2;
+  end;
+
+  procedure AtivarCirculo(ACirculo: TCircle);
+  begin
+    ACirculo.Fill.Color := $FFFF4B0A;
+    ACirculo.Stroke.Kind := TBrushKind.None;
+  end;
+
+begin
+  { Primeiro deixa tudo inativo }
+  DesativarCirculo(cirRecebido);
+  DesativarCirculo(cirPreparo);
+  DesativarCirculo(cirEntrega);
+  DesativarCirculo(cirFinalizado);
+
+  lin1.Stroke.Color := $FFDADDE5;
+  lin2.Stroke.Color := $FFDADDE5;
+  lin3.Stroke.Color := $FFDADDE5;
+
+  { Pedido recebido }
+  if SameText(FStatusAtual, 'RASCUNHO') or
+     SameText(FStatusAtual, 'NOVO') then
+  begin
+    AtivarCirculo(cirRecebido);
+
+    lblStatusAtual.Text :=
+      'Pedido recebido';
+
+    Exit;
+  end;
+
+  if SameText(FStatusAtual, 'CONFIRMADO') then
+  begin
+    AtivarCirculo(cirRecebido);
+
+    lblStatusAtual.Text := 'Pedido confirmado';
+
+    Exit;
+  end;
+
+  { Em preparo }
+  if SameText(FStatusAtual, 'EM_PREPARO') then
+  begin
+    AtivarCirculo(cirRecebido);
+    AtivarCirculo(cirPreparo);
+
+    lin1.Stroke.Color := $FFFF4B12;
+
+    lblStatusAtual.Text :=
+      'Em preparo';
+
+    Exit;
+  end;
+
+  { Pedido pronto }
+  if SameText(FStatusAtual, 'PRONTO') then
+  begin
+    AtivarCirculo(cirRecebido);
+    AtivarCirculo(cirPreparo);
+
+    lin1.Stroke.Color := $FFFF4B12;
+
+    lblStatusAtual.Text := 'Pedido pronto';
+
+    Exit;
+  end;
+
+  { Saiu para entrega }
+  if SameText(FStatusAtual, 'SAIU_PARA_ENTREGA') or
+     SameText(FStatusAtual, 'SAIU_ENTREGA') or
+     SameText(FStatusAtual, 'EM_ENTREGA') then
+  begin
+    AtivarCirculo(cirRecebido);
+    AtivarCirculo(cirPreparo);
+    AtivarCirculo(cirEntrega);
+
+    lin1.Stroke.Color := $FFFF4B12;
+    lin2.Stroke.Color := $FFFF4B12;
+
+    lblStatusAtual.Text :=
+      'Saiu para entrega';
+
+    Exit;
+  end;
+
+  { Finalizado }
+  if SameText(FStatusAtual, 'ENTREGUE') or
+     SameText(FStatusAtual, 'FINALIZADO') then
+  begin
+    AtivarCirculo(cirRecebido);
+    AtivarCirculo(cirPreparo);
+    AtivarCirculo(cirEntrega);
+    AtivarCirculo(cirFinalizado);
+
+    lin1.Stroke.Color := $FFFF4B12;
+    lin2.Stroke.Color := $FFFF4B12;
+    lin3.Stroke.Color := $FFFF4B12;
+
+    lblStatusAtual.Text := 'Finalizado';
+
+    TPedidoLocal.Limpar;
+    tmrStatus.Enabled := False;
+
+    Exit;
+  end;
+
+  if SameText(FStatusAtual, 'CANCELADO') then
+  begin
+    lblStatusAtual.Text := 'Pedido cancelado';
+
+    TPedidoLocal.Limpar;
+    tmrStatus.Enabled := False;
+
+    Exit;
+  end;
+
+  lblStatusAtual.Text := FStatusAtual;
+end;
+
+end.

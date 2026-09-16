@@ -1,0 +1,242 @@
+unit uFrameSensorButton;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Objects, FMX.Layouts, FMX.Controls.Presentation, uSensorIcons;
+
+type
+  TSensorButtonStyle = (
+    sbsPrimary,
+    sbsSecondary,
+    sbsDanger
+  );
+
+  TSensorButtonIcon = (
+    sbiNone,
+    sbiPedido,
+    sbiSalvar,
+    sbiCancelar,
+    sbiImprimir,
+    sbiUsuario,
+    sbiPizza,
+    sbiEntrega,
+    sbiDinheiro,
+    sbiConfiguracao,
+    sbiRelatorio,
+    sbiSair,
+    sbiPesquisar,
+    sbiEditar,
+    sbiAtivar,
+    sbiBloquear,
+    sbiSabor,
+    sbiCardapio,
+    sbiCombo,
+    sbiEmpresa
+  );
+
+  TfraSensorButton = class(TFrame)
+    rctFundo: TRectangle;
+    lytConteudo: TLayout;
+    pthIcone: TPath;
+    lblTexto: TLabel;
+
+    procedure rctFundoClick(Sender: TObject);
+    procedure rctFundoMouseEnter(Sender: TObject);
+    procedure rctFundoMouseLeave(Sender: TObject);
+  private
+    FTexto: string;
+    FIcone: TSensorButtonIcon;
+    FEstilo: TSensorButtonStyle;
+    FOnClick: TNotifyEvent;
+
+    procedure SetTexto(const Value: string);
+    procedure SetIcone(const Value: TSensorButtonIcon);
+    procedure SetEstilo(const Value: TSensorButtonStyle);
+
+    procedure AplicarIcone;
+    procedure AplicarEstilo;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    property Texto: string
+      read FTexto
+      write SetTexto;
+
+    property Icone: TSensorButtonIcon
+      read FIcone
+      write SetIcone;
+
+    property Estilo: TSensorButtonStyle
+      read FEstilo
+      write SetEstilo;
+
+    property OnButtonClick: TNotifyEvent
+      read FOnClick
+      write FOnClick;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+constructor TfraSensorButton.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FTexto := 'Novo Pedido';
+  FIcone := sbiNone;
+  FEstilo := sbsPrimary;
+
+  lblTexto.Text := FTexto;
+
+  AplicarEstilo;
+  AplicarIcone;
+end;
+
+procedure TfraSensorButton.SetTexto(const Value: string);
+begin
+  FTexto := Value;
+  lblTexto.Text := Value;
+end;
+
+procedure TfraSensorButton.SetIcone(
+  const Value: TSensorButtonIcon);
+begin
+  FIcone := Value;
+  AplicarIcone;
+end;
+
+procedure TfraSensorButton.SetEstilo(
+  const Value: TSensorButtonStyle);
+begin
+  FEstilo := Value;
+  AplicarEstilo;
+end;
+
+procedure TfraSensorButton.AplicarIcone;
+begin
+  pthIcone.Visible := FIcone <> sbiNone;
+
+  case FIcone of
+    sbiPedido:
+      TSensorIcon.Pedido(pthIcone, $FFFFFFFF);
+
+    sbiSalvar:
+      TSensorIcon.Sucesso(pthIcone, $FFFFFFFF);
+
+    sbiCancelar:
+      TSensorIcon.Erro(pthIcone, $FFFFFFFF);
+
+    sbiImprimir:
+      TSensorIcon.Relatorio(pthIcone, $FFFFFFFF);
+
+    sbiUsuario:
+      TSensorIcon.Usuario(pthIcone, $FFFFFFFF);
+
+    sbiPizza:
+      TSensorIcon.Pizza(pthIcone, $FFFFFFFF);
+
+    sbiEntrega:
+      TSensorIcon.Entrega(pthIcone, $FFFFFFFF);
+
+    sbiDinheiro:
+      TSensorIcon.Dinheiro(pthIcone, $FFFFFFFF);
+
+    sbiConfiguracao:
+      TSensorIcon.Configuracao(pthIcone, $FFFFFFFF);
+
+    sbiRelatorio:
+      TSensorIcon.Relatorio(pthIcone, $FFFFFFFF);
+
+    sbiSair:
+      TSensorIcon.Sair(pthIcone, $FFFFFFFF);
+
+    sbiPesquisar:
+      TSensorIcon.Pesquisar(pthIcone, $FFFFFFFF);
+
+    sbiEditar:
+      TSensorIcon.Editar(pthIcone, $FFFFFFFF);
+
+    sbiAtivar:
+      TSensorIcon.Sucesso(pthIcone, $FFFFFFFF);
+
+    sbiBloquear:
+      TSensorIcon.Bloquear(pthIcone, $FFFFFFFF);
+
+    sbiSabor:
+      TSensorIcon.Sabor(pthIcone, $FFFFFFFF);
+
+    sbiCardapio:
+      TSensorIcon.Cardapio(pthIcone, $FFFFFFFF);
+
+    sbiCombo:
+      TSensorIcon.Combo(pthIcone, $FFFFFFFF);
+
+    sbiEmpresa:
+      TSensorIcon.Empresa(pthIcone, $FFFFFFFF);
+  end;
+end;
+
+procedure TfraSensorButton.AplicarEstilo;
+begin
+  case FEstilo of
+    sbsPrimary:
+      begin
+        rctFundo.Fill.Color := $FF8C63FF;
+        rctFundo.Stroke.Kind := TBrushKind.None;
+        lblTexto.TextSettings.FontColor := $FFFFFFFF;
+      end;
+
+    sbsSecondary:
+      begin
+        rctFundo.Fill.Color := $FF152439;
+        rctFundo.Stroke.Kind := TBrushKind.Solid;
+        rctFundo.Stroke.Color := $FF2A405B;
+        lblTexto.TextSettings.FontColor := $FFF2F5F9;
+      end;
+
+    sbsDanger:
+      begin
+        rctFundo.Fill.Color := $221F2A3A;
+        rctFundo.Stroke.Kind := TBrushKind.Solid;
+        rctFundo.Stroke.Color := $66FF6570;
+        lblTexto.TextSettings.FontColor := $FFFF6570;
+      end;
+  end;
+end;
+
+procedure TfraSensorButton.rctFundoMouseEnter(Sender: TObject);
+begin
+  case FEstilo of
+    sbsPrimary:
+      rctFundo.Fill.Color := $FF9B78FF;
+
+    sbsSecondary:
+      begin
+        rctFundo.Fill.Color := $FF1C2E45;
+        rctFundo.Stroke.Color := $FF3A506C;
+      end;
+
+    sbsDanger:
+      begin
+        rctFundo.Fill.Color := $33FF6570;
+        rctFundo.Stroke.Color := $99FF6570;
+      end;
+  end;
+end;
+
+procedure TfraSensorButton.rctFundoMouseLeave(Sender: TObject);
+begin
+  AplicarEstilo;
+end;
+
+procedure TfraSensorButton.rctFundoClick(Sender: TObject);
+begin
+  if Assigned(FOnClick) then
+    FOnClick(Self);
+end;
+
+end.

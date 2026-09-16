@@ -1,0 +1,167 @@
+unit uFrameItemPedido;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Objects, FMX.Controls.Presentation, FMX.Layouts;
+
+type
+  TfraItemPedido = class(TFrame)
+    rctFundo: TRectangle;
+    lblNumero: TLabel;
+    lytCliente: TLayout;
+    lblCliente: TLabel;
+    lblTelefone: TLabel;
+    lblTipo: TLabel;
+    rctStatus: TRectangle;
+    lblStatus: TLabel;
+    lblHorario: TLabel;
+    lblTotal: TLabel;
+    rctAcoes: TRectangle;
+    pthAcoes: TPath;
+    procedure rctAcoesClick(Sender: TObject);
+  private
+    FOnAcoesClick: TNotifyEvent;
+    FNumeroPedido: string;
+    FCliente: string;
+    FEndereco: string;
+    FTelefone: string;
+    FTipoPedido: string;
+    FStatusPedido: string;
+    FHorario: string;
+    FTotal: Currency;
+
+    procedure ConfigurarStatus(const AStatus: string);
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    property OnAcoesClick: TNotifyEvent read FOnAcoesClick write FOnAcoesClick;
+    property NumeroPedido: string read FNumeroPedido;
+    property Cliente: string read FCliente;
+    property Endereco: string read FEndereco;
+    property Telefone: string read FTelefone;
+    property TipoPedido: string read FTipoPedido;
+    property StatusPedido: string read FStatusPedido;
+    property Horario: string read FHorario;
+    property Total: Currency read FTotal;
+
+    function TotalFormatado: string;
+
+    procedure Preencher(const ANumero: string; const ACliente: string; const ATelefone: string;
+      const ATipo: string; const AStatus: string; const AHorario: string; const AEndereco: string; const ATotal: Currency);
+    procedure AlterarStatus(const AStatus: string);
+  end;
+
+implementation
+
+{$R *.fmx}
+
+constructor TfraItemPedido.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  pthAcoes.Data.Data :=
+    'M4,10 ' +
+    'C2.895,10 2,10.895 2,12 ' +
+    'C2,13.105 2.895,14 4,14 ' +
+    'C5.105,14 6,13.105 6,12 ' +
+    'C6,10.895 5.105,10 4,10 Z ' +
+
+    'M12,10 ' +
+    'C10.895,10 10,10.895 10,12 ' +
+    'C10,13.105 10.895,14 12,14 ' +
+    'C13.105,14 14,13.105 14,12 ' +
+    'C14,10.895 13.105,10 12,10 Z ' +
+
+    'M20,10 ' +
+    'C18.895,10 18,10.895 18,12 ' +
+    'C18,13.105 18.895,14 20,14 ' +
+    'C21.105,14 22,13.105 22,12 ' +
+    'C22,10.895 21.105,10 20,10 Z';
+end;
+
+procedure TfraItemPedido.Preencher(const ANumero: string; const ACliente: string; const ATelefone: string;
+  const ATipo: string; const AStatus: string; const AHorario: string; const AEndereco: string; const ATotal: Currency);
+begin
+  lblNumero.Text := ANumero;
+  lblCliente.Text := ACliente;
+  lblTelefone.Text := ATelefone;
+  lblTipo.Text := ATipo;
+  lblHorario.Text := AHorario;
+
+  lblTotal.Text := FormatFloat('"R$ " #,##0.00', ATotal);
+
+  FNumeroPedido := ANumero;
+  FCliente := ACliente;
+  FEndereco := AEndereco;
+  FTelefone := ATelefone;
+  FTipoPedido := ATipo;
+  FStatusPedido := AStatus;
+  FHorario := AHorario;
+  FTotal := ATotal;
+
+  ConfigurarStatus(AStatus);
+end;
+
+procedure TfraItemPedido.rctAcoesClick(Sender: TObject);
+begin
+  if Assigned(FOnAcoesClick) then
+    FOnAcoesClick(Self);
+end;
+
+procedure TfraItemPedido.ConfigurarStatus(const AStatus: string);
+begin
+  lblStatus.Text := AStatus;
+
+  if SameText(AStatus, 'Novo') then
+  begin
+    rctStatus.Fill.Color := $332B7FFF;
+    lblStatus.TextSettings.FontColor := $FF5B9DFF;
+  end
+  else if SameText(AStatus, 'Em preparo') then
+  begin
+    rctStatus.Fill.Color := $33FF9F1A;
+    lblStatus.TextSettings.FontColor := $FFFFA21A;
+  end
+  else if SameText(AStatus, 'Pronto') then
+  begin
+    rctStatus.Fill.Color := $3336D276;
+    lblStatus.TextSettings.FontColor := $FF36D276;
+  end
+  else if SameText(AStatus, 'Em entrega') then
+  begin
+    rctStatus.Fill.Color := $3343A5FF;
+    lblStatus.TextSettings.FontColor := $FF43A5FF;
+  end
+  else if SameText(AStatus, 'Finalizado') then
+  begin
+    rctStatus.Fill.Color := $339B6CFF;
+    lblStatus.TextSettings.FontColor := $FF9B6CFF;
+  end
+  else if SameText(AStatus, 'Cancelado') then
+  begin
+    rctStatus.Fill.Color := $33FF6570;
+    lblStatus.TextSettings.FontColor := $FFFF6570;
+  end
+  else
+  begin
+    rctStatus.Fill.Color := $332F4057;
+    lblStatus.TextSettings.FontColor := $FFB7C1CF;
+  end
+end;
+
+function TfraItemPedido.TotalFormatado: string;
+begin
+  Result := FormatFloat('"R$ " #,##0.00', FTotal);
+end;
+
+procedure TfraItemPedido.AlterarStatus(
+  const AStatus: string);
+begin
+  FStatusPedido := AStatus;
+  ConfigurarStatus(AStatus);
+end;
+
+end.

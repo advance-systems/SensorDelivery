@@ -1,0 +1,43 @@
+object SensorButton: TSensorButton
+  Size.Width = 160.000000000000000000
+  Size.Height = 42.000000000000000000
+  Size.PlatformDefault = False
+  object Rectangle1: TRectangle
+    Align = Client
+    Cursor = crHandPoint
+    Fill.Color = xFF8C63FF
+    Size.Width = 160.000000000000000000
+    Size.Height = 42.000000000000000000
+    Size.PlatformDefault = False
+    XRadius = 9.000000000000000000
+    YRadius = 9.000000000000000000
+    object lytConteudo: TLayout
+      Align = Client
+      Size.Width = 160.000000000000000000
+      Size.Height = 42.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object pthIcone: TPath
+        Align = Left
+        Margins.Left = 16.000000000000000000
+        Margins.Top = 11.000000000000000000
+        Margins.Right = 8.000000000000000000
+        Margins.Bottom = 11.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 11.000000000000000000
+        Size.Width = 20.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object lblTexto: TLabel
+        Align = Client
+        Margins.Right = 16.000000000000000000
+        Size.Width = 100.000000000000000000
+        Size.Height = 42.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Novo Pedido'
+        TabOrder = 1
+      end
+    end
+  end
+end

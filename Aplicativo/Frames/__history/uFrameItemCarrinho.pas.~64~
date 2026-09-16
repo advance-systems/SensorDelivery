@@ -1,0 +1,261 @@
+unit uFrameItemCarrinho;
+
+interface
+
+uses
+  System.SysUtils,
+  System.Types,
+  System.UITypes,
+  System.Classes,
+  System.Math,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Graphics,
+  FMX.Objects,
+  FMX.StdCtrls,
+  FMX.Layouts,
+  uCarrinhoModel, FMX.Controls.Presentation;
+
+type
+  TItemCarrinhoEvent = procedure(
+    Sender: TObject;
+    AItem: TItemCarrinho
+  ) of object;
+
+  TfraItemCarrinho = class(TFrame)
+    rctCard: TRectangle;
+
+    lytCabecalho: TLayout;
+    cirImagem: TCircle;
+    lblImagem: TLabel;
+    lblProduto: TLabel;
+    lblTamanho: TLabel;
+    rctRemover: TRectangle;
+    lblRemover: TLabel;
+
+    lytConteudo: TLayout;
+    lblSaboresTitulo: TLabel;
+    lblSabores: TLabel;
+    lblBorda: TLabel;
+    lblValorUnitario: TLabel;
+
+    rctObservacao: TRectangle;
+
+    lytRodape: TLayout;
+    rctMenos: TRectangle;
+    lblMenos: TLabel;
+    lblQuantidade: TLabel;
+    rctMais: TRectangle;
+    lblMais: TLabel;
+    lblValorTotal: TLabel;
+    lblObservacaoTitulo: TLabel;
+    lblObservacao: TLabel;
+
+    procedure rctRemoverClick(Sender: TObject);
+    procedure rctMenosClick(Sender: TObject);
+    procedure rctMaisClick(Sender: TObject);
+  private
+    FItem: TItemCarrinho;
+
+    FOnRemover: TItemCarrinhoEvent;
+    FOnQuantidadeAlterada: TItemCarrinhoEvent;
+
+    function TextoSabores: string;
+    function TextoBorda: string;
+
+    procedure AtualizarAltura;
+  public
+    procedure CarregarItem(
+      const AItem: TItemCarrinho
+    );
+
+    procedure Atualizar;
+
+    property Item: TItemCarrinho
+      read FItem;
+
+    property OnRemover: TItemCarrinhoEvent
+      read FOnRemover
+      write FOnRemover;
+
+    property OnQuantidadeAlterada: TItemCarrinhoEvent
+      read FOnQuantidadeAlterada
+      write FOnQuantidadeAlterada;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+function TfraItemCarrinho.TextoSabores: string;
+var
+  I: Integer;
+begin
+  Result := '';
+
+  if not Assigned(FItem) then
+    Exit;
+
+  for I := 0 to FItem.Sabores.Count - 1 do
+  begin
+    if Result <> '' then
+      Result := Result + ', ';
+
+    Result :=
+      Result +
+      FItem.Sabores[I].Descricao;
+  end;
+
+  if Result = '' then
+    Result := 'Sem sabores';
+end;
+
+function TfraItemCarrinho.TextoBorda: string;
+begin
+  Result := 'Borda: Sem borda';
+
+  if not Assigned(FItem) then
+    Exit;
+
+  if Trim(FItem.BordaDescricao) <> '' then
+  begin
+    Result :=
+      'Borda: ' +
+      FItem.BordaDescricao;
+
+    if FItem.ValorBorda > 0 then
+    begin
+      Result :=
+        Result +
+        ' • +' +
+        FormatFloat(
+          'R$ #,##0.00',
+          FItem.ValorBorda
+        );
+    end;
+  end;
+end;
+
+procedure TfraItemCarrinho.CarregarItem(
+  const AItem: TItemCarrinho);
+begin
+  FItem := AItem;
+
+  rctRemover.HitTest := True;
+  rctRemover.OnClick := rctRemoverClick;
+
+  lblRemover.HitTest := True;
+  lblRemover.OnClick := rctRemoverClick;
+
+  Atualizar;
+end;
+
+procedure TfraItemCarrinho.Atualizar;
+begin
+  if not Assigned(FItem) then
+  begin
+    Visible := False;
+    Exit;
+  end;
+
+  Visible := True;
+
+  lblProduto.Text :=
+    FItem.ProdutoDescricao;
+
+  lblTamanho.Text :=
+    FItem.TamanhoDescricao +
+    ' • ' +
+    FItem.Sabores.Count.ToString +
+    ' sabor(es)';
+
+  lblSabores.Text :=
+    TextoSabores;
+
+  lblBorda.Text :=
+    TextoBorda;
+
+  lblValorUnitario.Text :=
+    'Valor unitário: ' +
+    FormatFloat(
+      'R$ #,##0.00',
+      FItem.ValorUnitario
+    );
+
+  lblQuantidade.Text :=
+    FItem.Quantidade.ToString;
+
+  lblValorTotal.Text :=
+    FormatFloat(
+      'R$ #,##0.00',
+      FItem.ValorTotal
+    );
+
+  lblObservacao.Text :=
+    Trim(FItem.Observacao);
+
+  rctObservacao.Visible :=
+    Trim(FItem.Observacao) <> '';
+
+  AtualizarAltura;
+end;
+
+procedure TfraItemCarrinho.AtualizarAltura;
+const
+  ALTURA_SEM_OBSERVACAO = 330;
+  ALTURA_COM_OBSERVACAO = 396;
+begin
+  if rctObservacao.Visible then
+    Height := ALTURA_COM_OBSERVACAO
+  else
+    Height := ALTURA_SEM_OBSERVACAO;
+end;
+
+procedure TfraItemCarrinho.rctRemoverClick(
+  Sender: TObject);
+begin
+  if not Assigned(FItem) then
+    Exit;
+
+  if Assigned(FOnRemover) then
+    FOnRemover(Self, FItem);
+end;
+
+procedure TfraItemCarrinho.rctMenosClick(
+  Sender: TObject);
+begin
+  if not Assigned(FItem) then
+    Exit;
+
+  if FItem.Quantidade > 1 then
+  begin
+    Dec(FItem.Quantidade);
+
+    Atualizar;
+
+    if Assigned(FOnQuantidadeAlterada) then
+      FOnQuantidadeAlterada(Self, FItem);
+  end
+  else
+  begin
+    if Assigned(FOnRemover) then
+      FOnRemover(Self, FItem);
+  end;
+end;
+
+procedure TfraItemCarrinho.rctMaisClick(
+  Sender: TObject);
+begin
+  if not Assigned(FItem) then
+    Exit;
+
+  Inc(FItem.Quantidade);
+
+  Atualizar;
+
+  if Assigned(FOnQuantidadeAlterada) then
+    FOnQuantidadeAlterada(Self, FItem);
+end;
+
+end.

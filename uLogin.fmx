@@ -1,0 +1,18 @@
+﻿object frmLogin: TfrmLogin
+  Left = 0
+  Top = 0
+  BorderStyle = Single
+  Caption = 'Sensor Delivery - Login'
+  ClientHeight = 680
+  ClientWidth = 1100
+  Fill.Color = xFF0B1422
+  Position = ScreenCenter
+  OnCreate = FormCreate
+  object rctFundo: TRectangle
+    Align = Client
+    Fill.Color = xFF0B1422
+    Size.Width = 1100.000000000000000000
+    Size.Height = 680.000000000000000000
+    Stroke.Kind = None
+  end
+end

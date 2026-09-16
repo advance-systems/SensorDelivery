@@ -1,0 +1,40 @@
+unit uFrameItemNovoPedido;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, uPedidoNovo;
+
+type
+  TItemNovoPedidoExcluirEvent = procedure(
+    Sender: TObject;
+    const AItem: TItemPedidoNovo
+  ) of object;
+
+  TfraItemNovoPedido = class(TFrame)
+    rctFundo: TRectangle;
+    lblProduto: TLabel;
+    lblDescricao: TLabel;
+    lytRodape: TLayout;
+    lblQuantidade: TLabel;
+    lytEspaco: TLayout;
+    lblValor: TLabel;
+    rctExcluir: TRectangle;
+    pthLixeira: TPath;
+  private
+    FItem: TItemPedidoNovo;
+    FOnExcluir: TItemNovoPedidoExcluirEvent;
+
+    procedure ConfigurarIconeLixeira;
+  public
+    property Item: TItemPedidoNovo read FItem;
+    property OnExcluir: TItemNovoPedidoExcluirEvent read FOnExcluir write FOnExcluir;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+end.

@@ -1,0 +1,151 @@
+unit uFrameSensorButton;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Objects, FMX.Layouts, FMX.Controls.Presentation, uSensorIcons;
+
+type
+  TSensorButtonStyle = (
+    sbsPrimary,
+    sbsSecondary,
+    sbsDanger
+  );
+
+  TSensorButtonIcon = (
+    sbiNone,
+    sbiPedido,
+    sbiSalvar,
+    sbiCancelar,
+    sbiImprimir,
+    sbiUsuario,
+    sbiPizza,
+    sbiEntrega,
+    sbiDinheiro,
+    sbiConfiguracao,
+    sbiRelatorio,
+    sbiSair
+  );
+
+  TSensorButton = class(TFrame)
+    rctFundo: TRectangle;
+    lytConteudo: TLayout;
+    pthIcone: TPath;
+    lblTexto: TLabel;
+
+    procedure rctFundoClick(Sender: TObject);
+    procedure rctFundoMouseEnter(Sender: TObject);
+    procedure rctFundoMouseLeave(Sender: TObject);
+  private
+    FTexto: string;
+    FIcone: TSensorButtonIcon;
+    FEstilo: TSensorButtonStyle;
+    FOnClick: TNotifyEvent;
+
+    procedure SetTexto(const Value: string);
+    procedure SetIcone(const Value: TSensorButtonIcon);
+    procedure SetEstilo(const Value: TSensorButtonStyle);
+
+    procedure AplicarIcone;
+    procedure AplicarEstilo;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    property Texto: string
+      read FTexto
+      write SetTexto;
+
+    property Icone: TSensorButtonIcon
+      read FIcone
+      write SetIcone;
+
+    property Estilo: TSensorButtonStyle
+      read FEstilo
+      write SetEstilo;
+
+    property OnButtonClick: TNotifyEvent
+      read FOnClick
+      write FOnClick;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+constructor TSensorButton.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FTexto := 'Novo Pedido';
+  FIcone := sbiNone;
+  FEstilo := sbsPrimary;
+
+  lblTexto.Text := FTexto;
+
+  AplicarEstilo;
+  AplicarIcone;
+end;
+
+procedure TSensorButton.SetTexto(const Value: string);
+begin
+  FTexto := Value;
+  lblTexto.Text := Value;
+end;
+
+procedure TSensorButton.SetIcone(
+  const Value: TSensorButtonIcon);
+begin
+  FIcone := Value;
+  AplicarIcone;
+end;
+
+procedure TSensorButton.SetEstilo(
+  const Value: TSensorButtonStyle);
+begin
+  FEstilo := Value;
+  AplicarEstilo;
+end;
+
+procedure TSensorButton.AplicarIcone;
+begin
+  pthIcone.Visible := FIcone <> sbiNone;
+
+  case FIcone of
+    sbiPedido:
+      TSensorIcon.Pedido(pthIcone, $FFFFFFFF);
+
+    sbiSalvar:
+      TSensorIcon.Sucesso(pthIcone, $FFFFFFFF);
+
+    sbiCancelar:
+      TSensorIcon.Erro(pthIcone, $FFFFFFFF);
+
+    sbiImprimir:
+      TSensorIcon.Relatorio(pthIcone, $FFFFFFFF);
+
+    sbiUsuario:
+      TSensorIcon.Usuario(pthIcone, $FFFFFFFF);
+
+    sbiPizza:
+      TSensorIcon.Pizza(pthIcone, $FFFFFFFF);
+
+    sbiEntrega:
+      TSensorIcon.Entrega(pthIcone, $FFFFFFFF);
+
+    sbiDinheiro:
+      TSensorIcon.Dinheiro(pthIcone, $FFFFFFFF);
+
+    sbiConfiguracao:
+      TSensorIcon.Configuracao(pthIcone, $FFFFFFFF);
+
+    sbiRelatorio:
+      TSensorIcon.Relatorio(pthIcone, $FFFFFFFF);
+
+    sbiSair:
+      TSensorIcon.Sair(pthIcone, $FFFFFFFF);
+  end;
+end;
+
+end.

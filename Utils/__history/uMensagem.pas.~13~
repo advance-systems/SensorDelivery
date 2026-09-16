@@ -1,0 +1,136 @@
+﻿unit uMensagem;
+
+interface
+
+uses
+  System.SysUtils,
+  System.Classes,
+  System.UITypes,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Graphics,
+  FMX.Objects,
+  FMX.StdCtrls, FMX.Controls.Presentation;
+
+type
+  TTipoMensagem = (
+    tmInformacao,
+    tmSucesso,
+    tmAtencao,
+    tmErro,
+    tmConfirmacao
+  );
+
+  TfrmMensagem = class(TForm)
+    rctFundo: TRectangle;
+    rctMensagem: TRectangle;
+    crcIcone: TCircle;
+    lblIcone: TLabel;
+    lblTitulo: TLabel;
+    lblMensagem: TLabel;
+    rctBotaoCancelar: TRectangle;
+    lblCancelar: TLabel;
+    rctBotaoConfirmar: TRectangle;
+    lblConfirmar: TLabel;
+    procedure rctBotaoCancelarClick(Sender: TObject);
+    procedure rctBotaoConfirmarClick(Sender: TObject);
+  private
+    procedure ConfigurarTipo(const ATipo: TTipoMensagem);
+  public
+    class function Exibir(
+      const ATitulo: string;
+      const AMensagem: string;
+      const ATipo: TTipoMensagem = tmInformacao;
+      const AExibirCancelar: Boolean = False;
+      const ATextoConfirmar: string = 'OK';
+      const ATextoCancelar: string = 'Cancelar'
+    ): Boolean;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+procedure TfrmMensagem.ConfigurarTipo(const ATipo: TTipoMensagem);
+begin
+  case ATipo of
+    tmInformacao:
+      begin
+        lblIcone.Text := 'i';
+        crcIcone.Fill.Color := $3343A5FF;
+        lblIcone.TextSettings.FontColor := $FF43A5FF;
+        rctBotaoConfirmar.Fill.Color := $FF43A5FF;
+      end;
+
+    tmSucesso:
+      begin
+        lblIcone.Text := '✓';
+        crcIcone.Fill.Color := $3336D276;
+        lblIcone.TextSettings.FontColor := $FF36D276;
+        rctBotaoConfirmar.Fill.Color := $FF36D276;
+      end;
+
+    tmAtencao:
+      begin
+        lblIcone.Text := '!';
+        crcIcone.Fill.Color := $33FFA21A;
+        lblIcone.TextSettings.FontColor := $FFFFA21A;
+        rctBotaoConfirmar.Fill.Color := $FFFFA21A;
+      end;
+
+    tmErro:
+      begin
+        lblIcone.Text := '×';
+        crcIcone.Fill.Color := $33FF5A65;
+        lblIcone.TextSettings.FontColor := $FFFF5A65;
+        rctBotaoConfirmar.Fill.Color := $FFFF5A65;
+      end;
+
+    tmConfirmacao:
+      begin
+        lblIcone.Text := '?';
+        crcIcone.Fill.Color := $339B6CFF;
+        lblIcone.TextSettings.FontColor := $FF9B6CFF;
+        rctBotaoConfirmar.Fill.Color := $FF9B6CFF;
+      end;
+  end;
+end;
+
+class function TfrmMensagem.Exibir(
+  const ATitulo: string;
+  const AMensagem: string;
+  const ATipo: TTipoMensagem;
+  const AExibirCancelar: Boolean;
+  const ATextoConfirmar: string;
+  const ATextoCancelar: string): Boolean;
+var
+  LForm: TfrmMensagem;
+begin
+  LForm := TfrmMensagem.Create(nil);
+  try
+    LForm.lblTitulo.Text := ATitulo;
+    LForm.lblMensagem.Text := AMensagem;
+    LForm.lblConfirmar.Text := ATextoConfirmar;
+    LForm.lblCancelar.Text := ATextoCancelar;
+
+    LForm.rctBotaoCancelar.Visible := AExibirCancelar;
+    LForm.ConfigurarTipo(ATipo);
+
+    Result := LForm.ShowModal = mrOk;
+  finally
+    LForm.Free;
+  end;
+end;
+
+procedure TfrmMensagem.rctBotaoCancelarClick(Sender: TObject);
+begin
+  ModalResult := mrCancel;
+end;
+
+procedure TfrmMensagem.rctBotaoConfirmarClick(Sender: TObject);
+begin
+  ModalResult := mrOk;
+end;
+
+end.

@@ -1,0 +1,32 @@
+﻿unit uLogin;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
+  FMX.Edit, FMX.Layouts, System.Net.HttpClient, System.JSON, System.Threading,
+  uSincronismoService, System.Net.HttpClientComponent, FMX.Controls.Presentation,
+  FMX.Effects, FMX.Filter.Effects; // 👈 Importa a unit de sincronismo que criamos
+
+type
+  TfrmLogin = class(TForm)
+    recFundo: TRectangle;
+    procedure btnEntrarClick(Sender: TObject);
+  private
+    { Private declarations }
+    procedure ExecutarLogin;
+  public
+    { Public declarations }
+  end;
+
+var
+  frmLogin: TfrmLogin;
+
+implementation
+
+
+{$R *.fmx}
+
+
+end.

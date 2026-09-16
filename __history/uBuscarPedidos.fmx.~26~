@@ -1,0 +1,126 @@
+object frmBuscarPedidos: TfrmBuscarPedidos
+  Left = 0
+  Top = 0
+  BorderStyle = Single
+  Caption = 'Form1'
+  ClientHeight = 480
+  ClientWidth = 640
+  Position = MainFormCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object lytHeaderBusca: TLayout
+    Align = Top
+    Margins.Left = 15.000000000000000000
+    Margins.Top = 15.000000000000000000
+    Margins.Right = 15.000000000000000000
+    Position.X = 15.000000000000000000
+    Position.Y = 15.000000000000000000
+    Size.Width = 610.000000000000000000
+    Size.Height = 60.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object lblTituloBusca: TLabel
+      Align = Client
+      StyledSettings = []
+      Size.Width = 610.000000000000000000
+      Size.Height = 60.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Segoe UI Variable Display'
+      TextSettings.Font.Size = 18.000000000000000000
+      TextSettings.Font.StyleExt = {00060000000000000004000000}
+      TextSettings.FontColor = xFF111217
+      TextSettings.HorzAlign = Center
+      Text = 'Hist'#243'rico e Busca de Pedidos'
+      TabOrder = 0
+    end
+  end
+  object recFiltros: TRectangle
+    Align = Top
+    Fill.Color = claWhite
+    Margins.Left = 15.000000000000000000
+    Margins.Right = 15.000000000000000000
+    Margins.Bottom = 15.000000000000000000
+    Position.X = 15.000000000000000000
+    Position.Y = 75.000000000000000000
+    Size.Width = 610.000000000000000000
+    Size.Height = 90.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    XRadius = 8.000000000000000000
+    YRadius = 8.000000000000000000
+    object Layout1: TLayout
+      Align = Left
+      Margins.Left = 15.000000000000000000
+      Position.X = 15.000000000000000000
+      Size.Width = 100.000000000000000000
+      Size.Height = 90.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object Label1: TLabel
+        Align = Top
+        StyledSettings = []
+        Size.Width = 100.000000000000000000
+        Size.Height = 17.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Segoe UI Variable Display'
+        TextSettings.Font.Size = 11.000000000000000000
+        TextSettings.Font.StyleExt = {00060000000000000004000000}
+        TextSettings.FontColor = xFF7F8C8D
+        Text = 'N'#186' Pedido'
+        TabOrder = 0
+      end
+      object edtBuscaID: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        TabOrder = 1
+        Position.X = 8.000000000000000000
+        Position.Y = 40.000000000000000000
+        TextPrompt = 'Ex: 1024'
+      end
+    end
+    object Layout2: TLayout
+      Align = Left
+      Margins.Left = 15.000000000000000000
+      Position.X = 130.000000000000000000
+      Size.Width = 220.000000000000000000
+      Size.Height = 90.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      object Label2: TLabel
+        Align = Top
+        StyledSettings = []
+        Size.Width = 220.000000000000000000
+        Size.Height = 17.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Segoe UI Variable Display'
+        TextSettings.Font.Size = 11.000000000000000000
+        TextSettings.Font.StyleExt = {00060000000000000004000000}
+        TextSettings.FontColor = xFF7F8C8D
+        Text = 'Nome ou Telefone'
+        TabOrder = 0
+      end
+      object edtBuscaCliente: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        TabOrder = 1
+        TextSettings.Font.Family = 'Segoe UI Variable Display'
+        Position.X = 40.000000000000000000
+        Position.Y = 40.000000000000000000
+        Size.Width = 137.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        TextPrompt = 'Digite para pesquisar...'
+        StyledSettings = [Size, Style, FontColor]
+      end
+    end
+    object Layout3: TLayout
+      Align = Left
+      Margins.Left = 15.000000000000000000
+      Position.X = 365.000000000000000000
+      Size.Width = 240.000000000000000000
+      Size.Height = 90.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+    end
+  end
+end

@@ -1,0 +1,655 @@
+﻿unit uFrameHomeMobile;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
+  FMX.Objects, FMX.Layouts, FMX.Controls.Presentation, FMX.Edit, System.JSON,
+  System.Net.HttpClient, System.Net.URLClient, System.Net.HttpClientComponent,
+  uFrameProdutoMobile, uCarrinhoModel;
+
+type
+  TProdutoSelecionadoEvent = procedure(
+    Sender: TObject;
+    const AProdutoId: string
+  ) of object;
+
+  TPizzaSelecionadaEvent = procedure(
+    Sender: TObject;
+    const AProdutoId: string;
+    const AVariacaoId: string;
+    const AVariacaoNome: string;
+    const APreco: Currency
+  ) of object;
+
+  TfraHomeMobile = class(TFrame)
+    rctFundo: TRectangle;
+    rctVerCarrinho: TRectangle;
+    lblIconeCarrinho: TLabel;
+    lblVerCarrinho: TLabel;
+    lblQuantidadeCarrinho: TLabel;
+    rctTopoHome: TRectangle;
+    lytTopoInterno: TLayout;
+    lytMenu: TLayout;
+    lytNotificacao: TLayout;
+    lytLogo: TLayout;
+    lblMenu: TLabel;
+    lblSino: TLabel;
+    cirNotificacao: TCircle;
+    imgLogoHome: TImage;
+    lytSaudacao: TLayout;
+    lytTextoSaudacao: TLayout;
+    lblOla: TLabel;
+    lblPergunta: TLabel;
+    lytStatusLoja: TLayout;
+    rctStatusLoja: TRectangle;
+    lblStatusLoja: TLabel;
+    lblHorarioLoja: TLabel;
+    lblNotificacao: TLabel;
+    rctBusca: TRectangle;
+    lblIconeBusca: TLabel;
+    edtBusca: TEdit;
+    lytCategorias: TLayout;
+    lblTituloCategorias: TLabel;
+    lblVerTodasCategorias: TLabel;
+    hsbCategorias: THorzScrollBox;
+    lytMaisPedidos: TLayout;
+    lblTituloMaisPedidos: TLabel;
+    lblVerTodosProdutos: TLabel;
+    lytProdutos: TLayout;
+    vsbConteudo: TVertScrollBox;
+    lytEspacoFinal: TLayout;
+    procedure rctVerCarrinhoClick(Sender: TObject);
+    procedure CategoriaClick(Sender: TObject);
+  private
+    FOnProdutoSelecionado: TProdutoSelecionadoEvent;
+    FOnPizzaSelecionada: TPizzaSelecionadaEvent;
+    FOnAbrirCarrinho: TNotifyEvent;
+
+    FCardapioCarregado: Boolean;
+
+    procedure CarregarProdutosAPI;
+    procedure ProdutoClick(Sender: TObject; const AProdutoId: string);
+    procedure AdicionarProdutoClick(Sender: TObject; const AProdutoId: string);
+    procedure CarregarVariacoesPizza(
+      const AProdutoId: string;
+      var AIndiceVisual: Integer);
+    procedure CriarCategorias;
+  public
+    procedure CarregarCardapio;
+    procedure AtualizarCardapio;
+    procedure AtualizarCarrinho;
+
+    property OnProdutoSelecionado: TProdutoSelecionadoEvent
+      read FOnProdutoSelecionado
+      write FOnProdutoSelecionado;
+
+    property OnPizzaSelecionada: TPizzaSelecionadaEvent
+      read FOnPizzaSelecionada
+      write FOnPizzaSelecionada;
+
+    property OnAbrirCarrinho: TNotifyEvent
+      read FOnAbrirCarrinho
+      write FOnAbrirCarrinho;
+
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+constructor TfraHomeMobile.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FCardapioCarregado := False;
+  rctVerCarrinho.Visible := False;
+
+  { Ordem dos controles com Align = Top.
+    No FMX, a ordem visual fica inversa ao Index. }
+  lytEspacoFinal.Index := 4;
+  lytMaisPedidos.Index := 3;
+  lytCategorias.Index := 2;
+  rctBusca.Index := 1;
+  lytSaudacao.Index := 0;
+
+  CriarCategorias;
+  vsbConteudo.ViewportPosition := PointF(0, 0);
+end;
+
+procedure TfraHomeMobile.CarregarProdutosAPI;
+const
+  ALTURA_CARD = 148;
+  ESPACO_Y = 10;
+var
+  LHTTP: TNetHTTPClient;
+  LResposta: IHTTPResponse;
+  LJSON: TJSONObject;
+  LProdutos: TJSONArray;
+  LProdutoJSON: TJSONObject;
+  LProduto: TfraProdutoMobile;
+
+  I: Integer;
+
+  LIndiceVisual: Integer;
+  LId: string;
+  LNome: string;
+  LDescricao: string;
+  LPrecoTexto: string;
+  LPreco: Currency;
+  LImagemURL: string;
+
+  LFS: TFormatSettings;
+begin
+  { Limpa os produtos existentes }
+  while lytProdutos.ChildrenCount > 0 do
+    lytProdutos.Children[0].Free;
+
+  lytProdutos.Height := 0;
+
+  LHTTP := TNetHTTPClient.Create(nil);
+  try
+    LHTTP.ConnectionTimeout := 5000;
+    LHTTP.ResponseTimeout := 10000;
+
+    try
+      LResposta :=
+        LHTTP.Get(
+          'http://127.0.0.1:3001/api/produtos'
+        );
+
+      if LResposta.StatusCode <> 200 then
+        raise Exception.CreateFmt(
+          'Erro ao carregar produtos. API retornou %d.',
+          [LResposta.StatusCode]
+        );
+
+      LJSON :=
+        TJSONObject.ParseJSONValue(
+          LResposta.ContentAsString(TEncoding.UTF8)
+        ) as TJSONObject;
+
+      if not Assigned(LJSON) then
+        raise Exception.Create(
+          'A API retornou um JSON inválido.'
+        );
+
+      try
+        LProdutos :=
+          LJSON.GetValue<TJSONArray>('produtos');
+
+        if not Assigned(LProdutos) then
+          Exit;
+
+        LFS := TFormatSettings.Create;
+        LFS.DecimalSeparator := '.';
+
+        LIndiceVisual := 0;
+        for I := 0 to LProdutos.Count - 1 do
+        begin
+          LProdutoJSON :=
+            LProdutos.Items[I] as TJSONObject;
+
+          LId :=
+            LProdutoJSON.GetValue<string>('id', '');
+
+          LNome :=
+            LProdutoJSON.GetValue<string>('nome', '');
+
+          LDescricao :=
+            LProdutoJSON.GetValue<string>('descricao', '');
+
+          LPrecoTexto :=
+            LProdutoJSON.GetValue<string>('preco', '0');
+
+          if not TryStrToCurr(
+            LPrecoTexto,
+            LPreco,
+            LFS
+          ) then
+            LPreco := 0;
+
+          LImagemURL :=
+            LProdutoJSON.GetValue<string>(
+            'imagem_url',
+            ''
+          );
+
+          if SameText(LNome, 'Pizza') then
+          begin
+            CarregarVariacoesPizza(
+              LId,
+              LIndiceVisual
+            );
+
+            Continue;
+          end;
+
+          LProduto :=
+            TfraProdutoMobile.Create(nil);
+
+          LProduto.Name := '';
+          LProduto.Parent := lytProdutos;
+
+          LProduto.Align := TAlignLayout.None;
+
+          LProduto.Position.X := 0;
+          LProduto.Position.Y :=
+            LIndiceVisual * (ALTURA_CARD + ESPACO_Y);
+
+          LProduto.Width :=
+            lytProdutos.Width;
+
+          LProduto.Height := ALTURA_CARD;
+
+          LProduto.Preencher(
+            LId,
+            LNome,
+            LDescricao,
+            LPreco,
+            LImagemURL
+          );
+
+          LProduto.OnProdutoClick :=
+            ProdutoClick;
+
+          LProduto.OnAdicionarClick :=
+            AdicionarProdutoClick;
+
+          Inc(LIndiceVisual);
+        end;
+
+        if LIndiceVisual > 0 then
+          lytProdutos.Height :=
+            (LIndiceVisual * ALTURA_CARD) +
+            ((LIndiceVisual - 1) * ESPACO_Y)
+        else
+          lytProdutos.Height := 0;
+
+        lytMaisPedidos.Height := 38 + lytProdutos.Height + 20;
+
+      finally
+        LJSON.Free;
+      end;
+
+    except
+      on E: Exception do
+      begin
+        // Por enquanto usamos ShowMessage.
+        // Depois faremos nosso popup visual.
+      end;
+    end;
+
+  finally
+    LHTTP.Free;
+  end;
+end;
+
+procedure TfraHomeMobile.ProdutoClick(
+  Sender: TObject;
+  const AProdutoId: string);
+var
+  LProduto: TfraProdutoMobile;
+begin
+  if Sender is TfraProdutoMobile then
+  begin
+    LProduto := TfraProdutoMobile(Sender);
+
+    if not LProduto.VariacaoId.Trim.IsEmpty then
+    begin
+      if Assigned(FOnPizzaSelecionada) then
+        FOnPizzaSelecionada(
+          Self,
+          AProdutoId,                 // produto Pizza
+          LProduto.VariacaoId,        // tamanho
+          LProduto.VariacaoNome,
+          LProduto.VariacaoPreco
+        );
+
+      Exit;
+    end;
+  end;
+
+  if Assigned(FOnProdutoSelecionado) then
+    FOnProdutoSelecionado(
+      Self,
+      AProdutoId
+    );
+end;
+
+procedure TfraHomeMobile.rctVerCarrinhoClick(Sender: TObject);
+begin
+  if Assigned(FOnAbrirCarrinho) then
+    FOnAbrirCarrinho(Self);
+end;
+
+procedure TfraHomeMobile.AdicionarProdutoClick(
+  Sender: TObject;
+  const AProdutoId: string);
+begin
+  ProdutoClick(
+    Sender,
+    AProdutoId
+  );
+end;
+
+procedure TfraHomeMobile.CarregarVariacoesPizza(
+  const AProdutoId: string;
+  var AIndiceVisual: Integer);
+const
+  ALTURA_CARD = 148;
+  ESPACO_Y = 10;
+var
+  LHTTP: TNetHTTPClient;
+  LResposta: IHTTPResponse;
+  LJSON: TJSONObject;
+  LVariacoes: TJSONArray;
+  LVariacao: TJSONObject;
+  LProduto: TfraProdutoMobile;
+
+  I: Integer;
+  LId: string;
+  LNome: string;
+  LPrecoTexto: string;
+  LPreco: Currency;
+  LFS: TFormatSettings;
+begin
+  LHTTP := TNetHTTPClient.Create(nil);
+  LJSON := nil;
+
+  try
+    LHTTP.Accept := 'application/json';
+
+    LResposta := LHTTP.Get(
+      'http://127.0.0.1:3001/api/produtos/' +
+      AProdutoId +
+      '/variacoes'
+    );
+
+    if LResposta.StatusCode <> 200 then
+      Exit;
+
+    LJSON :=
+      TJSONObject.ParseJSONValue(
+        LResposta.ContentAsString(TEncoding.UTF8)
+      ) as TJSONObject;
+
+    if not Assigned(LJSON) then
+      Exit;
+
+    LVariacoes :=
+      LJSON.GetValue<TJSONArray>('variacoes');
+
+    if not Assigned(LVariacoes) then
+      Exit;
+
+    LFS := TFormatSettings.Create;
+    LFS.DecimalSeparator := '.';
+
+    for I := 0 to LVariacoes.Count - 1 do
+    begin
+      LVariacao :=
+        LVariacoes.Items[I] as TJSONObject;
+
+      LId :=
+        LVariacao.GetValue<string>(
+          'id',
+          ''
+        );
+
+      LNome :=
+        LVariacao.GetValue<string>(
+          'nome',
+          ''
+        );
+
+      LPrecoTexto :=
+        LVariacao.GetValue<string>(
+          'preco',
+          '0'
+        );
+
+      if not TryStrToCurr(
+        LPrecoTexto,
+        LPreco,
+        LFS
+      ) then
+        LPreco := 0;
+
+      LProduto :=
+        TfraProdutoMobile.Create(nil);
+
+      LProduto.Name := '';
+      LProduto.Parent := lytProdutos;
+
+      LProduto.Align :=
+        TAlignLayout.None;
+
+      LProduto.Position.X := 0;
+
+      LProduto.Position.Y :=
+        AIndiceVisual *
+        (ALTURA_CARD + ESPACO_Y);
+
+      LProduto.Width :=
+        lytProdutos.Width;
+
+      LProduto.Height :=
+        ALTURA_CARD;
+
+      LProduto.Preencher(
+        AProdutoId,
+        'Pizza ' + LNome,
+        'Escolha os sabores',
+        LPreco,
+        ''
+      );
+
+      LProduto.VariacaoId :=
+        LId;
+
+      LProduto.VariacaoNome :=
+        LNome;
+
+      LProduto.VariacaoPreco :=
+        LPreco;
+
+      LProduto.OnProdutoClick :=
+        ProdutoClick;
+
+      LProduto.OnAdicionarClick :=
+        AdicionarProdutoClick;
+
+      Inc(AIndiceVisual);
+    end;
+
+  finally
+    LJSON.Free;
+    LHTTP.Free;
+  end;
+end;
+
+procedure TfraHomeMobile.CarregarCardapio;
+begin
+  if FCardapioCarregado then
+    Exit;
+
+  CarregarProdutosAPI;
+
+  FCardapioCarregado := True;
+
+  vsbConteudo.ViewportPosition := PointF(0, 0);
+end;
+
+procedure TfraHomeMobile.AtualizarCardapio;
+begin
+  FCardapioCarregado := False;
+
+  CarregarCardapio;
+end;
+
+procedure TfraHomeMobile.AtualizarCarrinho;
+var
+  LQuantidade: Integer;
+begin
+  LQuantidade :=
+    TCarrinho.Instancia.QuantidadeItens;
+
+  { O resumo agora pertence à uPrincipal }
+  rctVerCarrinho.Visible := False;
+
+  if LQuantidade = 1 then
+    lblQuantidadeCarrinho.Text := '1 item'
+  else
+    lblQuantidadeCarrinho.Text :=
+      LQuantidade.ToString + ' itens';
+end;
+
+procedure TfraHomeMobile.CriarCategorias;
+
+  procedure AdicionarCategoria(
+    const ATexto: string;
+    const AIcone: string;
+    const ATag: Integer;
+    const AX: Single);
+  var
+    LCard: TRectangle;
+    LIcone: TLabel;
+    LTexto: TLabel;
+  begin
+    LCard := TRectangle.Create(hsbCategorias);
+    LCard.Parent := hsbCategorias;
+
+    LCard.Name := '';
+    LCard.Tag := ATag;
+
+    LCard.Position.X := AX;
+    LCard.Position.Y := 4;
+    LCard.Width := 88;
+    LCard.Height := 92;
+
+    LCard.Fill.Color := $FFFFFFFF;
+    LCard.Stroke.Kind := TBrushKind.Solid;
+    LCard.Stroke.Color := $FFE8E8E8;
+    LCard.Stroke.Thickness := 1;
+
+    LCard.XRadius := 14;
+    LCard.YRadius := 14;
+
+    LCard.HitTest := True;
+    LCard.OnClick := CategoriaClick;
+
+    LIcone := TLabel.Create(LCard);
+    LIcone.Parent := LCard;
+
+    LIcone.Align := TAlignLayout.Top;
+    LIcone.Height := 54;
+
+    LIcone.Text := AIcone;
+
+    LIcone.TextSettings.Font.Size := 23;
+    LIcone.TextSettings.HorzAlign :=
+      TTextAlign.Center;
+    LIcone.TextSettings.VertAlign :=
+      TTextAlign.Center;
+
+    LIcone.HitTest := False;
+
+    LTexto := TLabel.Create(LCard);
+    LTexto.Parent := LCard;
+
+    LTexto.Align := TAlignLayout.Client;
+    LTexto.Text := ATexto;
+
+    LTexto.TextSettings.Font.Size := 11;
+    LTexto.TextSettings.Font.Style :=
+      [TFontStyle.fsBold];
+
+    LTexto.TextSettings.FontColor :=
+      $FF202124;
+
+    LTexto.TextSettings.HorzAlign :=
+      TTextAlign.Center;
+
+    LTexto.TextSettings.VertAlign :=
+      TTextAlign.Center;
+
+    LTexto.HitTest := False;
+
+    if ATag = 1 then
+    begin
+      LCard.Fill.Color := $FFFFFAF7;
+      LCard.Stroke.Color := $FFFF4B0A;
+      LCard.Stroke.Thickness := 1.5;
+
+      LTexto.TextSettings.FontColor :=
+        $FFFF4B0A;
+    end;
+  end;
+
+begin
+  while hsbCategorias.Content.ChildrenCount > 0 do
+    hsbCategorias.Content.Children[0].Free;
+
+  AdicionarCategoria('Pizzas', '🍕', 1, 0);
+  AdicionarCategoria('Lanches', '🍔', 2, 98);
+  AdicionarCategoria('Bebidas', '🥤', 3, 196);
+  AdicionarCategoria('Combos', '🎁', 4, 294);
+  AdicionarCategoria('Sobremesas', '🍰', 5, 392);
+end;
+
+procedure TfraHomeMobile.CategoriaClick(
+  Sender: TObject);
+var
+  I: Integer;
+  LCard: TRectangle;
+  LTexto: TLabel;
+begin
+  for I := 0 to
+    hsbCategorias.Content.ChildrenCount - 1 do
+  begin
+    if hsbCategorias.Content.Children[I]
+      is TRectangle then
+    begin
+      LCard :=
+        TRectangle(
+          hsbCategorias.Content.Children[I]
+        );
+
+      LCard.Fill.Color := $FFFFFFFF;
+      LCard.Stroke.Color := $FFE8E8E8;
+      LCard.Stroke.Thickness := 1;
+
+      if (LCard.ChildrenCount > 1) and
+         (LCard.Children[1] is TLabel) then
+      begin
+        LTexto := TLabel(LCard.Children[1]);
+
+        LTexto.TextSettings.FontColor :=
+          $FF202124;
+      end;
+    end;
+  end;
+
+  if Sender is TRectangle then
+  begin
+    LCard := TRectangle(Sender);
+
+    LCard.Fill.Color := $FFFFFAF7;
+    LCard.Stroke.Color := $FFFF4B0A;
+    LCard.Stroke.Thickness := 1.5;
+
+    if (LCard.ChildrenCount > 1) and
+       (LCard.Children[1] is TLabel) then
+    begin
+      LTexto := TLabel(LCard.Children[1]);
+
+      LTexto.TextSettings.FontColor :=
+        $FFFF4B0A;
+    end;
+  end;
+end;
+
+end.

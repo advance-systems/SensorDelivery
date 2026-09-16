@@ -1,0 +1,35 @@
+object fraConfiguracoes: TfraConfiguracoes
+  Size.Width = 1200.000000000000000000
+  Size.Height = 700.000000000000000000
+  Size.PlatformDefault = False
+  object rctFundo: TRectangle
+    Align = Client
+    Fill.Color = xFF0B1422
+    HitTest = False
+    Size.Width = 1200.000000000000000000
+    Size.Height = 700.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object lytPrincipal: TLayout
+      Align = Client
+      Padding.Left = 24.000000000000000000
+      Padding.Top = 20.000000000000000000
+      Padding.Right = 24.000000000000000000
+      Padding.Bottom = 20.000000000000000000
+      Size.Width = 1200.000000000000000000
+      Size.Height = 700.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object lytCabecalho: TLayout
+        Align = Top
+        Margins.Bottom = 16.000000000000000000
+        Position.X = 24.000000000000000000
+        Position.Y = 20.000000000000000000
+        Size.Width = 1152.000000000000000000
+        Size.Height = 74.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+      end
+    end
+  end
+end

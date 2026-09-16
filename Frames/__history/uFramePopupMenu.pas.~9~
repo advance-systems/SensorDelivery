@@ -1,0 +1,171 @@
+unit uFramePopupMenu;
+
+interface
+
+uses
+  System.SysUtils,
+  System.Classes,
+  System.UITypes,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Layouts,
+  FMX.Objects,
+  FMX.StdCtrls,
+  FMX.Graphics;
+
+type
+  TPopupMenuItemClick = procedure(
+    Sender: TObject;
+    const AIdentificador: string
+  ) of object;
+
+  TfraPopupMenu = class(TFrame)
+    rctFundo: TRectangle;
+    lytItens: TLayout;
+  private
+    FOnItemClick: TPopupMenuItemClick;
+
+    procedure ItemClick(Sender: TObject);
+    procedure ItemMouseEnter(Sender: TObject);
+    procedure ItemMouseLeave(Sender: TObject);
+
+    procedure AjustarAltura;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    procedure Limpar;
+
+    procedure AdicionarItem(
+      const AIdentificador: string;
+      const ATexto: string;
+      const ACorTexto: TAlphaColor = $FFD8E0EA
+    );
+
+    procedure Abrir(
+      const AX: Single;
+      const AY: Single
+    );
+
+    procedure Fechar;
+
+    property OnItemClick: TPopupMenuItemClick
+      read FOnItemClick
+      write FOnItemClick;
+  end;
+
+implementation
+
+{$R *.fmx}
+
+constructor TfraPopupMenu.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  Visible := False;
+end;
+
+procedure TfraPopupMenu.Limpar;
+var
+  I: Integer;
+begin
+  for I := lytItens.ChildrenCount - 1 downto 0 do
+    lytItens.Children[I].Free;
+
+  AjustarAltura;
+end;
+
+procedure TfraPopupMenu.AdicionarItem(
+  const AIdentificador: string;
+  const ATexto: string;
+  const ACorTexto: TAlphaColor);
+var
+  LItem: TRectangle;
+  LLabel: TLabel;
+begin
+  LItem := TRectangle.Create(lytItens);
+  LItem.Name := '';
+  LItem.Parent := lytItens;
+  LItem.Align := TAlignLayout.Top;
+  LItem.Height := 38;
+  LItem.SendToBack;
+
+  LItem.Fill.Kind := TBrushKind.Solid;
+  LItem.Fill.Color := $00FFFFFF;
+  LItem.Stroke.Kind := TBrushKind.None;
+  LItem.XRadius := 6;
+  LItem.YRadius := 6;
+  LItem.Cursor := crHandPoint;
+  LItem.HitTest := True;
+  LItem.TagString := AIdentificador;
+
+  LItem.OnClick := ItemClick;
+  LItem.OnMouseEnter := ItemMouseEnter;
+  LItem.OnMouseLeave := ItemMouseLeave;
+
+  LLabel := TLabel.Create(LItem);
+  LLabel.Name := '';
+  LLabel.Parent := LItem;
+  LLabel.Align := TAlignLayout.Client;
+  LLabel.Margins.Left := 14;
+  LLabel.Text := ATexto;
+  LLabel.StyledSettings := [];
+  LLabel.TextSettings.Font.Size := 10;
+  LLabel.TextSettings.FontColor := ACorTexto;
+  LLabel.TextSettings.HorzAlign := TTextAlign.Leading;
+  LLabel.TextSettings.VertAlign := TTextAlign.Center;
+  LLabel.HitTest := False;
+
+  AjustarAltura;
+end;
+
+procedure TfraPopupMenu.AjustarAltura;
+begin
+  Height :=
+    12 +
+    (lytItens.ChildrenCount * 38);
+end;
+
+procedure TfraPopupMenu.ItemClick(Sender: TObject);
+begin
+  if not (Sender is TRectangle) then
+    Exit;
+
+  Fechar;
+
+  if Assigned(FOnItemClick) then
+    FOnItemClick(
+      Self,
+      TRectangle(Sender).TagString
+    );
+end;
+
+procedure TfraPopupMenu.ItemMouseEnter(Sender: TObject);
+begin
+  if Sender is TRectangle then
+    TRectangle(Sender).Fill.Color := $FF1A2C42;
+end;
+
+procedure TfraPopupMenu.ItemMouseLeave(Sender: TObject);
+begin
+  if Sender is TRectangle then
+    TRectangle(Sender).Fill.Color := $00FFFFFF;
+end;
+
+procedure TfraPopupMenu.Abrir(
+  const AX: Single;
+  const AY: Single);
+begin
+  Position.X := AX;
+  Position.Y := AY;
+
+  BringToFront;
+  Visible := True;
+end;
+
+procedure TfraPopupMenu.Fechar;
+begin
+  Visible := False;
+end;
+
+end.
