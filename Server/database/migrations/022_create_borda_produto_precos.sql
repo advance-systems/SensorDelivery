@@ -1,3 +1,30 @@
+CREATE TABLE IF NOT EXISTS bordas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    empresa_id UUID NOT NULL REFERENCES empresas(id) ON DELETE CASCADE,
+    nome VARCHAR(120) NOT NULL,
+    valor NUMERIC(12,2) NOT NULL DEFAULT 0,
+    ordem INTEGER NOT NULL DEFAULT 0,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    criado_em TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_bordas_empresa ON bordas(empresa_id);
+CREATE INDEX IF NOT EXISTS idx_bordas_empresa_ativo ON bordas(empresa_id, ativo);
+
+CREATE TABLE IF NOT EXISTS produto_bordas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    produto_id UUID NOT NULL REFERENCES produtos(id) ON DELETE CASCADE,
+    borda_id UUID NOT NULL REFERENCES bordas(id) ON DELETE CASCADE,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    ordem INTEGER NOT NULL DEFAULT 0,
+    criado_em TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_produto_borda UNIQUE (produto_id, borda_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_produto_bordas_produto ON produto_bordas(produto_id);
+CREATE INDEX IF NOT EXISTS idx_produto_bordas_borda ON produto_bordas(borda_id);
+
 CREATE TABLE IF NOT EXISTS borda_produto_precos (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     borda_id UUID NOT NULL REFERENCES bordas(id) ON DELETE CASCADE,
