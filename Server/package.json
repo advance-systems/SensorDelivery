@@ -13,21 +13,20 @@
     "sicredi:webhook": "tsx src/scripts/configurar-webhook-sicredi.ts"
   },
   "dependencies": {
-    "cors": "^2.8.6",
-    "dotenv": "^17.0.0",
-    "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.3",
-    "pg": "^8.16.0",
-    "qrcode": "^1.5.4"
-  },
-  "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.0.0",
     "@types/pg": "^8.15.0",
     "@types/qrcode": "^1.5.6",
+    "cors": "^2.8.6",
+    "dotenv": "^17.0.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.16.0",
+    "qrcode": "^1.5.4",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0"
-  }
+  },
+  "devDependencies": {}
 }
