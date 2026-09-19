@@ -94,7 +94,7 @@ Deve retornar:
    - **Root Directory**: clique em **Edit** e selecione `SensorDeliveryAdminWeb`.
 4. Em **Environment Variables**, adicione:
    - **Key**: `VITE_API_URL`
-   - **Value**: `https://<seu-app-railway>.up.railway.app/api`
+   - **Value**: `https://api-delivery.sistemassensor.com.br/api` (ou a URL do Railway)
 5. Clique em **Deploy**.
 
 > **Nota:** O arquivo `SensorDeliveryAdminWeb/vercel.json` já configurado garante que todas as rotas internas (`/pedidos`, `/cardapio`, `/login`) funcionem sem erro 404 ao atualizar a página.
@@ -111,7 +111,33 @@ Deve retornar:
 
 ---
 
-## 3. Checklist de Validação Final
+## 3. Configuração dos Domínios Personalizados na Vercel
+
+Para associar os subdomínios oficiais da sua empresa aos projetos na Vercel:
+
+### 3.1 Painel Admin (`sensordeliveryadmin.sistemassensor.com.br`)
+1. No painel da Vercel, acesse o projeto **`SensorDeliveryAdminWeb`** (ou `sensor-delivery-admin`).
+2. Vá em **Settings** -> **Domains**.
+3. Adicione o domínio: `sensordeliveryadmin.sistemassensor.com.br` e clique em **Add**.
+4. No seu provedor de DNS (Registro.br, Cloudflare, cPanel, etc.), adicione o apontamento:
+   - **Tipo:** `CNAME`
+   - **Nome / Host:** `sensordeliveryadmin`
+   - **Destino / Valor:** `cname.vercel-dns.com`
+
+---
+
+### 3.2 Cardápio Web (`sensordelivery.sistemassensor.com.br`)
+1. No painel da Vercel, acesse o projeto **`SensorDeliveryWeb`** (ou `sensor-delivery-cardapio`).
+2. Vá em **Settings** -> **Domains**.
+3. Adicione o domínio: `sensordelivery.sistemassensor.com.br` e clique em **Add**.
+4. No seu provedor de DNS (Registro.br, Cloudflare, etc.), adicione o apontamento:
+   - **Tipo:** `CNAME`
+   - **Nome / Host:** `sensordelivery`
+   - **Destino / Valor:** `cname.vercel-dns.com`
+
+---
+
+## 4. Checklist de Validação Final
 
 - [ ] `GET https://<api-railway>/health` respondendo `{ "status": "online", "banco": "conectado" }`.
 - [ ] Acessar `https://<admin-vercel>.vercel.app/login` e efetuar login com o usuário padrão (ou cadastrado via seed).
