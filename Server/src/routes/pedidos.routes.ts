@@ -366,18 +366,36 @@ router.post('/', async (req, res) => {
     const client = await database.connect();
 
     try {
-         const {
-            empresaId,
+        const {
+            empresaId: reqEmpresaId,
             clienteId,
-            clienteNome,
-            clienteTelefone,
-            tipoAtendimento,
-            endereco = {},
+            clienteNome: reqClienteNome,
+            clienteTelefone: reqClienteTelefone,
+            tipoAtendimento: reqTipoAtendimento,
+            tipoEntrega: reqTipoEntrega,
+            endereco: reqEndereco = {},
+            enderecoEntrega,
             observacao,
+            observacaoGeral,
             valores = {},
             pagamento = {},
-            itens,
+            formaPagamento: reqFormaPagamento,
+            subtotal: reqSubtotal,
+            taxaEntrega: reqTaxaEntrega,
+            desconto: reqDesconto,
+            acrescimo: reqAcrescimo,
+            total: reqTotal,
+            itens: reqItens,
+            cliente: reqCliente,
         } = req.body;
+
+        const empresaId = reqEmpresaId;
+        const clienteNome = reqClienteNome || reqCliente?.nome;
+        const clienteTelefone = reqClienteTelefone || reqCliente?.telefone;
+        const tipoAtendimento = reqTipoAtendimento || (reqTipoEntrega === 'DELIVERY' ? 'ENTREGA' : reqTipoEntrega) || 'ENTREGA';
+        const endereco = enderecoEntrega || reqEndereco || {};
+        const itens = reqItens;
+        const formaPagamentoInformada = reqFormaPagamento || pagamento.forma;
 
         let respostaPix: {
             copiaCola: string;
@@ -388,27 +406,27 @@ router.post('/', async (req, res) => {
         } | null = null;
 
         const subtotal = Number(
-            valores.subtotal ?? 0
+            valores.subtotal ?? reqSubtotal ?? 0
         );
 
         const taxaEntrega = Number(
-            valores.taxa_entrega ?? 0
+            valores.taxa_entrega ?? reqTaxaEntrega ?? 0
         );
 
         const desconto = Number(
-            valores.desconto ?? 0
+            valores.desconto ?? reqDesconto ?? 0
         );
 
         const acrescimo = Number(
-            valores.acrescimo ?? 0
+            valores.acrescimo ?? reqAcrescimo ?? 0
         );
 
         const valorTotal = Number(
-            valores.total ?? 0
+            valores.total ?? reqTotal ?? (subtotal + taxaEntrega - desconto + acrescimo)
         );
 
         const observacoes =
-            String(observacao ?? '').trim() ||
+            String(observacao ?? observacaoGeral ?? '').trim() ||
             null;
 
         const enderecoTexto =
@@ -466,7 +484,7 @@ router.post('/', async (req, res) => {
             });
         }
 
-        const formaPagamento = normalizarFormaPagamento(pagamento.forma);
+        const formaPagamento = normalizarFormaPagamento(formaPagamentoInformada);
         let configuracaoPix: {
             pix_chave: string;
             pix_provedor: string;
@@ -668,32 +686,32 @@ router.post('/', async (req, res) => {
                     pedido.id,
 
                     // produto_id
-                    item.produtoId || null,
+                    item.produtoId || item.produto_id || null,
 
                     // variacao_id = tamanho
-                    item.tamanhoId || null,
+                    item.tamanhoId || item.variacao_id || null,
 
                     // produto_nome
-                    item.produtoDescricao,
+                    item.produtoDescricao || item.nome || item.produto_nome,
 
                     // variacao_nome = tamanho
-                    item.tamanhoDescricao || null,
+                    item.tamanhoDescricao || item.tamanho_descricao || (item.tamanho?.nome) || null,
 
                     Number(item.quantidade || 1),
 
-                    Number(item.valorUnitario || 0),
+                    Number(item.valorUnitario ?? item.precoUnitario ?? item.valor_unitario ?? 0),
 
                     valorAdicionais,
 
-                    Number(item.valorTotal || 0),
+                    Number(item.valorTotal ?? item.valor_total ?? (Number(item.quantidade || 1) * Number(item.valorUnitario ?? item.precoUnitario ?? 0))),
 
-                    item.observacao || null,
+                    item.observacao || item.observacoes || null,
 
-                    item.bordaId || null,
+                    item.bordaId || item.borda_id || (item.borda?.id) || null,
 
-                    item.bordaDescricao || null,
+                    item.bordaDescricao || item.borda_descricao || (item.borda?.nome) || null,
 
-                    Number(item.valorBorda || 0),
+                    Number(item.valorBorda ?? item.valor_borda ?? (item.borda?.preco) ?? 0),
                 ],
             );
 

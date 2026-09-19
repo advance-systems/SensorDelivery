@@ -1,0 +1,45 @@
+export const THEME = {
+  colors: {
+    primary: '#FF4B0A', // Laranja do Delphi
+    primaryDark: '#E03E00',
+    primaryLight: '#FFF0EB',
+    background: '#F8F9FA',
+    card: '#FFFFFF',
+    textPrimary: '#202124',
+    textSecondary: '#747986',
+    textMuted: '#9AA0A6',
+    border: '#E8ECEF',
+    borderLight: '#F1F3F5',
+    success: '#24A865',
+    successLight: '#E8F7F0',
+    warning: '#F59E0B',
+    warningLight: '#FEF3C7',
+    danger: '#E84D4D',
+    dangerLight: '#FDE8E8',
+    white: '#FFFFFF',
+    black: '#000000',
+  },
+  borderRadius: {
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 20,
+    full: 9999,
+  },
+  shadows: {
+    card: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    floating: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.12,
+      shadowRadius: 12,
+      elevation: 5,
+    },
+  },
+};

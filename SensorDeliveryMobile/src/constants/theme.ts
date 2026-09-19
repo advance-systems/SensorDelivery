@@ -1,0 +1,52 @@
+export const THEME = {
+  colors: {
+    primary: '#FF4B0A', // Laranja característico do Delphi (Sensor Delivery)
+    primaryDark: '#E03E00',
+    primaryLight: '#FFF0EB',
+    background: '#F8F9FA',
+    card: '#FFFFFF',
+    textPrimary: '#202124',
+    textSecondary: '#747986',
+    textMuted: '#9AA0A6',
+    border: '#E8ECEF',
+    borderLight: '#F1F3F5',
+    success: '#24A865',
+    successLight: '#E8F7F0',
+    warning: '#F59E0B',
+    warningLight: '#FEF3C7',
+    danger: '#E84D4D',
+    dangerLight: '#FDE8E8',
+    white: '#FFFFFF',
+    black: '#000000',
+  },
+  typography: {
+    title: { fontSize: 20, fontWeight: '700' as const, color: '#202124' },
+    subtitle: { fontSize: 16, fontWeight: '600' as const, color: '#202124' },
+    body: { fontSize: 14, fontWeight: '400' as const, color: '#202124' },
+    caption: { fontSize: 12, fontWeight: '400' as const, color: '#747986' },
+    button: { fontSize: 15, fontWeight: '700' as const, color: '#FFFFFF' },
+  },
+  borderRadius: {
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 20,
+    full: 9999,
+  },
+  shadows: {
+    card: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    floating: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.12,
+      shadowRadius: 12,
+      elevation: 5,
+    },
+  },
+};
