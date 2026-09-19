@@ -64,7 +64,10 @@ router.get('/status', async (req, res) => {
             `
             SELECT
                 modo_funcionamento,
-                mensagem_fechada
+                mensagem_fechada,
+                taxa_entrega,
+                pedido_minimo,
+                tempo_entrega_minutos
             FROM loja_configuracao
             WHERE empresa_id = $1
             LIMIT 1
@@ -78,6 +81,9 @@ router.get('/status', async (req, res) => {
         const config = configResult.rows[0] ?? {
             modo_funcionamento: 'FECHADO',
             mensagem_fechada: 'Loja em configuração.',
+            taxa_entrega: 0,
+            pedido_minimo: 0,
+            tempo_entrega_minutos: 45,
         };
 
         // ------------------------------------------------
@@ -126,23 +132,17 @@ router.get('/status', async (req, res) => {
         // ------------------------------------------------
 
         if (config.modo_funcionamento === 'ABERTO') {
-
             aberta = true;
             motivo = 'ABERTURA_MANUAL';
-
         }
 
         // ------------------------------------------------
         // FECHAMENTO MANUAL
         // ------------------------------------------------
 
-        else if (
-            config.modo_funcionamento === 'FECHADO'
-        ) {
-
+        else if (config.modo_funcionamento === 'FECHADO') {
             aberta = false;
             motivo = 'FECHAMENTO_MANUAL';
-
         }
 
         // ------------------------------------------------
@@ -150,21 +150,15 @@ router.get('/status', async (req, res) => {
         // ------------------------------------------------
 
         else {
-
             if (!horario) {
-
                 aberta = false;
                 motivo = 'SEM_HORARIO';
-
             }
             else if (horario.fechado) {
-
                 aberta = false;
                 motivo = 'DIA_FECHADO';
-
             }
             else {
-
                 const horaAtual =
                     agora
                         .toLocaleTimeString(
@@ -209,39 +203,25 @@ router.get('/status', async (req, res) => {
         // ------------------------------------------------
 
         return res.status(200).json({
-
             online: true,
-
             aberta,
-
-            status:
-                aberta
-                    ? 'ABERTA'
-                    : 'FECHADA',
-
+            status: aberta ? 'ABERTA' : 'FECHADA',
             motivo,
-
-            mensagem:
-                aberta
-                    ? 'Estamos recebendo pedidos.'
-                    : (
-                        config.mensagem_fechada ||
-                        'No momento não estamos recebendo pedidos.'
-                    ),
-
+            mensagem: aberta
+                ? 'Estamos recebendo pedidos.'
+                : (config.mensagem_fechada || 'No momento não estamos recebendo pedidos.'),
             hoje: horario,
-
             horarios: horariosResult.rows,
+            horarioFuncionamento: horario && !horario.fechado
+                ? `${horario.horario_abertura?.slice(0, 5)} às ${horario.horario_fechamento?.slice(0, 5)}`
+                : (horario?.fechado ? 'Fechado hoje' : '18:00 às 23:30'),
+            tempoEntregaMin: config.tempo_entrega_minutos ? Math.max(15, config.tempo_entrega_minutos - 15) : 30,
+            tempoEntregaMax: config.tempo_entrega_minutos || 50,
+            taxaEntregaPadrao: Number(config.taxa_entrega || 0),
+            pedidoMinimo: Number(config.pedido_minimo || 0),
         });
-
-    }
-    catch (error) {
-
-        console.error(
-            'Erro ao consultar status da loja:',
-            error
-        );
-
+    } catch (error) {
+        console.error('Erro ao consultar status da loja:', error);
         return res.status(500).json({
             online: false,
             aberta: false,
