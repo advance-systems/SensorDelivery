@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../api/client';
 import { Layers, Plus, Edit2, Trash2, Check, X, Search, AlertCircle } from 'lucide-react';
 
@@ -28,6 +28,14 @@ export const Categorias: React.FC = () => {
   const [ordem, setOrdem] = useState(0);
   const [permiteSabores, setPermiteSabores] = useState(false);
   const [maxSabores, setMaxSabores] = useState(1);
+
+  const inputNomeRef = useRef<HTMLInputElement>(null);
+
+  const focarPrimeiroCampo = () => {
+    setTimeout(() => {
+      inputNomeRef.current?.focus();
+    }, 50);
+  };
 
   const carregarCategorias = async () => {
     try {
@@ -59,6 +67,7 @@ export const Categorias: React.FC = () => {
     setMaxSabores(1);
     setErro('');
     setModalAberto(true);
+    focarPrimeiroCampo();
   };
 
   const abrirModalEditar = (cat: Categoria) => {
@@ -71,6 +80,7 @@ export const Categorias: React.FC = () => {
     setMaxSabores(cat.max_sabores || 1);
     setErro('');
     setModalAberto(true);
+    focarPrimeiroCampo();
   };
 
   const salvarCategoria = async (e: React.FormEvent) => {
@@ -264,6 +274,7 @@ export const Categorias: React.FC = () => {
                   Nome da Categoria *
                 </label>
                 <input
+                  ref={inputNomeRef}
                   type="text"
                   required
                   value={nome}
