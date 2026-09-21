@@ -128,7 +128,7 @@ export const StoreEntranceScreen = ({ onEnter }) => {
                   { color: isAberta ? THEME.colors.success : THEME.colors.danger },
                 ]}
               >
-                {isAberta ? 'Aberto Agora' : 'Fechado no Momento'}
+                {isAberta ? 'Aberto Agora' : 'Fechado'}
               </Text>
             </View>
 
