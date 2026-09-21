@@ -49,7 +49,14 @@ export const StoreProvider = ({ children }) => {
 
   useEffect(() => {
     carregarEmpresaEStatus();
-  }, []);
+    // Timer a cada 30 segundos para alternar Aberto/Fechado no momento exato do relógio
+    const timer = setInterval(() => {
+      if (empresa?.id) {
+        ApiService.getStatusLoja(empresa.id).then(setStatusLoja).catch(console.warn);
+      }
+    }, 30000);
+    return () => clearInterval(timer);
+  }, [empresa?.id]);
 
   const selecionarEmpresa = (novaEmpresa) => {
     setEmpresa(novaEmpresa);
