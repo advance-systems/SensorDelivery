@@ -1,4 +1,4 @@
-﻿unit uApiConfig;
+unit uApiConfig;
 
 interface
 
@@ -22,11 +22,7 @@ uses
   System.SysUtils, System.IniFiles, System.IOUtils;
 
 const
-{$IF DEFINED(ANDROID)}
-  URL_API_PADRAO = 'http://127.0.0.1:3001';
-{$ELSE}
-  URL_API_PADRAO = 'https://api.sistemassensor.com.br';
-{$ENDIF}
+  URL_API_PADRAO = 'https://sensordelivery-production.up.railway.app';
   ARQUIVO_CONFIGURACAO = 'sensor-delivery.ini';
 
 function ArquivoConfiguracaoGravavel: string;

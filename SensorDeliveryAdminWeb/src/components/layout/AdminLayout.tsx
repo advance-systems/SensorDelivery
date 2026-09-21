@@ -12,19 +12,47 @@ export const AdminLayout: React.FC = () => {
   const [lojaAberta, setLojaAberta] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!estaAutenticado || !empresaAtiva) return;
+    if (!estaAutenticado) return;
+
+    const empId = empresaAtiva || localStorage.getItem('@SensorDelivery:empresaId') || '1';
 
     const checarStatusLoja = async () => {
       try {
-        const res = await api.get(`/loja/status?empresaId=${empresaAtiva}`);
+        const res = await api.get(`/loja/status?empresaId=${empId}`);
         setLojaAberta(res.data?.aberta ?? false);
       } catch (err) {
-        console.warn('Não foi possível obter status em tempo real da loja:', err);
+        console.warn('Não foi possível obter status via /loja/status, tentando /configuracoes:', err);
+        try {
+          const resConf = await api.get('/configuracoes');
+          const dados = resConf.data?.configuracao || resConf.data || {};
+          const horarios = resConf.data?.horarios || [];
+          
+          if (dados.modo_funcionamento === 'ABERTO') {
+            setLojaAberta(true);
+          } else if (dados.modo_funcionamento === 'FECHADO') {
+            setLojaAberta(false);
+          } else {
+            const diaHoje = new Date().getDay();
+            const configHoje = horarios.find((h: any) => Number(h.dia_semana ?? h.diaSemana) === diaHoje);
+            if (!configHoje || configHoje.fechado) {
+              setLojaAberta(false);
+            } else {
+              const agora = new Date();
+              const horaAtual = agora.toLocaleTimeString('pt-BR', { hour12: false, timeZone: 'America/Sao_Paulo' }).slice(0, 5);
+              const ab = (configHoje.horario_abertura ?? configHoje.horarioAbertura ?? '18:00').slice(0, 5);
+              const fc = (configHoje.horario_fechamento ?? configHoje.horarioFechamento ?? '23:30').slice(0, 5);
+              setLojaAberta(horaAtual >= ab && horaAtual <= fc);
+            }
+          }
+        } catch (e2) {
+          console.error('Falha ao checar status da loja:', e2);
+          setLojaAberta(false);
+        }
       }
     };
 
     checarStatusLoja();
-    const interval = setInterval(checarStatusLoja, 60000); // Checa a cada 1 minuto
+    const interval = setInterval(checarStatusLoja, 30000); // Atualiza a cada 30s
     return () => clearInterval(interval);
   }, [estaAutenticado, empresaAtiva]);
 
