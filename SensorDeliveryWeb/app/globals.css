@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
@@ -126,13 +127,14 @@ body { font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Ro
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
-  }
 }
 
-html { scroll-behavior: smooth; }
-body { min-height: 100vh; background: #f8f7f6; }
+html, body, button, input, textarea, select, h1, h2, h3, h4, h5, h6, p, span, a, label, article, section, div, header, nav {
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+html { scroll-behavior: smooth; font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+body { min-height: 100vh; background: #f8f7f6; font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 button, input { font: inherit; }
 button { cursor: pointer; }
 .store-banner {
