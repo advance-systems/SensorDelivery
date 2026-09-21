@@ -182,4 +182,44 @@ router.patch('/:id/situacao', async (req, res) => {
     }
 });
 
+router.delete('/:id', async (req, res) => {
+    const produtoId = String(req.params.id ?? '').trim();
+    const empresaId = empresaIdAutenticada(req);
+    if (!produtoId || !empresaId) {
+        return res.status(400).json({ erro: 'Informe o ID do produto.' });
+    }
+    try {
+        // Tenta exclusão física primeiro; se falhar por integridade (pedidos vinculados), faz exclusão lógica
+        try {
+            const resultado = await database.query(
+                `DELETE FROM produtos WHERE id = $1 AND empresa_id = $2 RETURNING id`,
+                [produtoId, empresaId]
+            );
+            if (resultado.rowCount === 0) {
+                return res.status(404).json({ erro: 'Produto não encontrado.' });
+            }
+            return res.status(200).json({ sucesso: true, mensagem: 'Produto excluído com sucesso.' });
+        } catch (delError: any) {
+            // Se houver restrição de FK (pedidos, adicionais, etc), inativa o produto
+            if (delError?.code === '23503') {
+                await database.query(
+                    `UPDATE produtos
+                     SET ativo = FALSE, disponivel = FALSE, atualizado_em = CURRENT_TIMESTAMP
+                     WHERE id = $1 AND empresa_id = $2`,
+                    [produtoId, empresaId]
+                );
+                return res.status(200).json({
+                    sucesso: true,
+                    mensagem: 'Produto possui histórico de pedidos e foi inativado/removido do cardápio.',
+                });
+            }
+            throw delError;
+        }
+    } catch (error) {
+        console.error('Erro ao excluir produto:', error);
+        return res.status(500).json({ erro: 'Não foi possível excluir o produto.' });
+    }
+});
+
 export default router;
+

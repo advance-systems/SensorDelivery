@@ -17,6 +17,7 @@ async function produtoDaEmpresa(produtoId: string, empresaId: string): Promise<b
 
 router.get('/', async (req, res) => {
     const empresaId = empresaPublica(req);
+    const categoriaId = String(req.query.categoriaId ?? '').trim();
     if (!empresaId) return res.status(400).json({ erro: 'empresaId é obrigatório.' });
     try {
         const resultado = await database.query(
@@ -38,12 +39,13 @@ router.get('/', async (req, res) => {
             WHERE p.empresa_id = $1
               AND p.ativo = true
               AND p.disponivel = true
+              AND ($2 = '' OR $2 = 'all' OR p.categoria_id::text = $2)
             ORDER BY
                 p.destaque DESC,
                 p.ordem ASC,
                 p.nome ASC
             `,
-            [empresaId],
+            [empresaId, categoriaId],
         );
 
         return res.status(200).json({

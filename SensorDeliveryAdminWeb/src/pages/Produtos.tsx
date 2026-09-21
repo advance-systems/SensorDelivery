@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/client';
-import { UtensilsCrossed, Plus, Edit2, Search, AlertCircle, Image as ImageIcon, X } from 'lucide-react';
+import { UtensilsCrossed, Plus, Edit2, Trash2, Search, AlertCircle, Image as ImageIcon, X } from 'lucide-react';
 
 interface Produto {
   id: string;
@@ -126,6 +126,19 @@ export const Produtos: React.FC = () => {
     }
   };
 
+  const excluirProduto = async (prod: Produto) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o produto "${prod.nome}"?`)) {
+      return;
+    }
+    try {
+      await api.delete(`/cardapio/${prod.id}`);
+      setProdutos((prev) => prev.filter((p) => p.id !== prod.id));
+    } catch (err: any) {
+      console.error('Erro ao excluir produto:', err);
+      alert(err.response?.data?.erro || 'Não foi possível excluir o produto.');
+    }
+  };
+
   const alternarStatus = async (prod: Produto) => {
     try {
       await api.patch(`/cardapio/${prod.id}/situacao`, { ativo: !prod.ativo });
@@ -143,7 +156,7 @@ export const Produtos: React.FC = () => {
 
   const produtosFiltrados = produtos.filter((p) => {
     const bateTexto = p.nome.toLowerCase().includes(busca.toLowerCase()) ||
-                      p.descricao?.toLowerCase().includes(busca.toLowerCase());
+      (p.descricao && p.descricao.toLowerCase().includes(busca.toLowerCase()));
     const bateCategoria = categoriaFiltro === 'todas' || p.categoria_id === categoriaFiltro;
     return bateTexto && bateCategoria;
   });
@@ -265,10 +278,18 @@ export const Produtos: React.FC = () => {
 
                     <button
                       onClick={() => abrirModalEditar(prod)}
-                      className="p-1.5 text-[#9CAABC] hover:text-[#8C63FF] hover:bg-[#8C63FF]/10 rounded-lg transition-colors"
+                      className="p-1.5 text-[#9CAABC] hover:text-[#8C63FF] hover:bg-[#8C63FF]/10 rounded-lg transition-colors cursor-pointer"
                       title="Editar"
                     >
                       <Edit2 className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => excluirProduto(prod)}
+                      className="p-1.5 text-[#9CAABC] hover:text-[#EF4444] hover:bg-[#EF4444]/10 rounded-lg transition-colors cursor-pointer"
+                      title="Excluir Produto"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
