@@ -20,7 +20,7 @@ function normalizarLogoPublico(logoUrl: unknown, req: Request): string | null {
     }
 
     if (valor.startsWith('/')) {
-        return `${basePublica}${valor}`;
+        return `${basePublica}${valor}?v=1`;
     }
     try {
         const url = new URL(valor);
@@ -28,7 +28,7 @@ function normalizarLogoPublico(logoUrl: unknown, req: Request): string | null {
             const cleanPath = url.pathname.startsWith('/api/uploads/') 
                 ? url.pathname.replace('/api/uploads/', '/uploads/')
                 : url.pathname;
-            return `${basePublica}${cleanPath}${url.search}`;
+            return `${basePublica}${cleanPath}?v=1`;
         }
     } catch {
         return valor;
