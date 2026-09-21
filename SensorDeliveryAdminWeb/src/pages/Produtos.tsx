@@ -3,19 +3,20 @@ import { api } from '../api/client';
 import { UtensilsCrossed, Plus, Edit2, Search, AlertCircle, Image as ImageIcon, X } from 'lucide-react';
 
 interface Produto {
-  id: number;
-  categoria_id: number;
+  id: string;
+  categoria_id: string;
   categoria_nome?: string;
   nome: string;
   descricao?: string;
   preco: number;
+  preco_promocional?: number | null;
   imagem_url?: string;
   ativo: boolean;
-  permite_adicionais?: boolean;
+  disponivel?: boolean;
 }
 
 interface Categoria {
-  id: number;
+  id: string;
   nome: string;
 }
 
@@ -27,11 +28,11 @@ export const Produtos: React.FC = () => {
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
   const [busca, setBusca] = useState('');
-  const [categoriaFiltro, setCategoriaFiltro] = useState<number | 'todas'>('todas');
+  const [categoriaFiltro, setCategoriaFiltro] = useState<string | 'todas'>('todas');
 
   // Form
-  const [editandoId, setEditandoId] = useState<number | null>(null);
-  const [categoriaId, setCategoriaId] = useState<number>(0);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [categoriaId, setCategoriaId] = useState<string>('');
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [preco, setPreco] = useState('');
@@ -42,12 +43,14 @@ export const Produtos: React.FC = () => {
     try {
       setCarregando(true);
       const [resProd, resCat] = await Promise.all([
-        api.get('/produtos'),
-        api.get('/categorias'),
+        api.get('/cardapio'),
+        api.get('/cardapio/categorias'),
       ]);
 
-      setProdutos(Array.isArray(resProd.data) ? resProd.data : resProd.data?.produtos || []);
-      const listaCat = Array.isArray(resCat.data) ? resCat.data : resCat.data?.categorias || [];
+      const listaProd = resProd.data?.produtos || (Array.isArray(resProd.data) ? resProd.data : []);
+      const listaCat = resCat.data?.categorias || (Array.isArray(resCat.data) ? resCat.data : []);
+
+      setProdutos(listaProd);
       setCategorias(listaCat);
       if (listaCat.length > 0 && !categoriaId) {
         setCategoriaId(listaCat[0].id);
@@ -89,30 +92,35 @@ export const Produtos: React.FC = () => {
 
   const salvarProduto = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!categoriaId) {
+      setErro('Selecione uma categoria.');
+      return;
+    }
     setErro('');
     setSalvando(true);
 
     try {
       const payload = {
-        categoria_id: Number(categoriaId),
-        nome,
-        descricao,
+        categoriaId: categoriaId,
+        nome: nome.trim(),
+        descricao: descricao.trim(),
         preco: Number(preco.replace(',', '.')) || 0,
-        imagem_url: imagemUrl,
-        ativo,
+        imagemUrl: imagemUrl.trim(),
+        tipo: 'PRODUTO',
+        disponivel: true,
       };
 
       if (editandoId) {
-        await api.put(`/produtos/${editandoId}`, payload);
+        await api.put(`/cardapio/${editandoId}`, payload);
       } else {
-        await api.post('/produtos', payload);
+        await api.post('/cardapio', payload);
       }
 
       setModalAberto(false);
       carregarDados();
     } catch (err: any) {
       console.error('Erro ao salvar produto:', err);
-      setErro(err.response?.data?.mensagem || 'Falha ao salvar produto.');
+      setErro(err.response?.data?.erro || err.response?.data?.mensagem || 'Falha ao salvar produto.');
     } finally {
       setSalvando(false);
     }
@@ -120,7 +128,7 @@ export const Produtos: React.FC = () => {
 
   const alternarStatus = async (prod: Produto) => {
     try {
-      await api.patch(`/produtos/${prod.id}/status`, { ativo: !prod.ativo });
+      await api.patch(`/cardapio/${prod.id}/situacao`, { ativo: !prod.ativo });
       setProdutos((prev) =>
         prev.map((p) => (p.id === prod.id ? { ...p, ativo: !p.ativo } : p))
       );
@@ -178,7 +186,7 @@ export const Produtos: React.FC = () => {
 
         <select
           value={categoriaFiltro}
-          onChange={(e) => setCategoriaFiltro(e.target.value === 'todas' ? 'todas' : Number(e.target.value))}
+          onChange={(e) => setCategoriaFiltro(e.target.value)}
           className="w-full sm:w-56 bg-[#152439] border border-[#2A405B] text-xs text-white rounded-xl px-3 py-2.5 focus:outline-none focus:border-[#8C63FF]"
         >
           <option value="todas">Todas as Categorias</option>
@@ -302,7 +310,7 @@ export const Produtos: React.FC = () => {
                 </label>
                 <select
                   value={categoriaId}
-                  onChange={(e) => setCategoriaId(Number(e.target.value))}
+                  onChange={(e) => setCategoriaId(e.target.value)}
                   className="w-full bg-[#0B132B] border border-[#2A405B] focus:border-[#8C63FF] text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none transition-colors"
                 >
                   {categorias.map((cat) => (
