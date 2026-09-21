@@ -13,15 +13,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronRight, ShoppingBag } from 'lucide-react-native';
 import { THEME } from '../constants/theme';
 import { ApiService, STORAGE_KEYS } from '../services/api';
+import { useStore } from '../contexts/StoreContext';
 
 export const OrderHistoryScreen = ({ onSelectOrder, onBackToMenu }) => {
+  const { empresa } = useStore();
   const [pedidos, setPedidos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [telefone, setTelefone] = useState('');
 
   useEffect(() => {
     carregarHistorico();
-  }, []);
+  }, [empresa?.id]);
 
   const carregarHistorico = async () => {
     setCarregando(true);
@@ -34,8 +36,8 @@ export const OrderHistoryScreen = ({ onSelectOrder, onBackToMenu }) => {
         setTelefone(tel);
       }
 
-      if (tel) {
-        const lista = await ApiService.getHistorico(tel);
+      if (tel && empresa?.id) {
+        const lista = await ApiService.getHistorico(empresa.id, tel);
         setPedidos(lista);
       }
     } catch (err) {

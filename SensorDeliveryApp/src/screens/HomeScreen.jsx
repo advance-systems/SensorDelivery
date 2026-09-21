@@ -183,9 +183,11 @@ export const HomeScreen = ({ onOpenProduct, onOpenCart }) => {
                 ) : null}
                 <View style={styles.priceRow}>
                   <Text style={styles.productPrice}>
-                    {item.preco > 0
-                      ? `R$ ${Number(item.preco).toFixed(2).replace('.', ',')}`
-                      : 'A partir de R$ 35,00'}
+                    {item.precoPromocional && item.precoPromocional > 0
+                      ? `R$ ${item.precoPromocional.toFixed(2).replace('.', ',')}`
+                      : item.preco > 0
+                        ? `R$ ${item.preco.toFixed(2).replace('.', ',')}`
+                        : 'Consulte o valor'}
                   </Text>
                   <View style={styles.sensorAddButton}>
                     <Plus size={16} color={THEME.colors.white} />

@@ -79,16 +79,17 @@ export class ApiService {
   static async getEmpresas() {
     try {
       const res = await this.request('/api/loja/empresas');
-      if (Array.isArray(res)) return res;
-      return res.empresas || [];
+      const lista = Array.isArray(res) ? res : (res.empresas || []);
+      return lista.map((e) => ({
+        id: e.id,
+        nome: e.nome_fantasia || e.razao_social || 'Sensor Delivery',
+        razaoSocial: e.razao_social,
+        logoUrl: e.logo_url,
+        telefone: e.telefone,
+        email: e.email,
+      }));
     } catch {
-      return [{
-        id: DEFAULT_EMPRESA_ID,
-        nome: 'Sensor Delivery',
-        cidade: 'Bombinhas',
-        uf: 'SC',
-        endereco: 'Bombinhas - SC',
-      }];
+      return [];
     }
   }
 
@@ -97,11 +98,13 @@ export class ApiService {
       return await this.request(`/api/loja/status?empresaId=${empresaId}`);
     } catch {
       return {
-        aberta: true,
-        horarioFuncionamento: '18:00 às 23:30',
-        tempoEntregaMin: 35,
-        tempoEntregaMax: 50,
-        taxaEntregaPadrao: 5.0,
+        online: false,
+        aberta: false,
+        status: 'INDISPONIVEL',
+        horarioFuncionamento: '',
+        tempoEntregaMin: null,
+        tempoEntregaMax: null,
+        taxaEntregaPadrao: 0,
       };
     }
   }
@@ -113,12 +116,7 @@ export class ApiService {
       if (Array.isArray(res)) return res;
       return res.categorias || [];
     } catch {
-      return [
-        { id: 'all', nome: 'Todos' },
-        { id: 'pizza', nome: 'Pizzas' },
-        { id: 'bebida', nome: 'Bebidas' },
-        { id: 'sobremesa', nome: 'Sobremesas' },
-      ];
+      return [];
     }
   }
 
@@ -129,8 +127,18 @@ export class ApiService {
         query += `&categoriaId=${categoriaId}`;
       }
       const res = await this.request(query);
-      if (Array.isArray(res)) return res;
-      return res.produtos || [];
+      const lista = Array.isArray(res) ? res : (res.produtos || []);
+      return lista.map((p) => ({
+        id: p.id,
+        categoriaId: p.categoria_id,
+        nome: p.nome,
+        descricao: p.descricao,
+        preco: Number(p.preco || 0),
+        precoPromocional: p.preco_promocional ? Number(p.preco_promocional) : null,
+        imagemUrl: p.imagem_url,
+        disponivel: p.disponivel,
+        destaque: p.destaque,
+      }));
     } catch {
       return [];
     }
@@ -138,38 +146,39 @@ export class ApiService {
 
   static async getSaboresTamanhos(produtoId) {
     try {
-      return await this.request(`/api/produtos/${produtoId}/sabores-tamanhos`);
+      const res = await this.request(`/api/produtos/${produtoId}/opcoes`);
+      return {
+        tamanhos: (res.variacoes || []).map((v) => ({
+          id: v.id,
+          nome: v.nome,
+          precoBase: Number(v.preco || 0),
+          maxSabores: v.max_sabores || 2,
+        })),
+        sabores: (res.sabores || []).map((s) => ({
+          id: s.id,
+          nome: s.nome,
+          descricao: s.descricao,
+          precoAdicional: Number(s.valor_adicional || 0),
+        })),
+      };
     } catch {
       return {
-        tamanhos: [
-          { id: 'p', nome: 'Pequena (4 fatias)', sigla: 'P', fatias: 4, maxSabores: 1, precoBase: 35 },
-          { id: 'm', nome: 'Média (6 fatias)', sigla: 'M', fatias: 6, maxSabores: 2, precoBase: 48 },
-          { id: 'g', nome: 'Grande (8 fatias)', sigla: 'G', fatias: 8, maxSabores: 3, precoBase: 62 },
-          { id: 'gg', nome: 'Família (12 fatias)', sigla: 'GG', fatias: 12, maxSabores: 4, precoBase: 78 },
-        ],
-        sabores: [
-          { id: '1', nome: 'Calabresa', descricao: 'Molho de tomate, mussarela fatiada e calabresa com orégano' },
-          { id: '2', nome: 'Mussarela', descricao: 'Molho especial da casa e camada dupla de queijo mussarela' },
-          { id: '3', nome: 'Frango com Catupiry', descricao: 'Peito de frango desfiado com autêntico Catupiry' },
-          { id: '4', nome: 'Quatro Queijos', descricao: 'Mussarela, provolone, parmesão e catupiry' },
-          { id: '5', nome: 'Portuguesa', descricao: 'Presunto cozido, ovos, cebola, ervilha e azeitonas pretas' },
-        ],
+        tamanhos: [],
+        sabores: [],
       };
     }
   }
 
   static async getBordas(produtoId) {
     try {
-      const res = await this.request(`/api/produtos/${produtoId}/bordas`);
-      if (Array.isArray(res)) return res;
-      return res.bordas || [];
+      const res = await this.request(`/api/produtos/${produtoId}/opcoes`);
+      return (res.bordas || []).map((b) => ({
+        id: b.id,
+        nome: b.nome,
+        preco: Number(b.valor || 0),
+      }));
     } catch {
-      return [
-        { id: 'sem_borda', nome: 'Sem Borda Recheada', preco: 0 },
-        { id: 'catupiry', nome: 'Borda de Catupiry', preco: 8.0 },
-        { id: 'cheddar', nome: 'Borda de Cheddar Cremoso', preco: 8.0 },
-        { id: 'chocolate', nome: 'Borda de Chocolate ao Leite', preco: 10.0 },
-      ];
+      return [];
     }
   }
 
@@ -185,10 +194,11 @@ export class ApiService {
     return await this.request(`/api/pedidos/${pedidoId}/status`);
   }
 
-  static async getHistorico(telefone) {
+  static async getHistorico(empresaId, telefone) {
     try {
-      const cleanPhone = telefone.replace(/\D/g, '');
-      const res = await this.request(`/api/pedidos/historico?telefone=${cleanPhone}`);
+      const cleanPhone = String(telefone || '').replace(/\D/g, '');
+      if (!empresaId || !cleanPhone) return [];
+      const res = await this.request(`/api/pedidos/historico?empresaId=${empresaId}&telefone=${cleanPhone}`);
       if (Array.isArray(res)) return res;
       return res.pedidos || [];
     } catch {

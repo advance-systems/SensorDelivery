@@ -28,7 +28,7 @@ function normalizarLogoPublico(logoUrl: unknown, req: Request): string | null {
 router.get('/empresas', async (req, res) => {
     try {
         const resultado = await database.query(
-            `SELECT id, nome_fantasia, logo_url
+            `SELECT id, nome_fantasia, razao_social, logo_url, telefone, email
              FROM empresas
              WHERE ativo = TRUE
              ORDER BY nome_fantasia`,

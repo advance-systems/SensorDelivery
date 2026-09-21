@@ -38,9 +38,9 @@ export const StoreEntranceScreen = ({ onEnter }) => {
   const { empresa, statusLoja, carregando, recarregarStatus } = useStore();
   const [mostrarHorarios, setMostrarHorarios] = useState(false);
 
-  const isAberta = statusLoja?.aberta ?? true;
+  const isAberta = statusLoja?.aberta ?? false;
   const diaAtual = new Date().getDay();
-  const resumoHorario = statusLoja?.horarioFuncionamento || '18:00 às 23:30';
+  const resumoHorario = statusLoja?.horarioFuncionamento || 'Consulte os horários';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -65,14 +65,13 @@ export const StoreEntranceScreen = ({ onEnter }) => {
             )}
           </View>
 
-          <Text style={styles.storeName}>{empresa?.nome || 'Sensor Delivery'}</Text>
+          <Text style={styles.storeName}>{empresa?.nome || 'Carregando...'}</Text>
           
-          <View style={styles.locationContainer}>
-            <MapPin size={15} color={THEME.colors.textSecondary} />
-            <Text style={styles.locationText}>
-              {empresa?.endereco || `${empresa?.cidade || 'Bombinhas'} - ${empresa?.uf || 'SC'}`}
+          {empresa?.razaoSocial && (
+            <Text style={styles.razaoSocialText}>
+              {empresa.razaoSocial}
             </Text>
-          </View>
+          )}
 
           {empresa?.telefone && (
             <View style={styles.phoneContainer}>
@@ -266,10 +265,16 @@ const styles = StyleSheet.create({
   },
   storeName: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: '700',
     color: THEME.colors.textPrimary,
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: 2,
+  },
+  razaoSocialText: {
+    fontSize: 12,
+    color: THEME.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   locationContainer: {
     flexDirection: 'row',

@@ -15,33 +15,21 @@ export const StoreProvider = ({ children }) => {
     try {
       const empresas = await ApiService.getEmpresas();
       const storedId = await ApiService.getStoredEmpresaId();
-      const ativa = empresas.find((e) => e.id === storedId) || empresas[0] || {
-        id: DEFAULT_EMPRESA_ID,
-        nome: 'Sensor Delivery',
-        cidade: 'Bombinhas',
-        uf: 'SC',
-        endereco: 'Bombinhas - SC',
-      };
+      const ativa = (empresas && empresas.length > 0)
+        ? (empresas.find((e) => e.id === storedId) || empresas[0])
+        : null;
+
       setEmpresa(ativa);
 
-      const status = await ApiService.getStatusLoja(ativa.id);
-      setStatusLoja(status);
+      if (ativa?.id) {
+        const status = await ApiService.getStatusLoja(ativa.id);
+        setStatusLoja(status);
+      } else {
+        setStatusLoja(null);
+      }
     } catch (err) {
       console.warn('Erro ao carregar dados da loja:', err);
-      setErro('Mostrando dados locais.');
-      setEmpresa({
-        id: DEFAULT_EMPRESA_ID,
-        nome: 'Sensor Delivery',
-        cidade: 'Bombinhas',
-        uf: 'SC',
-        endereco: 'Bombinhas - SC',
-      });
-      setStatusLoja({
-        aberta: true,
-        horarioFuncionamento: '18:00 às 23:30',
-        tempoEntregaMin: 35,
-        tempoEntregaMax: 50,
-      });
+      setErro('Não foi possível carregar os dados da loja.');
     } finally {
       setCarregando(false);
     }
