@@ -10,6 +10,8 @@ import { SaboresBordas } from './pages/SaboresBordas';
 import { ConfiguracoesLoja } from './pages/ConfiguracoesLoja';
 import { Clientes } from './pages/Clientes';
 import { Empresas } from './pages/Empresas';
+import { Adicionais } from './pages/Adicionais';
+import { Combos } from './pages/Combos';
 
 export const App: React.FC = () => {
   return (
@@ -23,13 +25,13 @@ export const App: React.FC = () => {
             <Route path="categorias" element={<Categorias />} />
             <Route path="produtos" element={<Produtos />} />
             <Route path="sabores-bordas" element={<SaboresBordas />} />
+            <Route path="adicionais" element={<Adicionais />} />
+            <Route path="combos" element={<Combos />} />
             <Route path="configuracoes" element={<ConfiguracoesLoja />} />
             <Route path="clientes" element={<Clientes />} />
             <Route path="empresas" element={<Empresas />} />
             {/* Fallback de rotas complementares */}
             <Route path="dashboard" element={<CentralPedidos />} />
-            <Route path="adicionais" element={<SaboresBordas />} />
-            <Route path="combos" element={<Produtos />} />
             <Route path="entregadores" element={<Clientes />} />
             <Route path="usuarios" element={<ConfiguracoesLoja />} />
           </Route>
