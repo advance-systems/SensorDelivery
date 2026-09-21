@@ -109,8 +109,8 @@ export const AdminLayout: React.FC = () => {
                 {lojaAberta === null
                   ? 'Verificando status...'
                   : lojaAberta
-                  ? 'Loja Aberta para Pedidos'
-                  : 'Fechada no Momento'}
+                  ? 'Aberto'
+                  : 'Fechado'}
               </span>
             </div>
           </div>
