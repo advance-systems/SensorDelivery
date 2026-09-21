@@ -42,6 +42,18 @@ export const StoreEntranceScreen = ({ onEnter }) => {
   const diaAtual = new Date().getDay();
   const resumoHorario = statusLoja?.horarioFuncionamento || 'Consulte os horários';
 
+  const formatarTelefone = (tel) => {
+    if (!tel) return '';
+    const limpo = String(tel).replace(/\D/g, '');
+    if (limpo.length === 11) {
+      return `(${limpo.slice(0, 2)}) ${limpo.slice(2, 7)}-${limpo.slice(7)}`;
+    }
+    if (limpo.length === 10) {
+      return `(${limpo.slice(0, 2)}) ${limpo.slice(2, 6)}-${limpo.slice(6)}`;
+    }
+    return tel;
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={THEME.colors.background} />
@@ -67,16 +79,23 @@ export const StoreEntranceScreen = ({ onEnter }) => {
 
           <Text style={styles.storeName}>{empresa?.nome || 'Carregando...'}</Text>
           
-          {empresa?.razaoSocial && (
+          {empresa?.razaoSocial && empresa?.razaoSocial !== empresa?.nome && (
             <Text style={styles.razaoSocialText}>
               {empresa.razaoSocial}
             </Text>
           )}
 
+          {empresa?.cidade ? (
+            <View style={styles.locationContainer}>
+              <MapPin size={14} color={THEME.colors.textSecondary} />
+              <Text style={styles.locationText}>{empresa.cidade}</Text>
+            </View>
+          ) : null}
+
           {empresa?.telefone && (
             <View style={styles.phoneContainer}>
               <Phone size={14} color={THEME.colors.textSecondary} />
-              <Text style={styles.phoneText}>{empresa.telefone}</Text>
+              <Text style={styles.phoneText}>{formatarTelefone(empresa.telefone)}</Text>
             </View>
           )}
         </View>

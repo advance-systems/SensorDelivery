@@ -57,6 +57,21 @@ router.get('/status', async (req, res) => {
         }
 
         // ------------------------------------------------
+        // DADOS DA EMPRESA
+        // ------------------------------------------------
+        const empresaResult = await database.query(
+            `SELECT id, nome_fantasia, razao_social, logo_url, telefone, email
+             FROM empresas
+             WHERE id = $1
+             LIMIT 1`,
+            [empresaId],
+        );
+        const empresaDados = empresaResult.rows[0] ? {
+            ...empresaResult.rows[0],
+            logo_url: normalizarLogoPublico(empresaResult.rows[0].logo_url, req),
+        } : null;
+
+        // ------------------------------------------------
         // CONFIGURAÇÃO DA LOJA
         // ------------------------------------------------
 
@@ -67,7 +82,8 @@ router.get('/status', async (req, res) => {
                 mensagem_fechada,
                 taxa_entrega,
                 pedido_minimo,
-                tempo_entrega_minutos
+                tempo_entrega_minutos,
+                pix_cidade_recebedor
             FROM loja_configuracao
             WHERE empresa_id = $1
             LIMIT 1
@@ -207,6 +223,15 @@ router.get('/status', async (req, res) => {
             aberta,
             status: aberta ? 'ABERTA' : 'FECHADA',
             motivo,
+            empresa: empresaDados ? {
+                id: empresaDados.id,
+                nome: empresaDados.nome_fantasia || empresaDados.razao_social,
+                razaoSocial: empresaDados.razao_social,
+                logoUrl: empresaDados.logo_url,
+                telefone: empresaDados.telefone,
+                email: empresaDados.email,
+                cidade: config.pix_cidade_recebedor || '',
+            } : null,
             mensagem: aberta
                 ? 'Estamos recebendo pedidos.'
                 : (config.mensagem_fechada || 'No momento não estamos recebendo pedidos.'),
