@@ -73,8 +73,14 @@ app.use(
 );
 
 // Arquivos estáticos públicos (uploads de imagens e downloads de APK)
-app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
-app.use('/api/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
+const uploadOptions = {
+    maxAge: 0,
+    setHeaders: (res: express.Response) => {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    },
+};
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads'), uploadOptions));
+app.use('/api/uploads', express.static(path.resolve(process.cwd(), 'uploads'), uploadOptions));
 app.use(
     '/downloads',
     express.static(path.resolve(process.cwd(), 'downloads'), {
