@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { database } from './connection.js';
 
-async function executarMigrations(): Promise<void> {
+export async function executarMigrations(): Promise<void> {
   await database.query(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       arquivo VARCHAR(255) PRIMARY KEY,
@@ -31,7 +31,6 @@ async function executarMigrations(): Promise<void> {
     );
 
     if (migrationExecutada.rowCount) {
-      console.log(`Migration já executada: ${arquivo}`);
       continue;
     }
 
@@ -61,11 +60,14 @@ async function executarMigrations(): Promise<void> {
   }
 }
 
-executarMigrations()
-  .catch((error) => {
-    console.error('Falha ao executar migrations:', error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await database.end();
-  });
+// Executar via CLI se chamado diretamente
+if (process.argv[1] && (process.argv[1].endsWith('migrate.ts') || process.argv[1].endsWith('migrate.js'))) {
+  executarMigrations()
+    .catch((error) => {
+      console.error('Falha ao executar migrations:', error);
+      process.exitCode = 1;
+    })
+    .finally(async () => {
+      await database.end();
+    });
+}

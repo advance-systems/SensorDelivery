@@ -7,6 +7,7 @@ import { createServer as createHttpsServer, type ServerOptions } from 'node:http
 import path from 'node:path';
 
 import { database } from './database/connection.js';
+import { executarMigrations } from './database/migrate.js';
 import { routes } from './routes/index.js';
 import pedidosRoutes from './routes/pedidos.routes.js';
 import lojaRoutes from './routes/loja.routes.js';
@@ -133,6 +134,11 @@ const server = servidorBase.listen(port, host, () => {
     console.log(
         `Sensor Delivery em ${publicUrl}`,
     );
+
+    // Executa migrações pendentes no startup
+    executarMigrations().catch((err) => {
+        console.error('Erro ao rodar migrations na inicialização:', err);
+    });
 });
 
 const monitorPix = setInterval(() => {
