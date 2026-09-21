@@ -200,26 +200,6 @@ export const AccountScreen = () => {
           </View>
         </View>
 
-        {/* Servidor API */}
-        <View style={styles.card}>
-          <View style={styles.cardTitleRow}>
-            <Server size={18} color={THEME.colors.primary} />
-            <Text style={styles.cardTitle}>Servidor da API</Text>
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>URL do Backend</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="https://sensordelivery-production.up.railway.app"
-              placeholderTextColor={THEME.colors.textMuted}
-              value={apiUrl}
-              onChangeText={setApiUrl}
-              autoCapitalize="none"
-            />
-          </View>
-        </View>
-
         {/* Botão Salvar */}
         <TouchableOpacity
           style={styles.saveBtn}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { UtensilsCrossed, ShoppingBag, Clock, User } from 'lucide-react-native';
 import { THEME } from '../constants/theme';
 import { useCart } from '../contexts/CartContext';
@@ -108,91 +109,93 @@ export const MainNavigator = () => {
         onClose={() => setProdutoModal(null)}
       />
 
-      {/* TabBar */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={styles.tabItem}
-          onPress={() => setActiveTab('CARDAPIO')}
-          activeOpacity={0.8}
-        >
-          <UtensilsCrossed
-            size={22}
-            color={activeTab === 'CARDAPIO' ? THEME.colors.primary : THEME.colors.textSecondary}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === 'CARDAPIO' && styles.tabTextActive,
-            ]}
+      {/* TabBar com SafeAreaView inferior */}
+      <SafeAreaView edges={['bottom']} style={styles.safeAreaBottom}>
+        <View style={styles.tabBar}>
+          <TouchableOpacity
+            style={styles.tabItem}
+            onPress={() => setActiveTab('CARDAPIO')}
+            activeOpacity={0.8}
           >
-            Cardápio
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.tabItem}
-          onPress={() => setActiveTab('CARRINHO')}
-          activeOpacity={0.8}
-        >
-          <View>
-            <ShoppingBag
+            <UtensilsCrossed
               size={22}
-              color={activeTab === 'CARRINHO' ? THEME.colors.primary : THEME.colors.textSecondary}
+              color={activeTab === 'CARDAPIO' ? THEME.colors.primary : THEME.colors.textSecondary}
             />
-            {totalItens > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{totalItens}</Text>
-              </View>
-            )}
-          </View>
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === 'CARRINHO' && styles.tabTextActive,
-            ]}
-          >
-            Carrinho
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 'CARDAPIO' && styles.tabTextActive,
+              ]}
+            >
+              Cardápio
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.tabItem}
-          onPress={() => setActiveTab('PEDIDOS')}
-          activeOpacity={0.8}
-        >
-          <Clock
-            size={22}
-            color={activeTab === 'PEDIDOS' ? THEME.colors.primary : THEME.colors.textSecondary}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === 'PEDIDOS' && styles.tabTextActive,
-            ]}
+          <TouchableOpacity
+            style={styles.tabItem}
+            onPress={() => setActiveTab('CARRINHO')}
+            activeOpacity={0.8}
           >
-            Pedidos
-          </Text>
-        </TouchableOpacity>
+            <View>
+              <ShoppingBag
+                size={22}
+                color={activeTab === 'CARRINHO' ? THEME.colors.primary : THEME.colors.textSecondary}
+              />
+              {totalItens > 0 && (
+                <View style={styles.cartBadge}>
+                  <Text style={styles.cartBadgeText}>{totalItens}</Text>
+                </View>
+              )}
+            </View>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 'CARRINHO' && styles.tabTextActive,
+              ]}
+            >
+              Carrinho
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.tabItem}
-          onPress={() => setActiveTab('CONTA')}
-          activeOpacity={0.8}
-        >
-          <User
-            size={22}
-            color={activeTab === 'CONTA' ? THEME.colors.primary : THEME.colors.textSecondary}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === 'CONTA' && styles.tabTextActive,
-            ]}
+          <TouchableOpacity
+            style={styles.tabItem}
+            onPress={() => setActiveTab('PEDIDOS')}
+            activeOpacity={0.8}
           >
-            Conta
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <Clock
+              size={22}
+              color={activeTab === 'PEDIDOS' ? THEME.colors.primary : THEME.colors.textSecondary}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 'PEDIDOS' && styles.tabTextActive,
+              ]}
+            >
+              Pedidos
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.tabItem}
+            onPress={() => setActiveTab('CONTA')}
+            activeOpacity={0.8}
+          >
+            <User
+              size={22}
+              color={activeTab === 'CONTA' ? THEME.colors.primary : THEME.colors.textSecondary}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 'CONTA' && styles.tabTextActive,
+              ]}
+            >
+              Conta
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </View>
   );
 };
@@ -205,14 +208,17 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  safeAreaBottom: {
+    backgroundColor: THEME.colors.card,
+  },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: THEME.colors.card,
     borderTopWidth: 1,
-    borderColor: THEME.colors.borderLight,
+    borderColor: THEME.colors.border,
     paddingTop: 8,
-    paddingBottom: 14,
-    ...THEME.shadows.floating,
+    paddingBottom: 6,
+    ...THEME.shadows.card,
   },
   tabItem: {
     flex: 1,

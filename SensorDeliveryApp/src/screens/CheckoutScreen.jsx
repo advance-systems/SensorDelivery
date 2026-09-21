@@ -196,7 +196,7 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     gap: 14,
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
   card: {
     backgroundColor: THEME.colors.card,
