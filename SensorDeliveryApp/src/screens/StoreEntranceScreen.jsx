@@ -236,9 +236,12 @@ export const StoreEntranceScreen = ({ onEnter }) => {
                 !isAberta && styles.sensorButtonTextDisabled,
               ]}
             >
-              {isAberta ? 'Acessar Cardápio' : 'Estabelecimento Fechado'}
+              Acessar Cardápio
             </Text>
-            {isAberta && <ChevronRight size={20} color={THEME.colors.white} />}
+            <ChevronRight
+              size={20}
+              color={isAberta ? THEME.colors.white : THEME.colors.textMuted}
+            />
           </TouchableOpacity>
 
           <Text style={styles.disclaimerText}>
