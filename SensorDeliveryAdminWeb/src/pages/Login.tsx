@@ -52,11 +52,12 @@ export const Login: React.FC = () => {
         <div className="bg-[#152439] border border-[#2A405B] rounded-2xl p-8 shadow-2xl relative z-10 backdrop-blur-xl">
           {/* Logo / Título */}
           <div className="text-center mb-8">
-            <div className="w-14 h-14 bg-gradient-to-tr from-[#8C63FF] to-[#6366F1] rounded-2xl mx-auto flex items-center justify-center text-white shadow-xl shadow-[#8C63FF]/30 font-bold text-2xl mb-4">
-              S
-            </div>
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">Sensor Delivery</h1>
-            <p className="text-sm text-[#9CAABC] mt-1 font-medium">Acesse o painel de gestão do seu delivery</p>
+            <img
+              src="/logo-admin.png"
+              alt="Sensor Delivery - Painel Administrativo"
+              className="h-16 w-auto max-w-full object-contain mx-auto mb-3"
+            />
+            <p className="text-xs text-[#9CAABC] font-medium">Acesse o painel de gestão do seu delivery</p>
           </div>
 
           {/* Mensagem de Erro */}
