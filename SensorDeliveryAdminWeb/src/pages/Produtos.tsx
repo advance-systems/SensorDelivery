@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/client';
 import { UtensilsCrossed, Plus, Edit2, Trash2, Search, AlertCircle, Image as ImageIcon, X } from 'lucide-react';
+import { useFeedback } from '../context/FeedbackContext';
 
 interface Produto {
   id: string;
@@ -126,16 +127,26 @@ export const Produtos: React.FC = () => {
     }
   };
 
+  const { confirmar, notificar } = useFeedback();
+
   const excluirProduto = async (prod: Produto) => {
-    if (!window.confirm(`Tem certeza que deseja excluir o produto "${prod.nome}"?`)) {
-      return;
-    }
+    const aceitou = await confirmar({
+      title: 'Excluir Produto',
+      message: `Tem certeza que deseja remover o produto "${prod.nome}" do cardápio?`,
+      confirmText: 'Sim, Excluir',
+      cancelText: 'Cancelar',
+      type: 'danger',
+    });
+
+    if (!aceitou) return;
+
     try {
       await api.delete(`/cardapio/${prod.id}`);
       setProdutos((prev) => prev.filter((p) => p.id !== prod.id));
+      notificar(`Produto "${prod.nome}" excluído com sucesso!`, 'success');
     } catch (err: any) {
       console.error('Erro ao excluir produto:', err);
-      alert(err.response?.data?.erro || 'Não foi possível excluir o produto.');
+      notificar(err.response?.data?.erro || 'Não foi possível excluir o produto.', 'error');
     }
   };
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { FeedbackProvider } from './context/FeedbackContext';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { Login } from './pages/Login';
 import { CentralPedidos } from './pages/CentralPedidos';
@@ -17,9 +18,10 @@ import { Dashboard } from './pages/Dashboard';
 export const App: React.FC = () => {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
+      <FeedbackProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
 
           <Route path="/" element={<AdminLayout />}>
             <Route index element={<CentralPedidos />} />
@@ -40,6 +42,7 @@ export const App: React.FC = () => {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </FeedbackProvider>
     </AuthProvider>
   );
 };
