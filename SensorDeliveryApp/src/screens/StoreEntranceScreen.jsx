@@ -222,16 +222,29 @@ export const StoreEntranceScreen = ({ onEnter }) => {
         {/* Botão de Acesso Estilo SensorButton */}
         <View style={styles.actionSection}>
           <TouchableOpacity
-            style={styles.sensorButton}
+            style={[
+              styles.sensorButton,
+              !isAberta && styles.sensorButtonDisabled,
+            ]}
             onPress={onEnter}
+            disabled={!isAberta}
             activeOpacity={0.88}
           >
-            <Text style={styles.sensorButtonText}>Acessar Cardápio</Text>
-            <ChevronRight size={20} color={THEME.colors.white} />
+            <Text
+              style={[
+                styles.sensorButtonText,
+                !isAberta && styles.sensorButtonTextDisabled,
+              ]}
+            >
+              {isAberta ? 'Acessar Cardápio' : 'Estabelecimento Fechado'}
+            </Text>
+            {isAberta && <ChevronRight size={20} color={THEME.colors.white} />}
           </TouchableOpacity>
 
           <Text style={styles.disclaimerText}>
-            Faça seu pedido online de forma rápida e segura
+            {isAberta
+              ? 'Faça seu pedido online de forma rápida e segura'
+              : (statusLoja?.mensagem || 'No momento não estamos recebendo pedidos.')}
           </Text>
         </View>
       </ScrollView>
@@ -478,15 +491,24 @@ const styles = StyleSheet.create({
     gap: 8,
     ...THEME.shadows.button,
   },
+  sensorButtonDisabled: {
+    backgroundColor: THEME.colors.borderLight,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   sensorButtonText: {
     color: THEME.colors.white,
     fontSize: 15,
     fontWeight: '700',
+  },
+  sensorButtonTextDisabled: {
+    color: THEME.colors.textMuted,
   },
   disclaimerText: {
     textAlign: 'center',
     fontSize: 12,
     color: THEME.colors.textMuted,
     marginTop: 10,
+    paddingHorizontal: 10,
   },
 });
