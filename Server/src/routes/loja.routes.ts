@@ -19,21 +19,27 @@ function normalizarLogoPublico(logoUrl: unknown, req: Request): string | null {
         }
     }
 
+    let caminhoFinal = valor;
     if (valor.startsWith('/')) {
-        return `${basePublica}${valor}?v=1`;
-    }
-    try {
-        const url = new URL(valor);
-        if (url.pathname.startsWith('/uploads/') || url.pathname.startsWith('/api/uploads/')) {
-            const cleanPath = url.pathname.startsWith('/api/uploads/') 
-                ? url.pathname.replace('/api/uploads/', '/uploads/')
-                : url.pathname;
-            return `${basePublica}${cleanPath}?v=1`;
+        caminhoFinal = `${basePublica}${valor}`;
+    } else {
+        try {
+            const url = new URL(valor);
+            if (url.pathname.startsWith('/uploads/') || url.pathname.startsWith('/api/uploads/')) {
+                const cleanPath = url.pathname.startsWith('/api/uploads/') 
+                    ? url.pathname.replace('/api/uploads/', '/uploads/')
+                    : url.pathname;
+                caminhoFinal = `${basePublica}${cleanPath}${url.search}`;
+            }
+        } catch {
+            caminhoFinal = valor;
         }
-    } catch {
-        return valor;
     }
-    return valor;
+
+    if (!caminhoFinal.includes('?')) {
+        caminhoFinal += '?v=2026';
+    }
+    return caminhoFinal;
 }
 
 router.get('/empresas', async (req, res) => {
