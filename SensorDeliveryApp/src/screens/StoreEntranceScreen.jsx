@@ -37,10 +37,16 @@ const DIAS_SEMANA = [
 export const StoreEntranceScreen = ({ onEnter }) => {
   const { empresa, statusLoja, carregando, recarregarStatus } = useStore();
   const [mostrarHorarios, setMostrarHorarios] = useState(false);
+  const [logoErro, setLogoErro] = useState(false);
 
   const isAberta = statusLoja?.aberta ?? false;
   const diaAtual = new Date().getDay();
   const resumoHorario = statusLoja?.horarioFuncionamento || 'Consulte os horários';
+  const logoUrl = empresa?.logoUrl || statusLoja?.empresa?.logoUrl;
+  const nomeLoja = empresa?.nome || statusLoja?.empresa?.nome || 'Carregando...';
+  const razaoSocial = empresa?.razaoSocial || statusLoja?.empresa?.razaoSocial;
+  const telefone = empresa?.telefone || statusLoja?.empresa?.telefone;
+  const cidade = empresa?.cidade || statusLoja?.empresa?.cidade;
 
   const formatarTelefone = (tel) => {
     if (!tel) return '';
@@ -64,11 +70,12 @@ export const StoreEntranceScreen = ({ onEnter }) => {
           <View style={styles.bannerBackground} />
           
           <View style={styles.logoWrapper}>
-            {empresa?.logoUrl ? (
+            {logoUrl && !logoErro ? (
               <Image
-                source={{ uri: empresa.logoUrl }}
+                source={{ uri: logoUrl }}
                 style={styles.logoImage}
                 resizeMode="cover"
+                onError={() => setLogoErro(true)}
               />
             ) : (
               <View style={styles.logoPlaceholder}>
@@ -77,25 +84,25 @@ export const StoreEntranceScreen = ({ onEnter }) => {
             )}
           </View>
 
-          <Text style={styles.storeName}>{empresa?.nome || 'Carregando...'}</Text>
+          <Text style={styles.storeName}>{nomeLoja}</Text>
           
-          {empresa?.razaoSocial && empresa?.razaoSocial !== empresa?.nome && (
+          {razaoSocial && razaoSocial !== nomeLoja && (
             <Text style={styles.razaoSocialText}>
-              {empresa.razaoSocial}
+              {razaoSocial}
             </Text>
           )}
 
-          {empresa?.cidade ? (
+          {cidade ? (
             <View style={styles.locationContainer}>
               <MapPin size={14} color={THEME.colors.textSecondary} />
-              <Text style={styles.locationText}>{empresa.cidade}</Text>
+              <Text style={styles.locationText}>{cidade}</Text>
             </View>
           ) : null}
 
-          {empresa?.telefone && (
+          {telefone && (
             <View style={styles.phoneContainer}>
               <Phone size={14} color={THEME.colors.textSecondary} />
-              <Text style={styles.phoneText}>{formatarTelefone(empresa.telefone)}</Text>
+              <Text style={styles.phoneText}>{formatarTelefone(telefone)}</Text>
             </View>
           )}
         </View>

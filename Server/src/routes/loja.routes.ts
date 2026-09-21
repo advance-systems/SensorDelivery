@@ -8,16 +8,27 @@ function normalizarLogoPublico(logoUrl: unknown, req: Request): string | null {
     if (!valor) {
         return null;
     }
-    const basePublica = (process.env.API_PUBLIC_URL?.trim()
+    let basePublica = (process.env.API_PUBLIC_URL?.trim()
         || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+
+    // Se a base pública não começar com http, prefixar
+    if (basePublica.includes('sistemassensor.com.br') && !basePublica.startsWith('https://')) {
+        basePublica = basePublica.replace(/^http:\/\//, 'https://');
+        if (!basePublica.startsWith('https://')) {
+            basePublica = `https://${basePublica}`;
+        }
+    }
 
     if (valor.startsWith('/')) {
         return `${basePublica}${valor}`;
     }
     try {
         const url = new URL(valor);
-        if (url.pathname.startsWith('/uploads/')) {
-            return `${basePublica}${url.pathname}${url.search}`;
+        if (url.pathname.startsWith('/uploads/') || url.pathname.startsWith('/api/uploads/')) {
+            const cleanPath = url.pathname.startsWith('/api/uploads/') 
+                ? url.pathname.replace('/api/uploads/', '/uploads/')
+                : url.pathname;
+            return `${basePublica}${cleanPath}${url.search}`;
         }
     } catch {
         return valor;

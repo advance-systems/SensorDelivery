@@ -28,6 +28,7 @@ export const HomeScreen = ({ onOpenProduct, onOpenCart }) => {
   const [carregando, setCarregando] = useState(true);
   const [busca, setBusca] = useState('');
   const [emFocoBusca, setEmFocoBusca] = useState(false);
+  const [logoErro, setLogoErro] = useState(false);
 
   useEffect(() => {
     carregarDados();
@@ -73,8 +74,12 @@ export const HomeScreen = ({ onOpenProduct, onOpenCart }) => {
       <View style={styles.header}>
         <View style={styles.headerBrand}>
           <View style={styles.logoMini}>
-            {empresa?.logoUrl ? (
-              <Image source={{ uri: empresa.logoUrl }} style={styles.logoMiniImg} />
+            {empresa?.logoUrl && !logoErro ? (
+              <Image
+                source={{ uri: empresa.logoUrl }}
+                style={styles.logoMiniImg}
+                onError={() => setLogoErro(true)}
+              />
             ) : (
               <Store size={18} color={THEME.colors.primary} />
             )}

@@ -71,7 +71,9 @@ app.use(
     }),
 );
 
+// Arquivos estáticos públicos (uploads de imagens e downloads de APK)
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
+app.use('/api/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 app.use(
     '/downloads',
     express.static(path.resolve(process.cwd(), 'downloads'), {
@@ -98,7 +100,6 @@ app.use('/api/loja', lojaRoutes);
 // Suporte para requisições diretas sem prefixo /api
 app.use('/pedidos', pedidosRoutes);
 app.use('/loja', lojaRoutes);
-app.use('/', routes);
 
 app.get('/health', async (_request, response) => {
     try {
@@ -120,8 +121,6 @@ app.get('/health', async (_request, response) => {
         });
     }
 });
-
-app.use(routes);
 
 const configuracaoHttps = carregarConfiguracaoHttps();
 const protocolo = configuracaoHttps ? 'https' : 'http';
