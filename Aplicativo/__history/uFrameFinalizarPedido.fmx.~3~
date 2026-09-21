@@ -1,6 +1,0 @@
-object fraFinalizarPedido: TfraFinalizarPedido
-  Align = Client
-  Size.Width = 390.000000000000000000
-  Size.Height = 844.000000000000000000
-  Size.PlatformDefault = False
-end

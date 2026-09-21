@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, ShoppingBag, Bell, Star, Plus } from 'lucide-react-native';
+import { Search, ShoppingBag, Bell, Star, Plus, Store } from 'lucide-react-native';
 import { THEME } from '../constants/theme';
 import { useStore } from '../contexts/StoreContext';
 import { useCart } from '../contexts/CartContext';
@@ -27,6 +27,7 @@ export const HomeScreen = ({ onOpenProduct, onOpenCart }) => {
   const [produtos, setProdutos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [busca, setBusca] = useState('');
+  const [emFocoBusca, setEmFocoBusca] = useState(false);
 
   useEffect(() => {
     carregarDados();
@@ -68,30 +69,55 @@ export const HomeScreen = ({ onOpenProduct, onOpenCart }) => {
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" backgroundColor={THEME.colors.background} />
 
-      {/* Header */}
+      {/* Header Clássico */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerSub}>Cardápio Digital</Text>
-          <Text style={styles.headerTitle}>{empresa?.nome || 'Sensor Delivery'}</Text>
+        <View style={styles.headerBrand}>
+          <View style={styles.logoMini}>
+            {empresa?.logoUrl ? (
+              <Image source={{ uri: empresa.logoUrl }} style={styles.logoMiniImg} />
+            ) : (
+              <Store size={18} color={THEME.colors.primary} />
+            )}
+          </View>
+          <View>
+            <Text style={styles.headerSub}>Cardápio Digital</Text>
+            <Text style={styles.headerTitle}>{empresa?.nome || 'Sensor Delivery'}</Text>
+          </View>
         </View>
+
         <TouchableOpacity style={styles.iconButton}>
-          <Bell size={20} color={THEME.colors.textPrimary} />
+          <Bell size={18} color={THEME.colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
-      {/* Busca */}
-      <View style={styles.searchContainer}>
-        <Search size={18} color={THEME.colors.textSecondary} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Buscar no cardápio..."
-          placeholderTextColor={THEME.colors.textMuted}
-          value={busca}
-          onChangeText={setBusca}
-        />
+      {/* Campo de Busca no Padrão SensorEdit do Delphi */}
+      <View style={styles.sensorEditContainer}>
+        <Text style={styles.sensorEditLabel}>Pesquisar no Cardápio</Text>
+        <View
+          style={[
+            styles.sensorEditBox,
+            emFocoBusca && styles.sensorEditBoxFocus,
+          ]}
+        >
+          <Search
+            size={18}
+            color={emFocoBusca ? THEME.colors.primary : THEME.colors.textSecondary}
+            style={styles.sensorEditIcon}
+          />
+          <TextInput
+            style={styles.sensorEditInput}
+            placeholder="Digite o nome ou descrição..."
+            placeholderTextColor={THEME.colors.textMuted}
+            value={busca}
+            onChangeText={setBusca}
+            onFocus={() => setEmFocoBusca(true)}
+            onBlur={() => setEmFocoBusca(false)}
+          />
+          {emFocoBusca && <View style={styles.sensorEditFocusLine} />}
+        </View>
       </View>
 
-      {/* Categorias Pills */}
+      {/* Categorias Pills Clássicas */}
       <View style={styles.categoriesWrapper}>
         <ScrollView
           horizontal
@@ -108,6 +134,7 @@ export const HomeScreen = ({ onOpenProduct, onOpenCart }) => {
                   isSelected && styles.categoryPillActive,
                 ]}
                 onPress={() => setCategoriaSelecionada(cat.id)}
+                activeOpacity={0.7}
               >
                 <Text
                   style={[
@@ -160,7 +187,7 @@ export const HomeScreen = ({ onOpenProduct, onOpenCart }) => {
                       ? `R$ ${Number(item.preco).toFixed(2).replace('.', ',')}`
                       : 'A partir de R$ 35,00'}
                   </Text>
-                  <View style={styles.addButton}>
+                  <View style={styles.sensorAddButton}>
                     <Plus size={16} color={THEME.colors.white} />
                   </View>
                 </View>
@@ -188,7 +215,7 @@ export const HomeScreen = ({ onOpenProduct, onOpenCart }) => {
         />
       )}
 
-      {/* Floating Cart Bar */}
+      {/* Floating Cart Bar Estilo SensorButton */}
       {totalItens > 0 && (
         <View style={styles.floatingCartContainer}>
           <TouchableOpacity
@@ -226,48 +253,93 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
   },
+  headerBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  logoMini: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: THEME.colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: THEME.colors.border,
+  },
+  logoMiniImg: {
+    width: 34,
+    height: 34,
+    borderRadius: 9,
+  },
   headerSub: {
-    fontSize: 12,
+    fontSize: 11,
     color: THEME.colors.textSecondary,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: THEME.colors.textPrimary,
   },
   iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: THEME.borderRadius.md,
     backgroundColor: THEME.colors.card,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: THEME.colors.borderLight,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: THEME.colors.card,
-    borderRadius: THEME.borderRadius.md,
-    marginHorizontal: 20,
-    marginVertical: 12,
-    paddingHorizontal: 14,
-    height: 48,
-    borderWidth: 1,
-    borderColor: THEME.colors.borderLight,
+    borderColor: THEME.colors.border,
     ...THEME.shadows.card,
   },
-  searchIcon: {
-    marginRight: 10,
+  sensorEditContainer: {
+    marginHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 12,
   },
-  searchInput: {
+  sensorEditLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: THEME.colors.textSecondary,
+    marginBottom: 4,
+    marginLeft: 2,
+    textTransform: 'uppercase',
+  },
+  sensorEditBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: THEME.colors.inputBackground,
+    borderRadius: THEME.borderRadius.md,
+    paddingHorizontal: 12,
+    height: 44,
+    borderWidth: 1,
+    borderColor: THEME.colors.inputBorder,
+    overflow: 'hidden',
+  },
+  sensorEditBoxFocus: {
+    borderColor: THEME.colors.inputBorderFocus,
+    backgroundColor: THEME.colors.card,
+  },
+  sensorEditIcon: {
+    marginRight: 8,
+  },
+  sensorEditInput: {
     flex: 1,
     fontSize: 14,
     color: THEME.colors.textPrimary,
+    paddingVertical: 0,
+  },
+  sensorEditFocusLine: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: THEME.colors.primary,
   },
   categoriesWrapper: {
     marginBottom: 8,
@@ -279,10 +351,10 @@ const styles = StyleSheet.create({
   categoryPill: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: THEME.borderRadius.full,
+    borderRadius: THEME.borderRadius.xl,
     backgroundColor: THEME.colors.card,
     borderWidth: 1,
-    borderColor: THEME.colors.borderLight,
+    borderColor: THEME.colors.border,
   },
   categoryPillActive: {
     backgroundColor: THEME.colors.primary,
@@ -298,9 +370,9 @@ const styles = StyleSheet.create({
   },
   productList: {
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 6,
     paddingBottom: 100,
-    gap: 14,
+    gap: 12,
   },
   productCard: {
     backgroundColor: THEME.colors.card,
@@ -308,7 +380,7 @@ const styles = StyleSheet.create({
     padding: 14,
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: THEME.colors.borderLight,
+    borderColor: THEME.colors.border,
     ...THEME.shadows.card,
     justifyContent: 'space-between',
   },
@@ -324,7 +396,7 @@ const styles = StyleSheet.create({
     backgroundColor: THEME.colors.warningLight,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: THEME.borderRadius.sm,
+    borderRadius: THEME.borderRadius.xs,
     alignSelf: 'flex-start',
     marginBottom: 4,
   },
@@ -334,7 +406,7 @@ const styles = StyleSheet.create({
     color: '#B45309',
   },
   productName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: THEME.colors.textPrimary,
     marginBottom: 4,
@@ -356,29 +428,30 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: THEME.colors.primary,
   },
-  addButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  sensorAddButton: {
+    width: 32,
+    height: 32,
+    borderRadius: THEME.borderRadius.md,
     backgroundColor: THEME.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    ...THEME.shadows.button,
   },
   productImage: {
-    width: 90,
-    height: 90,
+    width: 86,
+    height: 86,
     borderRadius: THEME.borderRadius.md,
   },
   productImagePlaceholder: {
-    width: 90,
-    height: 90,
+    width: 86,
+    height: 86,
     borderRadius: THEME.borderRadius.md,
-    backgroundColor: THEME.colors.background,
+    backgroundColor: THEME.colors.inputBackground,
     alignItems: 'center',
     justifyContent: 'center',
   },
   placeholderEmoji: {
-    fontSize: 32,
+    fontSize: 30,
   },
   loadingContainer: {
     flex: 1,
@@ -395,7 +468,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: THEME.colors.textPrimary,
   },
@@ -412,7 +485,7 @@ const styles = StyleSheet.create({
   },
   floatingCart: {
     backgroundColor: THEME.colors.primary,
-    borderRadius: THEME.borderRadius.lg,
+    borderRadius: THEME.borderRadius.xl,
     paddingVertical: 14,
     paddingHorizontal: 18,
     flexDirection: 'row',

@@ -7,9 +7,20 @@ import {
   ActivityIndicator,
   StatusBar,
   ScrollView,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MapPin, Clock, ChevronRight, ChevronDown, ChevronUp, RefreshCw, Store, Calendar } from 'lucide-react-native';
+import {
+  MapPin,
+  Clock,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
+  Store,
+  Calendar,
+  Phone,
+} from 'lucide-react-native';
 import { THEME } from '../constants/theme';
 import { useStore } from '../contexts/StoreContext';
 
@@ -29,31 +40,51 @@ export const StoreEntranceScreen = ({ onEnter }) => {
 
   const isAberta = statusLoja?.aberta ?? true;
   const diaAtual = new Date().getDay();
-
-  // Formata o resumo geral ou do dia
   const resumoHorario = statusLoja?.horarioFuncionamento || '18:00 às 23:30';
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={THEME.colors.background} />
       <ScrollView contentContainerStyle={styles.container} bounces={false}>
-        {/* Top Branding */}
-        <View style={styles.logoSection}>
-          <View style={styles.logoBadge}>
-            <Store size={54} color={THEME.colors.primary} />
+        
+        {/* Banner de Topo com Logotipo em Destaque (Identidade Delphi) */}
+        <View style={styles.bannerContainer}>
+          <View style={styles.bannerBackground} />
+          
+          <View style={styles.logoWrapper}>
+            {empresa?.logoUrl ? (
+              <Image
+                source={{ uri: empresa.logoUrl }}
+                style={styles.logoImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.logoPlaceholder}>
+                <Store size={48} color={THEME.colors.primary} />
+              </View>
+            )}
           </View>
-          <Text style={styles.storeTitle}>{empresa?.nome || 'Sensor Delivery'}</Text>
-          <View style={styles.locationRow}>
-            <MapPin size={16} color={THEME.colors.textSecondary} />
+
+          <Text style={styles.storeName}>{empresa?.nome || 'Sensor Delivery'}</Text>
+          
+          <View style={styles.locationContainer}>
+            <MapPin size={15} color={THEME.colors.textSecondary} />
             <Text style={styles.locationText}>
               {empresa?.endereco || `${empresa?.cidade || 'Bombinhas'} - ${empresa?.uf || 'SC'}`}
             </Text>
           </View>
+
+          {empresa?.telefone && (
+            <View style={styles.phoneContainer}>
+              <Phone size={14} color={THEME.colors.textSecondary} />
+              <Text style={styles.phoneText}>{empresa.telefone}</Text>
+            </View>
+          )}
         </View>
 
-        {/* Status Card (Idêntico ao layout Delphi uFrameEntradaLoja) */}
+        {/* Card de Status de Funcionamento */}
         <View style={styles.statusCard}>
-          <View style={styles.statusRow}>
+          <View style={styles.statusHeader}>
             <View
               style={[
                 styles.statusBadge,
@@ -85,8 +116,9 @@ export const StoreEntranceScreen = ({ onEnter }) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.infoDivider} />
+          <View style={styles.divider} />
 
+          {/* Horário de Hoje com expansão para a semana */}
           <TouchableOpacity
             style={styles.hoursRow}
             onPress={() => setMostrarHorarios((v) => !v)}
@@ -104,9 +136,9 @@ export const StoreEntranceScreen = ({ onEnter }) => {
             )}
           </TouchableOpacity>
 
-          {/* Lista completa de Horários de Domingo a Sábado */}
+          {/* Grade Semanal */}
           {mostrarHorarios && (
-            <View style={styles.weeklyScheduleContainer}>
+            <View style={styles.weeklySchedule}>
               <View style={styles.weeklyHeader}>
                 <Calendar size={14} color={THEME.colors.primary} />
                 <Text style={styles.weeklyTitle}>Horário Semanal</Text>
@@ -162,14 +194,14 @@ export const StoreEntranceScreen = ({ onEnter }) => {
           )}
         </View>
 
-        {/* Botão Ver Cardápio */}
-        <View style={styles.bottomSection}>
+        {/* Botão de Acesso Estilo SensorButton */}
+        <View style={styles.actionSection}>
           <TouchableOpacity
-            style={styles.enterButton}
+            style={styles.sensorButton}
             onPress={onEnter}
             activeOpacity={0.88}
           >
-            <Text style={styles.enterButtonText}>Ver Cardápio</Text>
+            <Text style={styles.sensorButtonText}>Acessar Cardápio</Text>
             <ChevronRight size={20} color={THEME.colors.white} />
           </TouchableOpacity>
 
@@ -189,54 +221,88 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 40,
-    paddingBottom: 32,
-    justifyContent: 'space-between',
+    paddingBottom: 30,
   },
-  logoSection: {
+  bannerContainer: {
     alignItems: 'center',
-    marginTop: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
   },
-  logoBadge: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  bannerBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    backgroundColor: THEME.colors.primaryLight,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
+  logoWrapper: {
+    width: 96,
+    height: 96,
+    borderRadius: 24,
     backgroundColor: THEME.colors.card,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: THEME.colors.card,
     ...THEME.shadows.card,
-    borderWidth: 2,
-    borderColor: THEME.colors.borderLight,
-    marginBottom: 20,
+    marginBottom: 12,
   },
-  storeTitle: {
-    fontSize: 24,
+  logoImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 22,
+  },
+  logoPlaceholder: {
+    width: 90,
+    height: 90,
+    borderRadius: 22,
+    backgroundColor: THEME.colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  storeName: {
+    fontSize: 22,
     fontWeight: '800',
     color: THEME.colors.textPrimary,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  locationRow: {
+  locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
+    marginBottom: 4,
   },
   locationText: {
-    fontSize: 14,
+    fontSize: 13,
+    color: THEME.colors.textSecondary,
+    fontWeight: '500',
+  },
+  phoneContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  phoneText: {
+    fontSize: 12,
     color: THEME.colors.textSecondary,
     fontWeight: '500',
   },
   statusCard: {
     backgroundColor: THEME.colors.card,
-    borderRadius: THEME.borderRadius.lg,
-    padding: 20,
-    marginTop: 30,
+    borderRadius: THEME.borderRadius.xl,
+    marginHorizontal: 20,
+    padding: 16,
     borderWidth: 1,
-    borderColor: THEME.colors.borderLight,
+    borderColor: THEME.colors.border,
     ...THEME.shadows.card,
   },
-  statusRow: {
+  statusHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -247,7 +313,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: THEME.borderRadius.full,
-    gap: 8,
+    gap: 6,
   },
   statusDot: {
     width: 8,
@@ -260,11 +326,15 @@ const styles = StyleSheet.create({
   },
   refreshButton: {
     padding: 6,
+    borderRadius: THEME.borderRadius.sm,
+    backgroundColor: THEME.colors.inputBackground,
+    borderWidth: 1,
+    borderColor: THEME.colors.borderLight,
   },
-  infoDivider: {
+  divider: {
     height: 1,
     backgroundColor: THEME.colors.borderLight,
-    marginVertical: 16,
+    marginVertical: 14,
   },
   hoursRow: {
     flexDirection: 'row',
@@ -275,44 +345,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   hoursLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: THEME.colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   hoursValue: {
     fontSize: 14,
     color: THEME.colors.textPrimary,
-    fontWeight: '600',
+    fontWeight: '700',
     marginTop: 2,
   },
-  deliveryEstimate: {
-    marginTop: 12,
-    backgroundColor: THEME.colors.background,
-    padding: 10,
-    borderRadius: THEME.borderRadius.sm,
-    alignItems: 'center',
-  },
-  estimateText: {
-    fontSize: 12,
-    color: THEME.colors.textSecondary,
-    fontWeight: '600',
-  },
-  weeklyScheduleContainer: {
+  weeklySchedule: {
     marginTop: 14,
-    padding: 12,
-    backgroundColor: THEME.colors.background,
-    borderRadius: THEME.borderRadius.md,
-    borderWidth: 1,
-    borderColor: THEME.colors.borderLight,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: THEME.colors.borderLight,
   },
   weeklyHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     marginBottom: 8,
-    paddingBottom: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.borderLight,
   },
   weeklyTitle: {
     fontSize: 12,
@@ -323,12 +377,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 4.5,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: THEME.borderRadius.sm,
   },
   dayRowToday: {
-    backgroundColor: THEME.colors.card,
-    paddingHorizontal: 6,
-    borderRadius: 6,
+    backgroundColor: THEME.colors.primaryLight,
   },
   dayNameWrapper: {
     flexDirection: 'row',
@@ -341,18 +395,18 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   dayNameToday: {
-    color: THEME.colors.primary,
     fontWeight: '700',
+    color: THEME.colors.primary,
   },
   todayBadge: {
-    backgroundColor: THEME.colors.primaryLight,
-    paddingHorizontal: 5,
+    backgroundColor: THEME.colors.primary,
+    paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: 4,
   },
   todayBadgeText: {
     fontSize: 9,
-    color: THEME.colors.primary,
+    color: THEME.colors.white,
     fontWeight: '700',
   },
   dayTime: {
@@ -366,32 +420,42 @@ const styles = StyleSheet.create({
   },
   dayClosed: {
     color: THEME.colors.danger,
-    fontWeight: '600',
   },
-  bottomSection: {
-    marginTop: 40,
+  deliveryEstimate: {
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: THEME.colors.inputBackground,
+    borderRadius: THEME.borderRadius.md,
     alignItems: 'center',
   },
-  enterButton: {
+  estimateText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: THEME.colors.textSecondary,
+  },
+  actionSection: {
+    marginTop: 24,
+    paddingHorizontal: 20,
+  },
+  sensorButton: {
     backgroundColor: THEME.colors.primary,
+    height: 48,
+    borderRadius: THEME.borderRadius.xl,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
-    paddingVertical: 16,
-    borderRadius: THEME.borderRadius.md,
     gap: 8,
-    ...THEME.shadows.floating,
+    ...THEME.shadows.button,
   },
-  enterButtonText: {
+  sensorButtonText: {
     color: THEME.colors.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
   disclaimerText: {
+    textAlign: 'center',
     fontSize: 12,
     color: THEME.colors.textMuted,
-    textAlign: 'center',
-    marginTop: 14,
+    marginTop: 10,
   },
 });

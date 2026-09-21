@@ -1,6 +1,0 @@
-[API]
-; Endereço público da API acessível pelo celular.
-BaseURL=https://api.seudominio.com
-
-; Exemplo com IP e porta:
-; BaseURL=http://203.0.113.10:3001

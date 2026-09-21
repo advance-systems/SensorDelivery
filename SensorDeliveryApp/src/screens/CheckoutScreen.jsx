@@ -20,6 +20,11 @@ import {
   CreditCard,
   MapPin,
   CheckCircle2,
+  User,
+  Phone,
+  FileText,
+  Search,
+  MessageSquare,
 } from 'lucide-react-native';
 import { THEME } from '../constants/theme';
 import { useCart } from '../contexts/CartContext';
@@ -35,6 +40,9 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
   const [trocoPara, setTrocoPara] = useState('');
   const [observacaoGeral, setObservacaoGeral] = useState('');
   const [enviando, setEnviando] = useState(false);
+
+  // Focos para feedback visual estilo SensorEdit
+  const [campoFocado, setCampoFocado] = useState(null);
 
   // Dados do cliente
   const [nome, setNome] = useState('');
@@ -58,166 +66,151 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
 
   const carregarDadosCliente = async () => {
     try {
-      const infoStr = await AsyncStorage.getItem(STORAGE_KEYS.CLIENTE_INFO);
-      if (infoStr) {
-        const info = JSON.parse(infoStr);
-        setNome(info.nome || '');
-        setTelefone(info.telefone || '');
-        setCpf(info.cpf || '');
+      const savedUser = await AsyncStorage.getItem(STORAGE_KEYS.USER_DATA);
+      if (savedUser) {
+        const u = JSON.parse(savedUser);
+        setNome(u.nome || '');
+        setTelefone(u.telefone || '');
+        setCpf(u.cpf || '');
       }
-
-      const endStr = await AsyncStorage.getItem(STORAGE_KEYS.CLIENTE_ENDERECO);
-      if (endStr) {
-        const end = JSON.parse(endStr);
-        setCep(end.cep || '');
-        setLogradouro(end.logradouro || '');
-        setNumero(end.numero || '');
-        setComplemento(end.complemento || '');
-        setBairro(end.bairro || '');
-        setCidade(end.cidade || 'Bombinhas');
-        setUf(end.uf || 'SC');
-        setReferencia(end.referencia || '');
+      const savedAddr = await AsyncStorage.getItem(STORAGE_KEYS.LAST_ADDRESS);
+      if (savedAddr) {
+        const a = JSON.parse(savedAddr);
+        setCep(a.cep || '');
+        setLogradouro(a.logradouro || '');
+        setNumero(a.numero || '');
+        setComplemento(a.complemento || '');
+        setBairro(a.bairro || '');
+        setCidade(a.cidade || 'Bombinhas');
+        setUf(a.uf || 'SC');
+        setReferencia(a.referencia || '');
       }
-    } catch (err) {
-      console.warn('Erro ao carregar dados salvos do cliente:', err);
+    } catch (e) {
+      console.warn('Erro ao carregar dados salvos:', e);
     }
   };
 
-  const salvarDadosCliente = async () => {
+  const buscarCep = async (valor) => {
+    const limpo = valor.replace(/\D/g, '');
+    setCep(limpo);
+    if (limpo.length === 8) {
+      setBuscandoCep(true);
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${limpo}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setLogradouro(data.logradouro || '');
+          setBairro(data.bairro || '');
+          setCidade(data.localidade || cidade);
+          setUf(data.uf || uf);
+        }
+      } catch (e) {
+        console.warn('Erro ao buscar CEP:', e);
+      } finally {
+        setBuscandoCep(false);
+      }
+    }
+  };
+
+  const taxaEntrega = tipoEntrega === 'DELIVERY' ? Number(empresa?.taxaEntregaPadrao || 5.0) : 0;
+  const valorTotal = subtotal + taxaEntrega;
+
+  const validarFormulario = () => {
+    if (!nome.trim()) {
+      Alert.alert('Atenção', 'Por favor, informe seu nome.');
+      return false;
+    }
+    if (!telefone.trim() || telefone.length < 8) {
+      Alert.alert('Atenção', 'Por favor, informe um telefone/WhatsApp válido.');
+      return false;
+    }
+    if (tipoEntrega === 'DELIVERY') {
+      if (!logradouro.trim() || !numero.trim() || !bairro.trim()) {
+        Alert.alert('Atenção', 'Por favor, preencha o endereço completo (Rua, Número e Bairro).');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleFinalizar = async () => {
+    if (!validarFormulario()) return;
+
+    setEnviando(true);
     try {
       await AsyncStorage.setItem(
-        STORAGE_KEYS.CLIENTE_INFO,
+        STORAGE_KEYS.USER_DATA,
         JSON.stringify({ nome, telefone, cpf })
       );
       if (tipoEntrega === 'DELIVERY') {
         await AsyncStorage.setItem(
-          STORAGE_KEYS.CLIENTE_ENDERECO,
-          JSON.stringify({
-            nome,
-            telefone,
-            cep,
-            logradouro,
-            numero,
-            complemento,
-            bairro,
-            cidade,
-            uf,
-            referencia,
-          })
+          STORAGE_KEYS.LAST_ADDRESS,
+          JSON.stringify({ cep, logradouro, numero, complemento, bairro, cidade, uf, referencia })
         );
       }
-    } catch (err) {
-      console.warn('Erro ao salvar dados do cliente:', err);
-    }
-  };
-
-  const handleCepBlur = async () => {
-    if (cep.replace(/\D/g, '').length === 8) {
-      setBuscandoCep(true);
-      const res = await ApiService.buscarCep(cep);
-      setBuscandoCep(false);
-      if (res && !res.erro) {
-        setLogradouro(res.logradouro || logradouro);
-        setBairro(res.bairro || bairro);
-        setCidade(res.localidade || cidade);
-        setUf(res.uf || uf);
-      }
-    }
-  };
-
-  const taxaEntrega = tipoEntrega === 'DELIVERY' ? Number(statusLoja?.taxaEntregaPadrao || 5.0) : 0;
-  const total = Number(subtotal) + taxaEntrega;
-
-  const handleFinalizarPedido = async () => {
-    if (!nome.trim()) {
-      Alert.alert('Atenção', 'Por favor, informe seu nome.');
-      return;
-    }
-    if (!telefone.trim() || telefone.replace(/\D/g, '').length < 10) {
-      Alert.alert('Atenção', 'Por favor, informe um WhatsApp válido com DDD.');
-      return;
-    }
-
-    if (tipoEntrega === 'DELIVERY') {
-      if (!logradouro.trim() || !numero.trim() || !bairro.trim()) {
-        Alert.alert('Atenção', 'Por favor, preencha o endereço completo para entrega.');
-        return;
-      }
-    }
-
-    setEnviando(true);
-    try {
-      await salvarDadosCliente();
 
       const payload = {
-        empresaId: empresa?.id || 'a24167b2-21e4-4b66-b3ff-38827d4a45ea',
-        cliente: {
-          nome: nome.trim(),
-          telefone: telefone.replace(/\D/g, ''),
-          cpf: cpf.trim() || undefined,
-        },
+        empresaId: empresa?.id || 1,
+        clienteNome: nome,
+        clienteTelefone: telefone,
+        clienteCpf: cpf || null,
         tipoEntrega,
-        enderecoEntrega:
-          tipoEntrega === 'DELIVERY'
-            ? {
-                nome: nome.trim(),
-                telefone: telefone.trim(),
-                cep,
-                logradouro,
-                numero,
-                complemento,
-                bairro,
-                cidade,
-                uf,
-                referencia,
-              }
-            : undefined,
-        itens: itens.map((i) => ({
-          produtoId: i.produtoId,
-          nome: i.nome,
-          quantidade: i.quantidade,
-          precoUnitario: i.precoUnitario,
-          observacao: i.observacao,
-          tamanhoId: i.tamanho?.id,
-          saboresIds: i.sabores?.map((s) => s.id),
-          bordaId: i.borda?.id,
-        })),
         formaPagamento,
-        trocoPara: formaPagamento === 'DINHEIRO' && trocoPara ? parseFloat(trocoPara.replace(',', '.')) : undefined,
-        observacaoGeral: observacaoGeral.trim() || undefined,
+        trocoPara: formaPagamento === 'DINHEIRO' && trocoPara ? Number(trocoPara.replace(',', '.')) : null,
+        observacao: observacaoGeral || null,
         subtotal,
         taxaEntrega,
-        total,
+        total: valorTotal,
+        endereco: tipoEntrega === 'DELIVERY' ? {
+          cep,
+          logradouro,
+          numero,
+          complemento,
+          bairro,
+          cidade,
+          uf,
+          referencia,
+        } : null,
+        itens: itens.map((item) => ({
+          produtoId: item.produtoId,
+          tipoProduto: item.tipoProduto || 'PRODUTO',
+          nome: item.nome,
+          quantidade: item.quantidade,
+          precoUnitario: item.precoUnitario,
+          precoTotal: item.precoTotal,
+          observacao: item.observacao,
+          detalhesPizza: item.detalhesPizza || null,
+          adicionais: item.adicionais || [],
+        })),
       };
 
       const pedidoCriado = await ApiService.criarPedido(payload);
       limparCarrinho();
       onOrderSuccess(pedidoCriado);
     } catch (err) {
-      Alert.alert(
-        'Erro ao enviar pedido',
-        err.message || 'Verifique sua conexão ou tente novamente.'
-      );
+      console.error('Erro ao enviar pedido:', err);
+      Alert.alert('Erro ao enviar pedido', err.message || 'Tente novamente.');
     } finally {
       setEnviando(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <ArrowLeft size={22} color={THEME.colors.textPrimary} />
+          <ArrowLeft size={20} color={THEME.colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Finalizar Pedido</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* 1. Tipo de Entrega */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Como quer receber?</Text>
-          <View style={styles.deliverySelector}>
+          <Text style={styles.sectionTitle}>Como deseja receber?</Text>
+          <View style={styles.deliveryToggle}>
             <TouchableOpacity
               style={[
                 styles.deliveryOption,
@@ -225,17 +218,14 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
               ]}
               onPress={() => setTipoEntrega('DELIVERY')}
             >
-              <Bike
-                size={20}
-                color={tipoEntrega === 'DELIVERY' ? THEME.colors.primary : THEME.colors.textSecondary}
-              />
+              <Bike size={20} color={tipoEntrega === 'DELIVERY' ? THEME.colors.white : THEME.colors.textSecondary} />
               <Text
                 style={[
                   styles.deliveryOptionText,
                   tipoEntrega === 'DELIVERY' && styles.deliveryOptionTextActive,
                 ]}
               >
-                Entrega (Delivery)
+                Entrega
               </Text>
             </TouchableOpacity>
 
@@ -246,142 +236,184 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
               ]}
               onPress={() => setTipoEntrega('RETIRADA')}
             >
-              <Store
-                size={20}
-                color={tipoEntrega === 'RETIRADA' ? THEME.colors.primary : THEME.colors.textSecondary}
-              />
+              <Store size={20} color={tipoEntrega === 'RETIRADA' ? THEME.colors.white : THEME.colors.textSecondary} />
               <Text
                 style={[
                   styles.deliveryOptionText,
                   tipoEntrega === 'RETIRADA' && styles.deliveryOptionTextActive,
                 ]}
               >
-                Retirar no Balcão
+                Retirar no Local
               </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* 2. Seus Dados */}
+        {/* 2. Seus Dados (Campos SensorEdit) */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Seus Dados</Text>
-          <View style={styles.formGroup}>
-            <Text style={styles.inputLabel}>Seu Nome *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex: João Silva"
-              placeholderTextColor={THEME.colors.textMuted}
-              value={nome}
-              onChangeText={setNome}
-            />
+
+          <View style={styles.sensorEditGroup}>
+            <Text style={styles.sensorEditLabel}>Nome Completo *</Text>
+            <View style={[styles.sensorEditBox, campoFocado === 'nome' && styles.sensorEditBoxFocus]}>
+              <User size={18} color={campoFocado === 'nome' ? THEME.colors.primary : THEME.colors.textSecondary} style={styles.sensorEditIcon} />
+              <TextInput
+                style={styles.sensorEditInput}
+                placeholder="Ex: João da Silva"
+                placeholderTextColor={THEME.colors.textMuted}
+                value={nome}
+                onChangeText={setNome}
+                onFocus={() => setCampoFocado('nome')}
+                onBlur={() => setCampoFocado(null)}
+              />
+              {campoFocado === 'nome' && <View style={styles.sensorEditFocusLine} />}
+            </View>
           </View>
 
-          <View style={styles.formGroup}>
-            <Text style={styles.inputLabel}>WhatsApp com DDD *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex: (47) 99999-9999"
-              placeholderTextColor={THEME.colors.textMuted}
-              keyboardType="phone-pad"
-              value={telefone}
-              onChangeText={setTelefone}
-            />
+          <View style={styles.sensorEditGroup}>
+            <Text style={styles.sensorEditLabel}>WhatsApp / Telefone *</Text>
+            <View style={[styles.sensorEditBox, campoFocado === 'telefone' && styles.sensorEditBoxFocus]}>
+              <Phone size={18} color={campoFocado === 'telefone' ? THEME.colors.primary : THEME.colors.textSecondary} style={styles.sensorEditIcon} />
+              <TextInput
+                style={styles.sensorEditInput}
+                placeholder="(47) 99999-9999"
+                placeholderTextColor={THEME.colors.textMuted}
+                keyboardType="phone-pad"
+                value={telefone}
+                onChangeText={setTelefone}
+                onFocus={() => setCampoFocado('telefone')}
+                onBlur={() => setCampoFocado(null)}
+              />
+              {campoFocado === 'telefone' && <View style={styles.sensorEditFocusLine} />}
+            </View>
           </View>
 
-          <View style={styles.formGroup}>
-            <Text style={styles.inputLabel}>CPF na Nota (Opcional)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="000.000.000-00"
-              placeholderTextColor={THEME.colors.textMuted}
-              keyboardType="numeric"
-              value={cpf}
-              onChangeText={setCpf}
-            />
+          <View style={styles.sensorEditGroup}>
+            <Text style={styles.sensorEditLabel}>CPF (Opcional na Nota)</Text>
+            <View style={[styles.sensorEditBox, campoFocado === 'cpf' && styles.sensorEditBoxFocus]}>
+              <FileText size={18} color={campoFocado === 'cpf' ? THEME.colors.primary : THEME.colors.textSecondary} style={styles.sensorEditIcon} />
+              <TextInput
+                style={styles.sensorEditInput}
+                placeholder="000.000.000-00"
+                placeholderTextColor={THEME.colors.textMuted}
+                keyboardType="numeric"
+                value={cpf}
+                onChangeText={setCpf}
+                onFocus={() => setCampoFocado('cpf')}
+                onBlur={() => setCampoFocado(null)}
+              />
+              {campoFocado === 'cpf' && <View style={styles.sensorEditFocusLine} />}
+            </View>
           </View>
         </View>
 
-        {/* 3. Endereço */}
+        {/* 3. Endereço de Entrega */}
         {tipoEntrega === 'DELIVERY' && (
           <View style={styles.card}>
-            <View style={styles.titleWithIcon}>
-              <MapPin size={18} color={THEME.colors.primary} />
-              <Text style={styles.sectionTitle}>Endereço de Entrega</Text>
-            </View>
+            <Text style={styles.sectionTitle}>Endereço de Entrega</Text>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.inputLabel}>CEP</Text>
-              <View style={styles.cepRow}>
+            <View style={styles.sensorEditGroup}>
+              <Text style={styles.sensorEditLabel}>CEP (Preenchimento Automático)</Text>
+              <View style={[styles.sensorEditBox, campoFocado === 'cep' && styles.sensorEditBoxFocus]}>
+                <MapPin size={18} color={campoFocado === 'cep' ? THEME.colors.primary : THEME.colors.textSecondary} style={styles.sensorEditIcon} />
                 <TextInput
-                  style={[styles.input, { flex: 1 }]}
+                  style={styles.sensorEditInput}
                   placeholder="88215-000"
                   placeholderTextColor={THEME.colors.textMuted}
                   keyboardType="numeric"
+                  maxLength={8}
                   value={cep}
-                  onChangeText={setCep}
-                  onBlur={handleCepBlur}
-                  maxLength={9}
+                  onChangeText={buscarCep}
+                  onFocus={() => setCampoFocado('cep')}
+                  onBlur={() => setCampoFocado(null)}
                 />
-                {buscandoCep && (
-                  <ActivityIndicator size="small" color={THEME.colors.primary} style={{ marginLeft: 8 }} />
-                )}
+                {buscandoCep && <ActivityIndicator size="small" color={THEME.colors.primary} />}
+                {campoFocado === 'cep' && <View style={styles.sensorEditFocusLine} />}
               </View>
             </View>
 
             <View style={styles.row}>
-              <View style={[styles.formGroup, { flex: 3, marginRight: 8 }]}>
-                <Text style={styles.inputLabel}>Rua / Logradouro *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Ex: Av. Leopoldo Zarling"
-                  placeholderTextColor={THEME.colors.textMuted}
-                  value={logradouro}
-                  onChangeText={setLogradouro}
-                />
+              <View style={[styles.sensorEditGroup, { flex: 2.2, marginRight: 8 }]}>
+                <Text style={styles.sensorEditLabel}>Rua / Logradouro *</Text>
+                <View style={[styles.sensorEditBox, campoFocado === 'rua' && styles.sensorEditBoxFocus]}>
+                  <TextInput
+                    style={styles.sensorEditInput}
+                    placeholder="Nome da rua"
+                    placeholderTextColor={THEME.colors.textMuted}
+                    value={logradouro}
+                    onChangeText={setLogradouro}
+                    onFocus={() => setCampoFocado('rua')}
+                    onBlur={() => setCampoFocado(null)}
+                  />
+                  {campoFocado === 'rua' && <View style={styles.sensorEditFocusLine} />}
+                </View>
               </View>
-              <View style={[styles.formGroup, { flex: 1 }]}>
-                <Text style={styles.inputLabel}>Nº *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="123"
-                  placeholderTextColor={THEME.colors.textMuted}
-                  value={numero}
-                  onChangeText={setNumero}
-                />
+
+              <View style={[styles.sensorEditGroup, { flex: 1 }]}>
+                <Text style={styles.sensorEditLabel}>Nº *</Text>
+                <View style={[styles.sensorEditBox, campoFocado === 'numero' && styles.sensorEditBoxFocus]}>
+                  <TextInput
+                    style={styles.sensorEditInput}
+                    placeholder="123"
+                    placeholderTextColor={THEME.colors.textMuted}
+                    value={numero}
+                    onChangeText={setNumero}
+                    onFocus={() => setCampoFocado('numero')}
+                    onBlur={() => setCampoFocado(null)}
+                  />
+                  {campoFocado === 'numero' && <View style={styles.sensorEditFocusLine} />}
+                </View>
               </View>
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.inputLabel}>Bairro *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Ex: Bombas"
-                placeholderTextColor={THEME.colors.textMuted}
-                value={bairro}
-                onChangeText={setBairro}
-              />
+            <View style={styles.row}>
+              <View style={[styles.sensorEditGroup, { flex: 1, marginRight: 8 }]}>
+                <Text style={styles.sensorEditLabel}>Bairro *</Text>
+                <View style={[styles.sensorEditBox, campoFocado === 'bairro' && styles.sensorEditBoxFocus]}>
+                  <TextInput
+                    style={styles.sensorEditInput}
+                    placeholder="Bairro"
+                    placeholderTextColor={THEME.colors.textMuted}
+                    value={bairro}
+                    onChangeText={setBairro}
+                    onFocus={() => setCampoFocado('bairro')}
+                    onBlur={() => setCampoFocado(null)}
+                  />
+                  {campoFocado === 'bairro' && <View style={styles.sensorEditFocusLine} />}
+                </View>
+              </View>
+
+              <View style={[styles.sensorEditGroup, { flex: 1 }]}>
+                <Text style={styles.sensorEditLabel}>Complemento</Text>
+                <View style={[styles.sensorEditBox, campoFocado === 'compl' && styles.sensorEditBoxFocus]}>
+                  <TextInput
+                    style={styles.sensorEditInput}
+                    placeholder="Apto 101"
+                    placeholderTextColor={THEME.colors.textMuted}
+                    value={complemento}
+                    onChangeText={setComplemento}
+                    onFocus={() => setCampoFocado('compl')}
+                    onBlur={() => setCampoFocado(null)}
+                  />
+                  {campoFocado === 'compl' && <View style={styles.sensorEditFocusLine} />}
+                </View>
+              </View>
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.inputLabel}>Complemento</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Apto 201, Bloco B"
-                placeholderTextColor={THEME.colors.textMuted}
-                value={complemento}
-                onChangeText={setComplemento}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.inputLabel}>Ponto de Referência</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Próximo ao supermercado"
-                placeholderTextColor={THEME.colors.textMuted}
-                value={referencia}
-                onChangeText={setReferencia}
-              />
+            <View style={styles.sensorEditGroup}>
+              <Text style={styles.sensorEditLabel}>Ponto de Referência</Text>
+              <View style={[styles.sensorEditBox, campoFocado === 'ref' && styles.sensorEditBoxFocus]}>
+                <TextInput
+                  style={styles.sensorEditInput}
+                  placeholder="Ex: Próximo à padaria"
+                  placeholderTextColor={THEME.colors.textMuted}
+                  value={referencia}
+                  onChangeText={setReferencia}
+                  onFocus={() => setCampoFocado('ref')}
+                  onBlur={() => setCampoFocado(null)}
+                />
+                {campoFocado === 'ref' && <View style={styles.sensorEditFocusLine} />}
+              </View>
             </View>
           </View>
         )}
@@ -389,7 +421,8 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
         {/* 4. Forma de Pagamento */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Forma de Pagamento</Text>
-          <View style={styles.paymentList}>
+
+          <View style={styles.paymentOptions}>
             <TouchableOpacity
               style={[
                 styles.paymentOption,
@@ -425,16 +458,18 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
             </TouchableOpacity>
 
             {formaPagamento === 'DINHEIRO' && (
-              <View style={styles.trocoContainer}>
-                <Text style={styles.inputLabel}>Precisa de troco para quanto?</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Ex: R$ 100,00"
-                  placeholderTextColor={THEME.colors.textMuted}
-                  keyboardType="numeric"
-                  value={trocoPara}
-                  onChangeText={setTrocoPara}
-                />
+              <View style={styles.sensorEditGroup}>
+                <Text style={styles.sensorEditLabel}>Troco para quanto?</Text>
+                <View style={styles.sensorEditBox}>
+                  <TextInput
+                    style={styles.sensorEditInput}
+                    placeholder="Ex: R$ 100,00"
+                    placeholderTextColor={THEME.colors.textMuted}
+                    keyboardType="numeric"
+                    value={trocoPara}
+                    onChangeText={setTrocoPara}
+                  />
+                </View>
               </View>
             )}
 
@@ -459,21 +494,23 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
 
         {/* 5. Observação */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Observação para a Loja</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Ex: Tocar o interfone 202..."
-            placeholderTextColor={THEME.colors.textMuted}
-            multiline
-            numberOfLines={2}
-            value={observacaoGeral}
-            onChangeText={setObservacaoGeral}
-          />
+          <Text style={styles.sectionTitle}>Observação para o Pedido</Text>
+          <View style={[styles.sensorEditBox, { height: 72, alignItems: 'flex-start', paddingTop: 8 }]}>
+            <MessageSquare size={18} color={THEME.colors.textSecondary} style={{ marginRight: 8, marginTop: 2 }} />
+            <TextInput
+              style={[styles.sensorEditInput, { height: 60, textAlignVertical: 'top' }]}
+              placeholder="Ex: Tocar o interfone 202..."
+              placeholderTextColor={THEME.colors.textMuted}
+              multiline
+              value={observacaoGeral}
+              onChangeText={setObservacaoGeral}
+            />
+          </View>
         </View>
 
-        {/* Resumo */}
+        {/* Resumo do Pedido */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Resumo do Pedido</Text>
+          <Text style={styles.sectionTitle}>Resumo dos Valores</Text>
           <View style={styles.calcRow}>
             <Text style={styles.calcLabel}>Subtotal</Text>
             <Text style={styles.calcVal}>R$ {Number(subtotal).toFixed(2).replace('.', ',')}</Text>
@@ -484,32 +521,33 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
               {taxaEntrega > 0 ? `R$ ${taxaEntrega.toFixed(2).replace('.', ',')}` : 'Grátis'}
             </Text>
           </View>
-          <View style={styles.calcDivider} />
+          <View style={styles.divider} />
           <View style={styles.calcRow}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalVal}>R$ {total.toFixed(2).replace('.', ',')}</Text>
+            <Text style={styles.totalLabel}>Total a Pagar</Text>
+            <Text style={styles.totalVal}>R$ {valorTotal.toFixed(2).replace('.', ',')}</Text>
           </View>
         </View>
-      </ScrollView>
 
-      {/* Botão Enviar */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.submitBtn, enviando && { opacity: 0.7 }]}
-          onPress={handleFinalizarPedido}
-          disabled={enviando}
-          activeOpacity={0.88}
-        >
-          {enviando ? (
-            <ActivityIndicator color={THEME.colors.white} />
-          ) : (
-            <>
-              <Text style={styles.submitBtnText}>Confirmar e Enviar Pedido</Text>
-              <Text style={styles.submitBtnPrice}>R$ {total.toFixed(2).replace('.', ',')}</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
+        {/* Botão de Envio SensorButton */}
+        <View style={styles.actionContainer}>
+          <TouchableOpacity
+            style={[styles.sensorButton, enviando && { opacity: 0.7 }]}
+            onPress={handleFinalizar}
+            disabled={enviando}
+            activeOpacity={0.88}
+          >
+            {enviando ? (
+              <ActivityIndicator color={THEME.colors.white} />
+            ) : (
+              <>
+                <Text style={styles.sensorButtonText}>
+                  Confirmar e Enviar Pedido (R$ {valorTotal.toFixed(2).replace('.', ',')})
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -521,51 +559,49 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: THEME.colors.card,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderColor: THEME.colors.borderLight,
+    borderBottomColor: THEME.colors.border,
+    backgroundColor: THEME.colors.card,
   },
   backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: THEME.colors.background,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: THEME.borderRadius.md,
+    backgroundColor: THEME.colors.inputBackground,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     color: THEME.colors.textPrimary,
   },
-  content: {
+  container: {
     padding: 16,
     gap: 14,
+    paddingBottom: 40,
   },
   card: {
     backgroundColor: THEME.colors.card,
     borderRadius: THEME.borderRadius.lg,
     padding: 16,
     borderWidth: 1,
-    borderColor: THEME.colors.borderLight,
+    borderColor: THEME.colors.border,
     ...THEME.shadows.card,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '800',
     color: THEME.colors.textPrimary,
     marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  titleWithIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  deliverySelector: {
+  deliveryToggle: {
     flexDirection: 'row',
     gap: 10,
   },
@@ -578,55 +614,69 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: THEME.borderRadius.md,
     borderWidth: 1,
-    borderColor: THEME.colors.borderLight,
-    backgroundColor: THEME.colors.background,
+    borderColor: THEME.colors.border,
+    backgroundColor: THEME.colors.inputBackground,
   },
   deliveryOptionActive: {
+    backgroundColor: THEME.colors.primary,
     borderColor: THEME.colors.primary,
-    backgroundColor: THEME.colors.primaryLight,
   },
   deliveryOptionText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: THEME.colors.textSecondary,
   },
   deliveryOptionTextActive: {
-    color: THEME.colors.primary,
-    fontWeight: '700',
+    color: THEME.colors.white,
   },
-  formGroup: {
+  sensorEditGroup: {
     marginBottom: 10,
   },
-  inputLabel: {
-    fontSize: 12,
+  sensorEditLabel: {
+    fontSize: 11,
     fontWeight: '600',
     color: THEME.colors.textSecondary,
     marginBottom: 4,
+    marginLeft: 2,
+    textTransform: 'uppercase',
   },
-  input: {
-    backgroundColor: THEME.colors.background,
+  sensorEditBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: THEME.colors.inputBackground,
     borderRadius: THEME.borderRadius.md,
-    borderWidth: 1,
-    borderColor: THEME.colors.borderLight,
     paddingHorizontal: 12,
     height: 44,
+    borderWidth: 1,
+    borderColor: THEME.colors.inputBorder,
+    overflow: 'hidden',
+  },
+  sensorEditBoxFocus: {
+    borderColor: THEME.colors.inputBorderFocus,
+    backgroundColor: THEME.colors.card,
+  },
+  sensorEditIcon: {
+    marginRight: 8,
+  },
+  sensorEditInput: {
+    flex: 1,
     fontSize: 14,
     color: THEME.colors.textPrimary,
+    paddingVertical: 0,
   },
-  textArea: {
-    height: 70,
-    paddingTop: 10,
-    textAlignVertical: 'top',
+  sensorEditFocusLine: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: THEME.colors.primary,
   },
   row: {
     flexDirection: 'row',
   },
-  cepRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  paymentList: {
-    gap: 8,
+  paymentOptions: {
+    gap: 10,
   },
   paymentOption: {
     flexDirection: 'row',
@@ -634,38 +684,34 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: THEME.borderRadius.md,
     borderWidth: 1,
-    borderColor: THEME.colors.borderLight,
-    backgroundColor: THEME.colors.background,
+    borderColor: THEME.colors.border,
+    backgroundColor: THEME.colors.inputBackground,
     gap: 12,
   },
   paymentOptionActive: {
     borderColor: THEME.colors.primary,
-    backgroundColor: '#FFF9F7',
+    backgroundColor: THEME.colors.primaryLight,
   },
   paymentInfo: {
     flex: 1,
   },
   paymentTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: THEME.colors.textPrimary,
   },
   paymentTitleActive: {
-    color: THEME.colors.primary,
+    color: THEME.colors.primaryDark,
   },
   paymentDesc: {
     fontSize: 11,
     color: THEME.colors.textSecondary,
     marginTop: 2,
   },
-  trocoContainer: {
-    marginTop: 8,
-    paddingHorizontal: 8,
-  },
   calcRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    paddingVertical: 4,
   },
   calcLabel: {
     fontSize: 13,
@@ -676,45 +722,36 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: THEME.colors.textPrimary,
   },
-  calcDivider: {
+  divider: {
     height: 1,
     backgroundColor: THEME.colors.borderLight,
-    marginVertical: 10,
+    marginVertical: 8,
   },
   totalLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     color: THEME.colors.textPrimary,
   },
   totalVal: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     color: THEME.colors.primary,
   },
-  footer: {
-    backgroundColor: THEME.colors.card,
-    padding: 16,
-    borderTopWidth: 1,
-    borderColor: THEME.colors.borderLight,
-    ...THEME.shadows.floating,
+  actionContainer: {
+    marginTop: 10,
   },
-  submitBtn: {
+  sensorButton: {
     backgroundColor: THEME.colors.primary,
-    borderRadius: THEME.borderRadius.md,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    height: 50,
+    borderRadius: THEME.borderRadius.xl,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'center',
+    ...THEME.shadows.button,
   },
-  submitBtnText: {
+  sensorButtonText: {
     color: THEME.colors.white,
     fontSize: 15,
     fontWeight: '700',
-  },
-  submitBtnPrice: {
-    color: THEME.colors.white,
-    fontSize: 16,
-    fontWeight: '800',
   },
 });

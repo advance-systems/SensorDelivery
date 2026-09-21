@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { api } from '../../api/client';
 import { Sidebar } from './Sidebar';
 import { Menu, Bell, RefreshCw, Volume2, VolumeX, Store } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
-  const { estaAutenticado, carregando } = useAuth();
+  const { estaAutenticado, carregando, empresaAtiva } = useAuth();
   const [sidebarAberto, setSidebarAberto] = useState(false);
   const [somHabilitado, setSomHabilitado] = useState(true);
+  const [lojaAberta, setLojaAberta] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!estaAutenticado || !empresaAtiva) return;
+
+    const checarStatusLoja = async () => {
+      try {
+        const res = await api.get(`/loja/status?empresaId=${empresaAtiva}`);
+        setLojaAberta(res.data?.aberta ?? false);
+      } catch (err) {
+        console.warn('Não foi possível obter status em tempo real da loja:', err);
+      }
+    };
+
+    checarStatusLoja();
+    const interval = setInterval(checarStatusLoja, 60000); // Checa a cada 1 minuto
+    return () => clearInterval(interval);
+  }, [estaAutenticado, empresaAtiva]);
 
   if (carregando) {
     return (
@@ -47,8 +66,24 @@ export const AdminLayout: React.FC = () => {
               <Menu className="w-5 h-5" />
             </button>
             <div className="hidden sm:flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-ping" />
-              <span className="text-xs font-semibold text-[#10B981]">Loja Aberta para Pedidos</span>
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  lojaAberta
+                    ? 'bg-[#10B981] animate-ping'
+                    : 'bg-[#EF4444]'
+                }`}
+              />
+              <span
+                className={`text-xs font-semibold ${
+                  lojaAberta ? 'text-[#10B981]' : 'text-[#EF4444]'
+                }`}
+              >
+                {lojaAberta === null
+                  ? 'Verificando status...'
+                  : lojaAberta
+                  ? 'Loja Aberta para Pedidos'
+                  : 'Fechada no Momento'}
+              </span>
             </div>
           </div>
 
