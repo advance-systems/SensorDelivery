@@ -30,8 +30,8 @@ export const Login: React.FC = () => {
         senha,
       });
 
-      const { token, usuario } = response.data;
-      login(token, usuario);
+      const { token, usuario, empresas, permissoes } = response.data;
+      login(token, usuario, empresas, permissoes);
       navigate('/');
     } catch (err: any) {
       console.error('Erro de autenticação:', err);

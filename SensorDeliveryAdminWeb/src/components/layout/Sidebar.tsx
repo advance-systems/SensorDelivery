@@ -25,7 +25,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ aberto }) => {
-  const { usuario, empresaAtiva, selecionarEmpresa, logout } = useAuth();
+  const { usuario, empresaAtiva, selecionarEmpresa, logout, temPermissao } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -38,36 +38,44 @@ export const Sidebar: React.FC<SidebarProps> = ({ aberto }) => {
     {
       titulo: 'Principal',
       itens: [
-        { nome: 'Central de Pedidos', path: '/', icone: ShoppingBag, badge: 'Live' },
-        { nome: 'Dashboard & Vendas', path: '/dashboard', icone: BarChart3 },
+        { nome: 'Central de Pedidos', path: '/', icone: ShoppingBag, badge: 'Live', permissao: 'dashboard.visualizar' },
+        { nome: 'Dashboard & Vendas', path: '/dashboard', icone: BarChart3, permissao: 'pedidos.visualizar' },
       ]
     },
     {
       titulo: 'Cardápio & Catálogo',
       itens: [
-        { nome: 'Categorias', path: '/categorias', icone: Layers },
-        { nome: 'Produtos', path: '/produtos', icone: UtensilsCrossed },
-        { nome: 'Sabores & Bordas', path: '/sabores-bordas', icone: Sparkles },
-        { nome: 'Adicionais / Opcionais', path: '/adicionais', icone: PlusCircle },
-        { nome: 'Combos & Promoções', path: '/combos', icone: Package },
+        { nome: 'Categorias', path: '/categorias', icone: Layers, permissao: 'categorias.visualizar' },
+        { nome: 'Produtos', path: '/produtos', icone: UtensilsCrossed, permissao: 'cardapio.visualizar' },
+        { nome: 'Sabores & Bordas', path: '/sabores-bordas', icone: Sparkles, permissao: 'sabores.visualizar' },
+        { nome: 'Adicionais / Opcionais', path: '/adicionais', icone: PlusCircle, permissao: 'cardapio.visualizar' },
+        { nome: 'Combos & Promoções', path: '/combos', icone: Package, permissao: 'combos.visualizar' },
       ]
     },
     {
       titulo: 'Operação',
       itens: [
-        { nome: 'Clientes', path: '/clientes', icone: Users },
-        { nome: 'Entregadores', path: '/entregadores', icone: Bike },
+        { nome: 'Clientes', path: '/clientes', icone: Users, permissao: 'clientes.visualizar' },
+        { nome: 'Entregadores', path: '/entregadores', icone: Bike, permissao: 'entregadores.visualizar' },
       ]
     },
     {
       titulo: 'Configurações',
       itens: [
-        { nome: 'Configurações da Loja', path: '/configuracoes', icone: Store },
-        { nome: 'Usuários & Permissões', path: '/usuarios', icone: ShieldCheck },
-        { nome: 'Empresas', path: '/empresas', icone: Building2 },
+        { nome: 'Configurações da Loja', path: '/configuracoes', icone: Store, permissao: 'configuracoes.visualizar' },
+        { nome: 'Usuários & Permissões', path: '/usuarios', icone: ShieldCheck, permissao: 'usuarios.visualizar' },
+        { nome: 'Empresas', path: '/empresas', icone: Building2, permissao: 'empresas.visualizar' },
       ]
     }
   ];
+
+  // Filtra itens e grupos de acordo com as permissões do usuário
+  const gruposFiltrados = navItems
+    .map((grupo) => ({
+      ...grupo,
+      itens: grupo.itens.filter((item) => !item.permissao || temPermissao(item.permissao)),
+    }))
+    .filter((grupo) => grupo.itens.length > 0);
 
   return (
     <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#152439] border-r border-[#2A405B] flex flex-col transition-transform duration-300 ease-in-out ${
@@ -107,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ aberto }) => {
 
       {/* Links de Navegação */}
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-        {navItems.map((grupo, idx) => (
+        {gruposFiltrados.map((grupo, idx) => (
           <div key={idx} className="space-y-1">
             <h3 className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider px-3 mb-2">
               {grupo.titulo}

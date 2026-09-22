@@ -5,6 +5,7 @@ export interface Usuario {
   id: string | number;
   nome: string;
   email: string;
+  tipo?: string;
   admin?: boolean;
   empresa_id?: string | number;
   empresas?: Array<{
@@ -12,8 +13,9 @@ export interface Usuario {
     nome_fantasia: string;
     razao_social?: string;
     cnpj?: string;
+    principal?: boolean;
   }>;
-  permissoes?: Record<string, boolean> | string[];
+  permissoes?: string[];
 }
 
 interface AuthContextType {
@@ -22,7 +24,7 @@ interface AuthContextType {
   token: string | null;
   estaAutenticado: boolean;
   carregando: boolean;
-  login: (token: string, usuario: Usuario) => void;
+  login: (token: string, usuario: Usuario, empresas?: any[], permissoes?: string[]) => void;
   logout: () => void;
   selecionarEmpresa: (empresaId: string) => void;
   temPermissao: (permissao: string) => boolean;
@@ -60,14 +62,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = (newToken: string, novoUsuario: Usuario) => {
+  const login = (newToken: string, novoUsuario: Usuario, empresas?: any[], permissoes?: string[]) => {
+    const usuarioCompleto: Usuario = {
+      ...novoUsuario,
+      empresas: empresas || novoUsuario.empresas || [],
+      permissoes: permissoes || novoUsuario.permissoes || [],
+    };
+
     localStorage.setItem('@SensorDelivery:token', newToken);
-    localStorage.setItem('@SensorDelivery:usuario', JSON.stringify(novoUsuario));
+    localStorage.setItem('@SensorDelivery:usuario', JSON.stringify(usuarioCompleto));
 
     setToken(newToken);
-    setUsuario(novoUsuario);
+    setUsuario(usuarioCompleto);
 
-    const empId = novoUsuario.empresa_id || (novoUsuario.empresas && novoUsuario.empresas[0]?.id) || null;
+    const empId =
+      usuarioCompleto.empresa_id ||
+      (usuarioCompleto.empresas && usuarioCompleto.empresas[0]?.id) ||
+      null;
+
     if (empId) {
       setEmpresaAtiva(String(empId));
       localStorage.setItem('@SensorDelivery:empresaId', String(empId));
@@ -91,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const temPermissao = (permissao: string): boolean => {
     if (!usuario) return false;
-    if (usuario.admin) return true;
+    if (usuario.tipo === 'ADMIN' || usuario.admin) return true;
     if (!usuario.permissoes) return false;
     if (Array.isArray(usuario.permissoes)) {
       return usuario.permissoes.includes(permissao);
