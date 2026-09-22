@@ -92,7 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ aberto }) => {
             <select
               value={empresaAtiva || ''}
               onChange={(e) => selecionarEmpresa(e.target.value)}
-              className="w-full bg-[#0B132B] border border-[#2A405B] text-xs text-white rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none focus:border-[#8C63FF] transition-colors cursor-pointer"
+              className="w-full bg-[#0B132B] border border-[#2A405B] text-xs text-white rounded-lg px-3 py-2 pr-9 appearance-none focus:outline-none focus:border-[#8C63FF] transition-colors cursor-pointer"
             >
               {usuario.empresas.map((emp) => (
                 <option key={emp.id} value={emp.id}>
@@ -100,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ aberto }) => {
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 text-[#9CAABC] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-[#9CAABC] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
       )}
