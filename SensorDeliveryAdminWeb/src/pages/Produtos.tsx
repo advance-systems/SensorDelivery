@@ -142,6 +142,13 @@ export const Produtos: React.FC = () => {
     if (e.key === 'Enter') {
       const target = e.target as HTMLElement;
 
+      // Se for o campo de preço e estiver vazio ao teclar Enter, assume zero
+      if (target instanceof HTMLInputElement && (target.name === 'preco' || target.placeholder === '0,00')) {
+        if (!target.value.trim()) {
+          setPreco('0,00');
+        }
+      }
+
       // Se o foco estiver no botão de salvar (submit), executa o envio normalmente
       if (target.getAttribute('type') === 'submit') {
         return;
@@ -432,10 +439,13 @@ export const Produtos: React.FC = () => {
                     Preço (R$)
                   </label>
                   <input
+                    name="preco"
                     type="text"
-                    required
                     value={preco}
                     onChange={(e) => setPreco(e.target.value)}
+                    onBlur={() => {
+                      if (!preco.trim()) setPreco('0,00');
+                    }}
                     placeholder="0,00"
                     className="w-full bg-[#0B132B] border border-[#2A405B] focus:border-[#8C63FF] text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none transition-colors"
                   />
