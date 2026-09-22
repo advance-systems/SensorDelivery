@@ -52,12 +52,25 @@ export class AuthRepository {
         return usuarios[0] ?? null;
     }
 
+    async listarTodasEmpresasAtivas(): Promise<EmpresaUsuario[]> {
+        return query<EmpresaUsuario>(
+            `SELECT id, nome_fantasia, FALSE AS principal
+             FROM empresas
+             WHERE ativo = TRUE
+             ORDER BY nome_fantasia`,
+        );
+    }
+
+    async listarTodasPermissoes(): Promise<string[]> {
+        const todas = await query<{ codigo: string }>(
+            'SELECT codigo FROM permissoes ORDER BY ordem, codigo',
+        );
+        return todas.map((item) => item.codigo);
+    }
+
     async listarPermissoes(usuarioId: string, empresaId: string, tipo: string): Promise<string[]> {
         if (tipo === 'ADMIN') {
-            const todas = await query<{ codigo: string }>(
-                'SELECT codigo FROM permissoes ORDER BY ordem, codigo',
-            );
-            return todas.map((item) => item.codigo);
+            return this.listarTodasPermissoes();
         }
 
         const permissoes = await query<{ codigo: string }>(
