@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
-import { Lock, Mail, Store, AlertCircle, ArrowRight } from 'lucide-react';
+import { Lock, Mail, Store, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(false);
 
@@ -93,14 +94,26 @@ export const Login: React.FC = () => {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={mostrarSenha ? 'text' : 'password'}
                   required
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-[#0B132B] border border-[#2A405B] focus:border-[#8C63FF] text-white rounded-xl px-4 py-3 pl-11 text-sm focus:outline-none transition-colors"
+                  className="w-full bg-[#0B132B] border border-[#2A405B] focus:border-[#8C63FF] text-white rounded-xl px-4 py-3 pl-11 pr-11 text-sm focus:outline-none transition-colors"
                 />
-                <Lock className="w-4 h-4 text-[#64748B] absolute left-4 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-[#64748B] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <button
+                  type="button"
+                  onClick={() => setMostrarSenha((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-[#9CAABC] hover:text-white p-1.5 rounded-lg hover:bg-[#2A405B] transition-all focus:outline-none cursor-pointer flex items-center justify-center"
+                  title={mostrarSenha ? 'Ocultar senha' : 'Ver senha'}
+                >
+                  {mostrarSenha ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
               </div>
             </div>
 

@@ -1,4 +1,4 @@
-﻿unit uLogin;
+unit uLogin;
 
 interface
 
@@ -28,6 +28,7 @@ type
     procedure CampoKeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
     procedure EntrarClick(Sender: TObject);
+    procedure ToggleVerSenhaClick(Sender: TObject);
     procedure CampoKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
     function CriarRotulo(const Parent: TFmxObject; const Texto: string;
@@ -61,6 +62,7 @@ function TfrmLogin.CriarCampo(const Parent: TFmxObject;
   const Titulo, Prompt: string; Y: Single; Senha: Boolean): TEdit;
 var
   Fundo: TRectangle;
+  BtnOlho: TLabel;
 begin
   CriarRotulo(Parent, Titulo, 36, Y, 348, 18, 10, $FF9CAABC);
   Fundo := TRectangle.Create(Self);
@@ -77,6 +79,8 @@ begin
   Result.Align := TAlignLayout.Client;
   Result.Margins.Left := 12;
   Result.Margins.Right := 12;
+  if Senha then
+    Result.Margins.Right := 36;
   Result.StyleLookup := 'transparentedit';
   Result.StyledSettings := [];
   Result.TextSettings.FontColor := $FFF4F7FB;
@@ -92,6 +96,43 @@ begin
   Result.OnClick := CampoClick;
   Result.OnKeyDown := CampoKeyDown;
   Result.OnKeyUp := CampoKeyUp;
+
+  if Senha then
+  begin
+    BtnOlho := TLabel.Create(Self);
+    BtnOlho.Parent := Fundo;
+    BtnOlho.Align := TAlignLayout.Right;
+    BtnOlho.Width := 34;
+    BtnOlho.Margins.Right := 6;
+    BtnOlho.Text := '👁';
+    BtnOlho.StyledSettings := [];
+    BtnOlho.TextSettings.Font.Family := 'Segoe UI Emoji';
+    BtnOlho.TextSettings.Font.Size := 13;
+    BtnOlho.TextSettings.FontColor := $FF9CAABC;
+    BtnOlho.TextSettings.HorzAlign := TTextAlign.Center;
+    BtnOlho.TextSettings.VertAlign := TTextAlign.Center;
+    BtnOlho.Cursor := crHandPoint;
+    BtnOlho.HitTest := True;
+    BtnOlho.TagObject := Result;
+    BtnOlho.OnClick := ToggleVerSenhaClick;
+  end;
+end;
+
+procedure TfrmLogin.ToggleVerSenhaClick(Sender: TObject);
+var
+  EditCampo: TEdit;
+  Btn: TLabel;
+begin
+  if (Sender is TLabel) and (TLabel(Sender).TagObject is TEdit) then
+  begin
+    Btn := TLabel(Sender);
+    EditCampo := TEdit(Btn.TagObject);
+    EditCampo.Password := not EditCampo.Password;
+    if EditCampo.Password then
+      Btn.TextSettings.FontColor := $FF9CAABC
+    else
+      Btn.TextSettings.FontColor := $FF8C63FF;
+  end;
 end;
 
 procedure TfrmLogin.CampoApplyStyleLookup(Sender: TObject);
