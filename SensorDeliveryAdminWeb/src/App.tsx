@@ -14,6 +14,7 @@ import { Empresas } from './pages/Empresas';
 import { Adicionais } from './pages/Adicionais';
 import { Combos } from './pages/Combos';
 import { Dashboard } from './pages/Dashboard';
+import { Usuarios } from './pages/Usuarios';
 
 export const App: React.FC = () => {
   return (
@@ -34,9 +35,9 @@ export const App: React.FC = () => {
             <Route path="configuracoes" element={<ConfiguracoesLoja />} />
             <Route path="clientes" element={<Clientes />} />
             <Route path="empresas" element={<Empresas />} />
+            <Route path="usuarios" element={<Usuarios />} />
             {/* Fallback de rotas complementares */}
             <Route path="entregadores" element={<Clientes />} />
-            <Route path="usuarios" element={<ConfiguracoesLoja />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
