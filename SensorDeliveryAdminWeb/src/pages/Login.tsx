@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
@@ -11,8 +11,13 @@ export const Login: React.FC = () => {
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(false);
 
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    emailInputRef.current?.focus();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +82,8 @@ export const Login: React.FC = () => {
               </label>
               <div className="relative">
                 <input
+                  ref={emailInputRef}
+                  autoFocus
                   type="email"
                   required
                   value={email}
