@@ -74,11 +74,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ aberto }) => {
       aberto ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
     }`}>
       {/* Topo / Logo */}
-      <div className="h-28 flex items-center justify-center px-2 py-2 border-b border-[#2A405B] bg-[#0f1b2b] overflow-hidden">
+      <div className="h-32 flex items-center justify-center px-1.5 py-2 border-b border-[#2A405B] bg-[#0f1b2b] overflow-hidden">
         <img
           src="/logo-admin.png"
           alt="Sensor Delivery - Painel Administrativo"
-          className="w-full h-full max-h-24 object-contain scale-115"
+          className="w-full h-full max-h-28 object-contain scale-125 transition-transform duration-200"
         />
       </div>
 
