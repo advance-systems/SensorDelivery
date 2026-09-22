@@ -1,4 +1,4 @@
-﻿unit uPrincipalAdmin;
+unit uPrincipalAdmin;
 
 interface
 
@@ -257,6 +257,16 @@ begin
   CriarSeletorEmpresas;
   ConfigurarIcones;
   CriarFrames;
+
+  lytLogo.Height := 96;
+  if Assigned(imgLogoIcone) then
+  begin
+    imgLogoIcone.Align := TAlignLayout.Client;
+    imgLogoIcone.Margins.Left := 4;
+    imgLogoIcone.Margins.Right := 4;
+    imgLogoIcone.Margins.Top := 4;
+    imgLogoIcone.Margins.Bottom := 0;
+  end;
 
   RotuloVersao := TLabel.Create(Self);
   RotuloVersao.Parent := lytLogo;
