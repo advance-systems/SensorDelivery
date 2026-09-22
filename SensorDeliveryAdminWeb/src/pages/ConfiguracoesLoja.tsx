@@ -378,7 +378,7 @@ export const ConfiguracoesLoja: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-[#0B132B] border border-[#2A405B] gap-4">
             <div className="space-y-1 max-w-xl">
               <div className="font-semibold text-sm text-white flex items-center gap-2">
-                <span>Cancelar rascunhos de dias anteriores automaticamente</span>
+                <span>Excluir rascunhos de dias anteriores na 1ª execução do dia</span>
                 {cancelarRascunhosAntigos ? (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#10B981]/20 text-[#34D399] border border-[#10B981]/30">
                     Ativado
@@ -390,7 +390,7 @@ export const ConfiguracoesLoja: React.FC = () => {
                 )}
               </div>
               <p className="text-xs text-[#9CAABC] leading-relaxed">
-                Quando ativado, pedidos que permanecerem com o status de <strong>Rascunho</strong> de um dia para o outro serão cancelados automaticamente pelo sistema.
+                Quando ativado, na primeira vez que o sistema for executado no dia, todos os pedidos que estiverem com o status de <strong>Rascunho</strong> deixados de dias anteriores serão excluídos automaticamente.
               </p>
             </div>
 

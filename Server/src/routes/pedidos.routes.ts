@@ -3,7 +3,7 @@ import { database } from '../database/connection.js';
 import { autenticarToken, empresaIdAutenticada } from '../middleware/auth.middleware.js';
 import { exigirAcessoModulo } from '../middleware/permission.middleware.js';
 import { gerarQrCodePix } from '../utils/pix.js';
-import { cancelarRascunhosAntigos } from '../services/pedidos-cleanup.service.js';
+import { verificarEExcluirRascunhosPrimeiraExecucaoDoDia } from '../services/pedidos-cleanup.service.js';
 import { criarPix, normalizarProvedorPix, type ProvedorPix } from '../services/pix-provider.service.js';
 import { sincronizarPagamentoPix } from '../services/pix-payment.service.js';
 
@@ -39,7 +39,7 @@ function normalizarFormaPagamento(valor: unknown): string {
 router.get('/', autenticarToken, exigirAcessoModulo('pedidos'), async (req, res) => {
     const empresaId = empresaIdAutenticada(req);
     try {
-        await cancelarRascunhosAntigos();
+        await verificarEExcluirRascunhosPrimeiraExecucaoDoDia(empresaId);
         const resultado = await database.query(
             `
             SELECT
