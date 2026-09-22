@@ -4,9 +4,10 @@ Aplicativo
 Server
 SensorDeliveryApp
 SensorDeliveryMobile
-SensorDeliveryWeb
 Documentos
 dist
 *.dcu
 *.exe
 *.apk
+*.res
+
