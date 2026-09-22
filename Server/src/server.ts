@@ -13,6 +13,7 @@ import pedidosRoutes from './routes/pedidos.routes.js';
 import lojaRoutes from './routes/loja.routes.js';
 import { cancelarPixExpirados } from './services/pix-payment.service.js';
 import { verificarEExcluirRascunhosPrimeiraExecucaoDoDia } from './services/pedidos-cleanup.service.js';
+import { IFoodService } from './services/ifood.service.js';
 
 const app = express();
 const port = Number(process.env.PORT ?? 3001);
@@ -158,6 +159,9 @@ const monitorPix = setInterval(() => {
     });
     verificarEExcluirRascunhosPrimeiraExecucaoDoDia().catch((error) => {
         console.error('Erro no monitor de limpeza de rascunhos:', error);
+    });
+    IFoodService.executarPollingTodasLojas().catch((error) => {
+        console.error('Erro no monitor iFood:', error);
     });
 }, 15000);
 // O monitor permanece referenciado para também manter a API ativa em ambientes

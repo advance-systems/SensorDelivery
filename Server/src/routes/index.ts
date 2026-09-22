@@ -18,6 +18,7 @@ import usuariosRoutes from './usuarios.routes.js';
 import permissoesRoutes from './permissoes.routes.js';
 import asaasWebhookRoutes from './asaas-webhook.routes.js';
 import sicrediWebhookRoutes from './sicredi-webhook.routes.js';
+import ifoodRoutes from './ifood.routes.js';
 import { autenticarToken } from '../middleware/auth.middleware.js';
 import {
     exigirAcessoEmpresas,
@@ -27,6 +28,7 @@ import {
 
 export const routes = Router();
 
+routes.use('/ifood', ifoodRoutes);
 routes.use('/auth', authRoutes);
 routes.use('/auth', profileRoutes);
 routes.use('/webhooks/asaas', asaasWebhookRoutes);
