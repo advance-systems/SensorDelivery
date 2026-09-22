@@ -30,13 +30,13 @@ export const Login: React.FC = () => {
       navigate('/');
     } catch (err: any) {
       console.error('Erro de autenticação:', err);
-      if (err.response?.data?.mensagem) {
-        setErro(err.response.data.mensagem);
-      } else if (err.response?.data?.error) {
-        setErro(err.response.data.error);
-      } else {
-        setErro('Falha na comunicação com a API. Verifique se o servidor está ativo.');
-      }
+      const mensagemErro = 
+        err.response?.data?.erro || 
+        err.response?.data?.mensagem || 
+        err.response?.data?.error || 
+        (err.response ? 'E-mail ou senha inválidos.' : 'Falha na comunicação com a API. Verifique se o servidor está ativo.');
+
+      setErro(mensagemErro);
     } finally {
       setCarregando(false);
     }
