@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../api/client';
 import { UtensilsCrossed, Plus, Edit2, Trash2, Search, AlertCircle, Image as ImageIcon, X } from 'lucide-react';
 import { useFeedback } from '../context/FeedbackContext';
@@ -39,6 +39,17 @@ export const Produtos: React.FC = () => {
   const [preco, setPreco] = useState('');
   const [imagemUrl, setImagemUrl] = useState('');
   const [ativo, setAtivo] = useState(true);
+
+  const nomeInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (modalAberto) {
+      setTimeout(() => {
+        nomeInputRef.current?.focus();
+        nomeInputRef.current?.select?.();
+      }, 50);
+    }
+  }, [modalAberto]);
 
   const carregarDados = async () => {
     try {
@@ -391,6 +402,8 @@ export const Produtos: React.FC = () => {
                   Nome do Produto *
                 </label>
                 <input
+                  ref={nomeInputRef}
+                  autoFocus
                   type="text"
                   required
                   value={nome}
