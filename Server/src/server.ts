@@ -12,6 +12,7 @@ import { routes } from './routes/index.js';
 import pedidosRoutes from './routes/pedidos.routes.js';
 import lojaRoutes from './routes/loja.routes.js';
 import { cancelarPixExpirados } from './services/pix-payment.service.js';
+import { cancelarRascunhosAntigos } from './services/pedidos-cleanup.service.js';
 
 const app = express();
 const port = Number(process.env.PORT ?? 3001);
@@ -142,7 +143,11 @@ const server = servidorBase.listen(port, host, () => {
     );
 
     // Executa migrações pendentes no startup
-    executarMigrations().catch((err) => {
+    executarMigrations().then(() => {
+        cancelarRascunhosAntigos().catch((err) => {
+            console.error('Erro ao cancelar rascunhos antigos na inicialização:', err);
+        });
+    }).catch((err) => {
         console.error('Erro ao rodar migrations na inicialização:', err);
     });
 });
@@ -150,6 +155,9 @@ const server = servidorBase.listen(port, host, () => {
 const monitorPix = setInterval(() => {
     cancelarPixExpirados().catch((error) => {
         console.error('Erro no monitor de pagamentos PIX:', error);
+    });
+    cancelarRascunhosAntigos().catch((error) => {
+        console.error('Erro no monitor de cancelamento de rascunhos:', error);
     });
 }, 15000);
 // O monitor permanece referenciado para também manter a API ativa em ambientes

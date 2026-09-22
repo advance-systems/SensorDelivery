@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/client';
-import { Store, Clock, DollarSign, MapPin, Save, AlertCircle, Check, Calendar } from 'lucide-react';
+import { Store, Clock, DollarSign, MapPin, Save, AlertCircle, Check, Calendar, FileText } from 'lucide-react';
 
 interface HorarioItem {
   diaSemana: number;
@@ -34,6 +34,7 @@ export const ConfiguracoesLoja: React.FC = () => {
   const [taxaEntregaPadrao, setTaxaEntregaPadrao] = useState('5,00');
   const [modoFuncionamento, setModoFuncionamento] = useState<'AUTOMATICO' | 'ABERTO' | 'FECHADO'>('AUTOMATICO');
   const [mensagemFechada, setMensagemFechada] = useState('');
+  const [cancelarRascunhosAntigos, setCancelarRascunhosAntigos] = useState(true);
 
   // Horários de Domingo a Sábado (0 a 6)
   const [horarios, setHorarios] = useState<HorarioItem[]>(
@@ -60,6 +61,9 @@ export const ConfiguracoesLoja: React.FC = () => {
       if (dados.taxa_entrega) setTaxaEntregaPadrao(String(dados.taxa_entrega));
       if (dados.modo_funcionamento) setModoFuncionamento(dados.modo_funcionamento);
       if (dados.mensagem_fechada) setMensagemFechada(dados.mensagem_fechada);
+      if (dados.cancelar_rascunhos_antigos !== undefined) {
+        setCancelarRascunhosAntigos(Boolean(dados.cancelar_rascunhos_antigos));
+      }
 
       if (Array.isArray(listaHorarios) && listaHorarios.length > 0) {
         const preenchidos = Array.from({ length: 7 }, (_, dia) => {
@@ -123,6 +127,7 @@ export const ConfiguracoesLoja: React.FC = () => {
         taxaEntrega: Number(taxaEntregaPadrao.replace(',', '.')) || 0,
         pedidoMinimo: Number(pedidoMinimo.replace(',', '.')) || 0,
         tempoEntregaMinutos: Number(tempoMaximoEntrega) || 45,
+        cancelarRascunhosAntigos,
         horarios: payloadHorarios,
       });
 
@@ -360,6 +365,44 @@ export const ConfiguracoesLoja: React.FC = () => {
                 className="w-full bg-[#0B132B] border border-[#2A405B] focus:border-[#8C63FF] text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none transition-colors"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Card Regras de Pedidos & Rascunhos */}
+        <div className="bg-[#152439] border border-[#2A405B] rounded-2xl p-6 shadow-xl space-y-4">
+          <h3 className="font-bold text-base text-white border-b border-[#2A405B] pb-3 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-[#8C63FF]" />
+            Regras de Pedidos & Rascunhos
+          </h3>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-[#0B132B] border border-[#2A405B] gap-4">
+            <div className="space-y-1 max-w-xl">
+              <div className="font-semibold text-sm text-white flex items-center gap-2">
+                <span>Cancelar rascunhos de dias anteriores automaticamente</span>
+                {cancelarRascunhosAntigos ? (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#10B981]/20 text-[#34D399] border border-[#10B981]/30">
+                    Ativado
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EF4444]/20 text-[#F87171] border border-[#EF4444]/30">
+                    Desativado
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[#9CAABC] leading-relaxed">
+                Quando ativado, pedidos que permanecerem com o status de <strong>Rascunho</strong> de um dia para o outro serão cancelados automaticamente pelo sistema.
+              </p>
+            </div>
+
+            <label className="relative inline-flex items-center cursor-pointer shrink-0">
+              <input
+                type="checkbox"
+                checked={cancelarRascunhosAntigos}
+                onChange={(e) => setCancelarRascunhosAntigos(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-[#2A405B] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8C63FF]"></div>
+            </label>
           </div>
         </div>
 

@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
                     taxa_entrega, pedido_minimo, tempo_entrega_minutos,
                     aceitar_pedidos_automaticamente, imprimir_automaticamente,
                     som_alerta_pedido, pix_chave, pix_nome_recebedor,
-                    pix_cidade_recebedor
+                    pix_cidade_recebedor, cancelar_rascunhos_antigos
              FROM loja_configuracao WHERE empresa_id = $1`, [empresaId],
         );
         const horarios = await database.query(
@@ -34,6 +34,7 @@ router.get('/', async (req, res) => {
             pix_chave: '',
             pix_nome_recebedor: '',
             pix_cidade_recebedor: '',
+            cancelar_rascunhos_antigos: true,
         };
         const horariosLoja = horarios.rowCount === 0
             ? Array.from({ length: 7 }, (_, diaSemana) => ({
@@ -65,6 +66,7 @@ router.put('/', async (req, res) => {
     const pixChave = String(req.body.pixChave ?? '').trim();
     const pixNomeRecebedor = String(req.body.pixNomeRecebedor ?? '').trim();
     const pixCidadeRecebedor = String(req.body.pixCidadeRecebedor ?? '').trim();
+    const cancelarRascunhosAntigos = req.body.cancelarRascunhosAntigos !== undefined ? Boolean(req.body.cancelarRascunhosAntigos) : true;
     const horarios = Array.isArray(req.body.horarios) ? req.body.horarios : [];
     if (!empresaId) return res.status(400).json({ erro: 'empresaId é obrigatório.' });
     if (!['AUTOMATICO','ABERTO','FECHADO'].includes(modo)) return res.status(400).json({ erro: 'Modo de funcionamento inválido.' });
@@ -98,9 +100,9 @@ router.put('/', async (req, res) => {
                  pedido_minimo, tempo_entrega_minutos,
                  aceitar_pedidos_automaticamente, imprimir_automaticamente,
                  som_alerta_pedido, pix_chave, pix_nome_recebedor,
-                 pix_cidade_recebedor)
+                 pix_cidade_recebedor, cancelar_rascunhos_antigos)
              VALUES ($1,$2,NULLIF($3,''),$4,$5,$6,$7,$8,$9,
-                     NULLIF($10,''),NULLIF($11,''),NULLIF($12,''))
+                     NULLIF($10,''),NULLIF($11,''),NULLIF($12,''),$13)
              ON CONFLICT (empresa_id) DO UPDATE SET
                  modo_funcionamento=EXCLUDED.modo_funcionamento,
                  mensagem_fechada=EXCLUDED.mensagem_fechada,
@@ -112,9 +114,10 @@ router.put('/', async (req, res) => {
                  pix_chave=EXCLUDED.pix_chave,
                  pix_nome_recebedor=EXCLUDED.pix_nome_recebedor,
                  pix_cidade_recebedor=EXCLUDED.pix_cidade_recebedor,
+                 cancelar_rascunhos_antigos=EXCLUDED.cancelar_rascunhos_antigos,
                  atualizado_em=CURRENT_TIMESTAMP`,
             [empresaId, modo, mensagem, taxa, minimo, tempo, aceitar, imprimir,
-             somAlerta, pixChave, pixNomeRecebedor, pixCidadeRecebedor],
+             somAlerta, pixChave, pixNomeRecebedor, pixCidadeRecebedor, cancelarRascunhosAntigos],
         );
         for (const h of horarios) {
             await client.query(
