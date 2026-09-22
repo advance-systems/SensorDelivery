@@ -140,7 +140,7 @@ export const AdminLayout: React.FC = () => {
             <div className="h-6 w-px bg-[#2A405B] mx-1" />
 
             <a
-              href="https://sensor-delivery-web.espa-o-de-tr-7844.chatgpt.site"
+              href="https://sensordelivery.sistemassensor.com.br"
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#2A405B]/60 hover:bg-[#2A405B] text-xs font-semibold text-white transition-all border border-[#2A405B]"
