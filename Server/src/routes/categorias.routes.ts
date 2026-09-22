@@ -163,4 +163,46 @@ router.patch('/:id/situacao', async (req, res) => {
     }
 });
 
+router.delete('/:id', async (req, res) => {
+    const empresaId = empresaIdAutenticada(req);
+    const categoriaId = String(req.params.id ?? '').trim();
+
+    if (!categoriaId || !empresaId) {
+        return res.status(400).json({ erro: 'Informe o ID da categoria.' });
+    }
+
+    try {
+        // Tenta exclusão física
+        try {
+            const resultado = await database.query(
+                `DELETE FROM categorias WHERE id = $1 AND empresa_id = $2 RETURNING id`,
+                [categoriaId, empresaId]
+            );
+            if (resultado.rowCount === 0) {
+                return res.status(404).json({ erro: 'Categoria não encontrada.' });
+            }
+            return res.status(200).json({ sucesso: true, mensagem: 'Categoria excluída com sucesso.' });
+        } catch (delError: any) {
+            // Se houver produtos ou vínculos (FK), inativa a categoria para não quebrar integridade
+            if (delError?.code === '23503') {
+                await database.query(
+                    `UPDATE categorias SET ativo = FALSE, atualizado_em = CURRENT_TIMESTAMP WHERE id = $1 AND empresa_id = $2`,
+                    [categoriaId, empresaId]
+                );
+                return res.status(200).json({
+                    sucesso: true,
+                    mensagem: 'A categoria possui produtos vinculados e foi inativada/removida do cardápio.',
+                });
+            }
+            throw delError;
+        }
+    } catch (error) {
+        console.error('Erro ao excluir categoria:', error);
+        return res.status(500).json({
+            erro: 'Não foi possível excluir a categoria.',
+            detalhe: error instanceof Error ? error.message : 'Erro desconhecido',
+        });
+    }
+});
+
 export default router;

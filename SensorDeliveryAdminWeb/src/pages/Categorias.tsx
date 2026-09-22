@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../api/client';
 import { Layers, Plus, Edit2, Trash2, Check, X, Search, AlertCircle } from 'lucide-react';
+import { useFeedback } from '../context/FeedbackContext';
 
 interface Categoria {
   id: number;
@@ -114,14 +115,37 @@ export const Categorias: React.FC = () => {
     }
   };
 
+  const { confirmar, notificar } = useFeedback();
+
   const alternarStatus = async (cat: Categoria) => {
     try {
-      await api.patch(`/categorias/${cat.id}/status`, { ativo: !cat.ativo });
+      await api.patch(`/categorias/${cat.id}/situacao`, { ativo: !cat.ativo });
       setCategorias((prev) =>
         prev.map((c) => (c.id === cat.id ? { ...c, ativo: !c.ativo } : c))
       );
     } catch (err) {
       console.error('Erro ao alterar status:', err);
+    }
+  };
+
+  const excluirCategoria = async (cat: Categoria) => {
+    const aceitou = await confirmar({
+      title: 'Excluir Categoria',
+      message: `Tem certeza que deseja excluir a categoria "${cat.nome}"?`,
+      confirmText: 'Sim, Excluir',
+      cancelText: 'Cancelar',
+      type: 'danger',
+    });
+
+    if (!aceitou) return;
+
+    try {
+      const res = await api.delete(`/categorias/${cat.id}`);
+      setCategorias((prev) => prev.filter((c) => c.id !== cat.id));
+      notificar(res.data?.mensagem || `Categoria "${cat.nome}" excluída com sucesso!`, 'success');
+    } catch (err: any) {
+      console.error('Erro ao excluir categoria:', err);
+      notificar(err.response?.data?.erro || 'Não foi possível excluir a categoria.', 'error');
     }
   };
 
@@ -228,10 +252,17 @@ export const Categorias: React.FC = () => {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => abrirModalEditar(cat)}
-                          className="p-1.5 text-[#9CAABC] hover:text-[#8C63FF] hover:bg-[#8C63FF]/10 rounded-lg transition-colors"
+                          className="p-1.5 text-[#9CAABC] hover:text-[#8C63FF] hover:bg-[#8C63FF]/10 rounded-lg transition-colors cursor-pointer"
                           title="Editar Categoria"
                         >
                           <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => excluirCategoria(cat)}
+                          className="p-1.5 text-[#9CAABC] hover:text-[#EF4444] hover:bg-[#EF4444]/10 rounded-lg transition-colors cursor-pointer"
+                          title="Excluir Categoria"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
