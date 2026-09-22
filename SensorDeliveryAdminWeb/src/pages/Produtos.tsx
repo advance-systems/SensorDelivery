@@ -127,6 +127,39 @@ export const Produtos: React.FC = () => {
     }
   };
 
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter') {
+      const target = e.target as HTMLElement;
+
+      // Se o foco estiver no botão de salvar (submit), executa o envio normalmente
+      if (target.getAttribute('type') === 'submit') {
+        return;
+      }
+
+      // Se for textarea e segurou Shift, permite quebra de linha normal
+      if (target.tagName.toLowerCase() === 'textarea' && e.shiftKey) {
+        return;
+      }
+
+      const form = e.currentTarget;
+      const elementosFocaveis = Array.from(
+        form.querySelectorAll<HTMLElement>(
+          'select:not([disabled]), input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), button[type="submit"]:not([disabled])'
+        )
+      );
+
+      const indexAtual = elementosFocaveis.indexOf(target);
+      if (indexAtual > -1 && indexAtual < elementosFocaveis.length - 1) {
+        e.preventDefault();
+        const proximo = elementosFocaveis[indexAtual + 1];
+        proximo.focus();
+        if (proximo instanceof HTMLInputElement || proximo instanceof HTMLTextAreaElement) {
+          proximo.select?.();
+        }
+      }
+    }
+  };
+
   const { confirmar, notificar } = useFeedback();
 
   const excluirProduto = async (prod: Produto) => {
@@ -328,7 +361,7 @@ export const Produtos: React.FC = () => {
             </div>
 
             {/* Form */}
-            <form onSubmit={salvarProduto} className="p-4 md:p-6 space-y-4">
+            <form onSubmit={salvarProduto} onKeyDown={handleFormKeyDown} className="p-4 md:p-6 space-y-4">
               {erro && (
                 <div className="p-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-xl text-[#EF4444] text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
