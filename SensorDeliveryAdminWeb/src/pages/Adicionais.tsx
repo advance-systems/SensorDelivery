@@ -395,6 +395,10 @@ export const Adicionais: React.FC = () => {
                     placeholder="0,00"
                     value={preco}
                     onChange={(e) => setPreco(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onBlur={() => {
+                      if (!preco.trim()) setPreco('0,00');
+                    }}
                     className="w-full px-3.5 py-2.5 bg-[#0B132B] border border-[#2A405B] rounded-xl text-white placeholder-slate-500 text-sm focus:border-indigo-500 focus:outline-none transition-colors"
                   />
                 </div>

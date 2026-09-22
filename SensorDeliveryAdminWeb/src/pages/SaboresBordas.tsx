@@ -271,6 +271,10 @@ export const SaboresBordas: React.FC = () => {
                     type="text"
                     value={saborPreco}
                     onChange={(e) => setSaborPreco(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onBlur={() => {
+                      if (!saborPreco.trim()) setSaborPreco('0,00');
+                    }}
                     placeholder="0,00"
                     className="w-full bg-[#0B132B] border border-[#2A405B] text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#8C63FF]"
                   />

@@ -443,6 +443,7 @@ export const Produtos: React.FC = () => {
                     type="text"
                     value={preco}
                     onChange={(e) => setPreco(e.target.value)}
+                    onFocus={(e) => e.target.select()}
                     onBlur={() => {
                       if (!preco.trim()) setPreco('0,00');
                     }}
