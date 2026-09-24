@@ -13,6 +13,10 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export function empresaIdAutenticada(request: Request): string {
+    const headerEmpresa = String(request.headers['x-empresa-id'] ?? '').trim();
+    if (headerEmpresa && headerEmpresa !== 'undefined' && headerEmpresa !== 'null' && headerEmpresa !== '1') {
+        return headerEmpresa;
+    }
     return (request as AuthenticatedRequest).usuario?.empresaId ?? '';
 }
 

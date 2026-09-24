@@ -486,28 +486,36 @@ router.post('/', async (req, res) => {
             });
         }
 
-        const formaPagamento = normalizarFormaPagamento(formaPagamentoInformada);
         let configuracaoPix: {
             pix_chave: string;
             pix_provedor: string;
         } | null = null;
+        const formaPagamento = normalizarFormaPagamento(formaPagamentoInformada);
+        const resultadoConfig = await client.query(
+            `SELECT lc.pix_chave, lc.aceitar_pedidos_automaticamente, e.pix_provedor
+               FROM loja_configuracao lc
+               JOIN empresas e ON e.id = lc.empresa_id
+              WHERE lc.empresa_id = $1
+              LIMIT 1`,
+            [empresaId],
+        );
+        const configLoja = resultadoConfig.rows[0] ?? null;
+        const aceitarAutomatico = Boolean(configLoja?.aceitar_pedidos_automaticamente);
 
         if (formaPagamento === 'PIX') {
-            const resultadoPix = await client.query(
-                `SELECT lc.pix_chave, e.pix_provedor
-                   FROM loja_configuracao lc
-                   JOIN empresas e ON e.id = lc.empresa_id
-                  WHERE lc.empresa_id = $1
-                  LIMIT 1`,
-                [empresaId],
-            );
-            configuracaoPix = resultadoPix.rows[0] ?? null;
+            configuracaoPix = configLoja ? { pix_chave: configLoja.pix_chave, pix_provedor: configLoja.pix_provedor } : null;
             if (!configuracaoPix?.pix_chave) {
                 return res.status(400).json({
                     erro: 'O PIX ainda não foi configurado para esta empresa.',
                 });
             }
         }
+
+        const statusInicial = formaPagamento === 'PIX'
+            ? 'AGUARDANDO_PAGAMENTO'
+            : (aceitarAutomatico && ['DINHEIRO', 'CARTAO_CREDITO', 'CARTAO_DEBITO'].includes(formaPagamento)
+                ? 'EM_PREPARO'
+                : 'RASCUNHO');
 
         // =========================================================
         // INICIA A TRANSAÇÃO
@@ -615,7 +623,7 @@ router.post('/', async (req, res) => {
                 Number(desconto || 0),
                 Number(acrescimo || 0),
                 Number(valorTotal || 0),
-                formaPagamento === 'PIX' ? 'AGUARDANDO_PAGAMENTO' : 'RASCUNHO',
+                statusInicial,
             ],
         );
 

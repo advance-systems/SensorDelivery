@@ -22,7 +22,7 @@ uses
   System.SysUtils, System.IniFiles, System.IOUtils;
 
 const
-  URL_API_PADRAO = 'https://sensordelivery-production.up.railway.app';
+  URL_API_PADRAO = 'http://localhost:3001';
   ARQUIVO_CONFIGURACAO = 'sensor-delivery.ini';
 
 function ArquivoConfiguracaoGravavel: string;

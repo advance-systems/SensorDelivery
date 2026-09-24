@@ -35,6 +35,7 @@ export const ConfiguracoesLoja: React.FC = () => {
   const [modoFuncionamento, setModoFuncionamento] = useState<'AUTOMATICO' | 'ABERTO' | 'FECHADO'>('AUTOMATICO');
   const [mensagemFechada, setMensagemFechada] = useState('');
   const [cancelarRascunhosAntigos, setCancelarRascunhosAntigos] = useState(true);
+  const [aceitarPedidosAutomaticamente, setAceitarPedidosAutomaticamente] = useState(false);
 
   // Horários de Domingo a Sábado (0 a 6)
   const [horarios, setHorarios] = useState<HorarioItem[]>(
@@ -63,6 +64,9 @@ export const ConfiguracoesLoja: React.FC = () => {
       if (dados.mensagem_fechada) setMensagemFechada(dados.mensagem_fechada);
       if (dados.cancelar_rascunhos_antigos !== undefined) {
         setCancelarRascunhosAntigos(Boolean(dados.cancelar_rascunhos_antigos));
+      }
+      if (dados.aceitar_pedidos_automaticamente !== undefined) {
+        setAceitarPedidosAutomaticamente(Boolean(dados.aceitar_pedidos_automaticamente));
       }
 
       if (Array.isArray(listaHorarios) && listaHorarios.length > 0) {
@@ -127,6 +131,7 @@ export const ConfiguracoesLoja: React.FC = () => {
         taxaEntrega: Number(taxaEntregaPadrao.replace(',', '.')) || 0,
         pedidoMinimo: Number(pedidoMinimo.replace(',', '.')) || 0,
         tempoEntregaMinutos: Number(tempoMaximoEntrega) || 45,
+        aceitarPedidosAutomaticamente,
         cancelarRascunhosAntigos,
         horarios: payloadHorarios,
       });
@@ -374,6 +379,36 @@ export const ConfiguracoesLoja: React.FC = () => {
             <FileText className="w-5 h-5 text-[#8C63FF]" />
             Regras de Pedidos & Rascunhos
           </h3>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-[#0B132B] border border-[#2A405B] gap-4">
+            <div className="space-y-1 max-w-xl">
+              <div className="font-semibold text-sm text-white flex items-center gap-2">
+                <span>Aceitar pedidos automaticamente</span>
+                {aceitarPedidosAutomaticamente ? (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#10B981]/20 text-[#34D399] border border-[#10B981]/30">
+                    Ativado
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EF4444]/20 text-[#F87171] border border-[#EF4444]/30">
+                    Desativado
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[#9CAABC] leading-relaxed">
+                Ao ativar, os novos pedidos recebidos entrarão diretamente como confirmados/em produção sem a necessidade de aceitação manual pelo operador.
+              </p>
+            </div>
+
+            <label className="relative inline-flex items-center cursor-pointer shrink-0">
+              <input
+                type="checkbox"
+                checked={aceitarPedidosAutomaticamente}
+                onChange={(e) => setAceitarPedidosAutomaticamente(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-[#2A405B] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8C63FF]"></div>
+            </label>
+          </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-[#0B132B] border border-[#2A405B] gap-4">
             <div className="space-y-1 max-w-xl">
