@@ -8,6 +8,8 @@ import path from 'node:path';
 
 import { database } from './database/connection.js';
 import { executarMigrations } from './database/migrate.js';
+import { executarSeeds } from './database/seed.js';
+import { importarCardapioAnotaAi } from './scripts/importar-cardapio-anota-ai.js';
 import { routes } from './routes/index.js';
 import pedidosRoutes from './routes/pedidos.routes.js';
 import lojaRoutes from './routes/loja.routes.js';
@@ -143,14 +145,25 @@ const server = servidorBase.listen(port, host, () => {
         `Sensor Delivery em ${publicUrl}`,
     );
 
-    // Executa migrações pendentes no startup
-    executarMigrations().then(() => {
-        verificarEExcluirRascunhosPrimeiraExecucaoDoDia().catch((err) => {
-            console.error('Erro ao verificar rascunhos antigos na inicialização:', err);
-        });
-    }).catch((err) => {
-        console.error('Erro ao rodar migrations na inicialização:', err);
-    });
+    // Executa migrações, seeds e importação do cardápio automaticamente na inicialização
+    (async () => {
+        try {
+            await executarMigrations();
+            await executarSeeds();
+            
+            // Verifica se o cardápio já está populado; se não estiver ou se tiver poucos produtos, importa automaticamente
+            const countProd = await database.query('SELECT COUNT(*)::int AS total FROM produtos');
+            const totalProdutos = countProd.rows[0]?.total ?? 0;
+            if (totalProdutos === 0) {
+                console.log('📦 Banco sem produtos detectado. Iniciando importação automática do Anota Aí...');
+                await importarCardapioAnotaAi();
+            }
+
+            await verificarEExcluirRascunhosPrimeiraExecucaoDoDia();
+        } catch (err) {
+            console.error('Erro no processo de inicialização do banco/dados:', err);
+        }
+    })();
 });
 
 const monitorPix = setInterval(() => {

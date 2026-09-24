@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { database } from './connection.js';
 
-async function executarSeeds(): Promise<void> {
+export async function executarSeeds(): Promise<void> {
     await database.query(`
     CREATE TABLE IF NOT EXISTS schema_seeds (
       arquivo VARCHAR(255) PRIMARY KEY,
@@ -61,11 +61,13 @@ async function executarSeeds(): Promise<void> {
     }
 }
 
-executarSeeds()
-    .catch((error) => {
-        console.error('Falha ao executar seeds:', error);
-        process.exitCode = 1;
-    })
-    .finally(async () => {
-        await database.end();
-    });
+if (process.argv[1]?.endsWith('seed.ts') || process.argv[1]?.endsWith('seed.js')) {
+    executarSeeds()
+        .catch((error) => {
+            console.error('Falha ao executar seeds:', error);
+            process.exitCode = 1;
+        })
+        .finally(async () => {
+            await database.end();
+        });
+}
