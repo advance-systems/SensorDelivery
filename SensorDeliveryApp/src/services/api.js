@@ -8,7 +8,7 @@ export const STORAGE_KEYS = {
   CARRINHO: '@SensorDelivery:carrinho',
 };
 
-export const DEFAULT_API_URL = 'https://sensordelivery-production.up.railway.app';
+export const DEFAULT_API_URL = 'https://api-sensordelivery.sistemassensor.com.br';
 export const DEFAULT_EMPRESA_ID = 'a24167b2-21e4-4b66-b3ff-38827d4a45ea'; // Sensor Delivery
 
 export class ApiService {
