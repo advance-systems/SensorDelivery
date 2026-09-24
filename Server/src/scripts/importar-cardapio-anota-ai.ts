@@ -39,7 +39,7 @@ export async function importarCardapioAnotaAi(): Promise<void> {
     const gruposAuxiliares = data.menu?.menu?.menu_aux || [];
 
     console.log(`Total de Categorias a processar: ${categories.length}`);
-    console.log(`Total de Grupos Auxiliares (Sabores/Adicionais): ${gruposAuxiliares.length}\n`);
+    console.log(`Total de Grupos Auxiliares (Sabores/Adicionais/Bordas): ${gruposAuxiliares.length}\n`);
 
     await client.query('BEGIN');
 
@@ -49,10 +49,29 @@ export async function importarCardapioAnotaAi(): Promise<void> {
     let totalProdutosAtualizados = 0;
     let totalSaboresInseridos = 0;
     let totalBordasInseridas = 0;
+    let totalAdicionaisInseridos = 0;
+    let totalVariacoesInseridas = 0;
 
     // Mapa de Categoria Nome -> ID no banco
     const mapCategorias = new Map<string, string>();
-    const todosProdutosIds: string[] = [];
+    const produtosCriados: { id: string; nome: string; catId: string; catNome: string }[] = [];
+
+    // Tabela de precos padrao / fallback para tamanhos de pizza se vier 0
+    const precosTamanhosPizza: Record<string, { preco: number; fatias: number; maxSabores: number; sigla: string }> = {
+      'pequena': { preco: 35.0, fatias: 4, maxSabores: 2, sigla: 'P' },
+      'pequena 25cm': { preco: 35.0, fatias: 4, maxSabores: 2, sigla: 'P' },
+      'média': { preco: 48.0, fatias: 6, maxSabores: 2, sigla: 'M' },
+      'media': { preco: 48.0, fatias: 6, maxSabores: 2, sigla: 'M' },
+      'média 30cm': { preco: 48.0, fatias: 6, maxSabores: 2, sigla: 'M' },
+      'media 30cm': { preco: 48.0, fatias: 6, maxSabores: 2, sigla: 'M' },
+      'grande': { preco: 62.0, fatias: 8, maxSabores: 3, sigla: 'G' },
+      'grande 35cm': { preco: 62.0, fatias: 8, maxSabores: 3, sigla: 'G' },
+      'familia': { preco: 78.0, fatias: 12, maxSabores: 4, sigla: 'GG' },
+      'família': { preco: 78.0, fatias: 12, maxSabores: 4, sigla: 'GG' },
+      'famiia 40cm': { preco: 78.0, fatias: 12, maxSabores: 4, sigla: 'GG' },
+      'gigante': { preco: 92.0, fatias: 16, maxSabores: 4, sigla: 'XG' },
+      'gigante 45cm': { preco: 92.0, fatias: 16, maxSabores: 4, sigla: 'XG' },
+    };
 
     // 2. Processar e Inserir Categorias
     for (let cIdx = 0; cIdx < categories.length; cIdx++) {
@@ -97,13 +116,27 @@ export async function importarCardapioAnotaAi(): Promise<void> {
         const item = itens[pIdx];
         const nomeProd = String(item.title || item.name || '').trim();
         const descProd = String(item.description || item.desc || '').trim();
-        const precoProd = item.price !== undefined ? Number(item.price) : 0;
+        let precoProd = item.price !== undefined ? Number(item.price) : 0;
         const imagemProd = String(item.image || item.photo || '').trim();
         const disponivel = !item.paused;
         const ordemProd = pIdx + 1;
         const tipoProd = cat.type === 'combo' || nomeProd.toLowerCase().startsWith('combo') ? 'COMBO' : 'PRODUTO';
 
         if (!nomeProd) continue;
+
+        // Se o preço for 0 e for pizza, busca se há minimal_price ou fallback
+        if (precoProd === 0) {
+          const nomeLower = nomeProd.toLowerCase();
+          for (const [key, val] of Object.entries(precosTamanhosPizza)) {
+            if (nomeLower.includes(key)) {
+              precoProd = val.preco;
+              break;
+            }
+          }
+          if (precoProd === 0 && item.minimal_price) {
+            precoProd = Number(item.minimal_price);
+          }
+        }
 
         const prodExistente = await client.query(
           'SELECT id FROM produtos WHERE empresa_id = $1 AND categoria_id = $2 AND nome ILIKE $3',
@@ -132,13 +165,40 @@ export async function importarCardapioAnotaAi(): Promise<void> {
           prodId = novoProd.rows[0].id;
           totalProdutosInseridos++;
         }
-        todosProdutosIds.push(prodId);
+
+        produtosCriados.push({ id: prodId, nome: nomeProd, catId, catNome: nomeCat });
+
+        // Se for pizza, criar as variações de tamanho para o produto
+        const ehPizza = nomeCat.toLowerCase().includes('pizza') || nomeProd.toLowerCase().includes('pizza') || nomeProd.toLowerCase().includes('cm');
+        if (ehPizza) {
+          // Criar a própria variação correspondente ao tamanho do produto
+          const nomeLower = nomeProd.toLowerCase();
+          let fatias = 8;
+          let maxSabores = 2;
+          for (const [k, v] of Object.entries(precosTamanhosPizza)) {
+            if (nomeLower.includes(k)) {
+              fatias = v.fatias;
+              maxSabores = v.maxSabores;
+              break;
+            }
+          }
+
+          await client.query(
+            `INSERT INTO produto_variacoes (produto_id, nome, preco, ordem, disponivel, ativo)
+             VALUES ($1, $2, $3, 1, TRUE, TRUE)
+             ON CONFLICT (produto_id, nome)
+             DO UPDATE SET preco = EXCLUDED.preco, ativo = TRUE`,
+            [prodId, nomeProd, precoProd]
+          );
+          totalVariacoesInseridas++;
+        }
       }
     }
 
     // 4. Processar Grupos Auxiliares (Sabores, Bordas e Adicionais)
     const saboresCadastrados: { id: string; nome: string; valor: number }[] = [];
     const bordasCadastradas: { id: string; nome: string; valor: number }[] = [];
+    const adicionaisCadastrados: { nome: string; preco: number }[] = [];
 
     for (let gIdx = 0; gIdx < gruposAuxiliares.length; gIdx++) {
       const grupo = gruposAuxiliares[gIdx];
@@ -146,7 +206,8 @@ export async function importarCardapioAnotaAi(): Promise<void> {
       const itensGrupo = grupo.itens || grupo.items || [];
       const nomeLower = grupoNome.toLowerCase();
       const ehBorda = nomeLower.includes('borda');
-      const ehSabor = !ehBorda && (nomeLower.includes('sabor') || nomeLower.includes('pizza') || nomeLower.includes('sabores'));
+      const ehAdicional = nomeLower.includes('adicionais') || nomeLower.includes('ingredientes');
+      const ehSabor = !ehBorda && !ehAdicional && (nomeLower.includes('sabor') || nomeLower.includes('pizza') || nomeLower.includes('sabores'));
 
       for (let sIdx = 0; sIdx < itensGrupo.length; sIdx++) {
         const sub = itensGrupo[sIdx];
@@ -208,11 +269,13 @@ export async function importarCardapioAnotaAi(): Promise<void> {
             totalSaboresInseridos++;
           }
           saboresCadastrados.push({ id: saborId, nome: nomeSub, valor: precoSub });
+        } else if (ehAdicional) {
+          adicionaisCadastrados.push({ nome: nomeSub, preco: precoSub });
         }
       }
     }
 
-    // 5. Vincular Sabores e Bordas às categorias de Pizzas
+    // 5. Vincular Sabores e Bordas às categorias e produtos de Pizzas
     const catPizzaRes = await client.query(
       `SELECT id FROM categorias WHERE empresa_id = $1 AND LOWER(nome) LIKE '%pizza%'`,
       [empresaId]
@@ -241,11 +304,26 @@ export async function importarCardapioAnotaAi(): Promise<void> {
 
       // Vincular também aos produtos dessa categoria de Pizza
       const prodsPizza = await client.query(
-        `SELECT id FROM produtos WHERE categoria_id = $1 AND ativo = TRUE`,
+        `SELECT id, nome, preco FROM produtos WHERE categoria_id = $1 AND ativo = TRUE`,
         [cId]
       );
 
       for (const pRow of prodsPizza.rows) {
+        // Assegurar que cada pizza tenha variações
+        const varExist = await client.query(
+          `SELECT id FROM produto_variacoes WHERE produto_id = $1`,
+          [pRow.id]
+        );
+        if (varExist.rowCount === 0) {
+          await client.query(
+            `INSERT INTO produto_variacoes (produto_id, nome, preco, ordem, disponivel, ativo)
+             VALUES ($1, $2, $3, 1, TRUE, TRUE)
+             ON CONFLICT (produto_id, nome) DO NOTHING`,
+            [pRow.id, pRow.nome, pRow.preco || 40]
+          );
+          totalVariacoesInseridas++;
+        }
+
         for (const sab of saboresCadastrados) {
           await client.query(
             `INSERT INTO produto_sabores (produto_id, sabor_id, ativo)
@@ -263,15 +341,45 @@ export async function importarCardapioAnotaAi(): Promise<void> {
       }
     }
 
+    // 6. Vincular Adicionais aos Lanches, Pastéis e Porções
+    const catLanchesRes = await client.query(
+      `SELECT id FROM categorias WHERE empresa_id = $1 AND (LOWER(nome) LIKE '%lanche%' OR LOWER(nome) LIKE '%x -%' OR LOWER(nome) LIKE '%past%' OR LOWER(nome) LIKE '%porç%')`,
+      [empresaId]
+    );
+
+    for (const catRow of catLanchesRes.rows) {
+      const prodsCat = await client.query(
+        `SELECT id FROM produtos WHERE categoria_id = $1 AND ativo = TRUE`,
+        [catRow.id]
+      );
+
+      for (const pRow of prodsCat.rows) {
+        for (let aIdx = 0; aIdx < adicionaisCadastrados.length; aIdx++) {
+          const ad = adicionaisCadastrados[aIdx];
+          if (!ad) continue;
+          await client.query(
+            `INSERT INTO produto_adicionais (produto_id, nome, preco, limite, obrigatorio, ordem, ativo)
+             VALUES ($1, $2, $3, 5, FALSE, $4, TRUE)
+             ON CONFLICT (produto_id, nome)
+             DO UPDATE SET preco = EXCLUDED.preco, ativo = TRUE`,
+            [pRow.id, ad.nome, ad.preco, aIdx + 1]
+          );
+          totalAdicionaisInseridos++;
+        }
+      }
+    }
+
     await client.query('COMMIT');
 
     console.log(`\n==============================================`);
-    console.log(`✅ IMPORTAÇÃO DO ANOTA AÍ CONCLUÍDA!`);
+    console.log(`✅ IMPORTAÇÃO DO ANOTA AÍ CONCLUÍDA COM SUCESSO!`);
     console.log(`==============================================`);
     console.log(`- Categorias: ${totalCategoriasInseridas} criadas | ${totalCategoriasAtualizadas} atualizadas`);
     console.log(`- Produtos: ${totalProdutosInseridos} criados | ${totalProdutosAtualizados} atualizados`);
+    console.log(`- Variações de Tamanho (Pizzas): ${totalVariacoesInseridas} criadas`);
     console.log(`- Sabores de Pizza: ${totalSaboresInseridos} cadastrados (${saboresCadastrados.length} total)`);
     console.log(`- Bordas Recheadas: ${totalBordasInseridas} cadastradas (${bordasCadastradas.length} total)`);
+    console.log(`- Adicionais vinculados: ${totalAdicionaisInseridos}`);
     console.log(`==============================================\n`);
 
   } catch (error) {

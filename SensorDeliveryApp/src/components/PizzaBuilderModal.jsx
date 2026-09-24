@@ -45,21 +45,30 @@ export const PizzaBuilderModal = ({ visible, produto, onClose }) => {
         ApiService.getBordas(produto.id),
       ]);
 
-      setTamanhos(saboresTamanhos.tamanhos || []);
+      let listaTamanhos = saboresTamanhos.tamanhos || [];
+      if (listaTamanhos.length === 0) {
+        listaTamanhos = [{
+          id: produto.id,
+          nome: produto.nome,
+          precoBase: Number(produto.preco || 0),
+          maxSabores: 2,
+          fatias: 8,
+        }];
+      }
+
+      setTamanhos(listaTamanhos);
       setSabores(saboresTamanhos.sabores || []);
       setBordas(listaBordas || []);
 
-      if (saboresTamanhos.tamanhos?.length > 0) {
-        const padrao = saboresTamanhos.tamanhos[1] || saboresTamanhos.tamanhos[0];
-        setTamanhoSelecionado(padrao);
-      }
+      const padrao = listaTamanhos[0];
+      setTamanhoSelecionado(padrao);
 
       if (saboresTamanhos.sabores?.length > 0) {
         setSaboresSelecionados([saboresTamanhos.sabores[0]]);
       }
 
       if (listaBordas?.length > 0) {
-        setBordaSelecionada(listaBordas[0]);
+        setBordaSelecionada(null);
       }
 
       setQuantidade(1);
