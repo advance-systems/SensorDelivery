@@ -26,7 +26,35 @@ import {
     exigirUmaPermissao,
 } from '../middleware/permission.middleware.js';
 
+import { importarCardapioAnotaAi } from '../scripts/importar-cardapio-anota-ai.js';
+import { database } from '../database/connection.js';
+
 export const routes = Router();
+
+routes.get('/importar-anota-ai', async (req, res) => {
+    try {
+        await importarCardapioAnotaAi();
+        const totalCategorias = await database.query('SELECT COUNT(*)::int AS total FROM categorias');
+        const totalProdutos = await database.query('SELECT COUNT(*)::int AS total FROM produtos');
+        const totalSabores = await database.query('SELECT COUNT(*)::int AS total FROM sabores');
+        const totalBordas = await database.query('SELECT COUNT(*)::int AS total FROM bordas');
+        return res.json({
+            status: 'sucesso',
+            mensagem: 'Cardápio Anota Aí importado com sucesso!',
+            resumo: {
+                categorias: totalCategorias.rows[0]?.total,
+                produtos: totalProdutos.rows[0]?.total,
+                sabores: totalSabores.rows[0]?.total,
+                bordas: totalBordas.rows[0]?.total
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 'erro',
+            mensagem: error instanceof Error ? error.message : String(error)
+        });
+    }
+});
 
 routes.use('/ifood', ifoodRoutes);
 routes.use('/auth', authRoutes);
