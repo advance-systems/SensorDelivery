@@ -146,7 +146,8 @@ export class ApiService {
 
   static async getSaboresTamanhos(produtoId) {
     try {
-      const res = await this.request(`/api/produtos/${produtoId}/opcoes`);
+      const empresaId = await this.getStoredEmpresaId();
+      const res = await this.request(`/api/produtos/${produtoId}/opcoes?empresaId=${empresaId}`);
       return {
         tamanhos: (res.variacoes || []).map((v) => ({
           id: v.id,
@@ -171,7 +172,8 @@ export class ApiService {
 
   static async getBordas(produtoId) {
     try {
-      const res = await this.request(`/api/produtos/${produtoId}/opcoes`);
+      const empresaId = await this.getStoredEmpresaId();
+      const res = await this.request(`/api/produtos/${produtoId}/opcoes?empresaId=${empresaId}`);
       return (res.bordas || []).map((b) => ({
         id: b.id,
         nome: b.nome,

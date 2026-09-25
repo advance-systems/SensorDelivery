@@ -159,56 +159,58 @@ export const PizzaBuilderModal = ({ visible, produto, onClose }) => {
               <Text style={styles.prodDesc}>{produto?.descricao || 'Personalize o tamanho, sabores e borda recheada'}</Text>
             </View>
 
-            {/* 1. Tamanho */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>1. Escolha o Tamanho</Text>
-                <Text style={styles.requiredTag}>Obrigatório</Text>
-              </View>
-              <View style={styles.optionsList}>
-                {tamanhos.map((tam) => {
-                  const isSelected = tamanhoSelecionado?.id === tam.id;
-                  return (
-                    <TouchableOpacity
-                      key={tam.id}
-                      style={[styles.optionCard, isSelected && styles.optionCardActive]}
-                      onPress={() => {
-                        setTamanhoSelecionado(tam);
-                        if (saboresSelecionados.length > tam.maxSabores) {
-                          setSaboresSelecionados(saboresSelecionados.slice(0, tam.maxSabores));
-                        }
-                      }}
-                    >
-                      <View style={styles.optionInfo}>
-                        <Text style={[styles.optionName, isSelected && styles.optionTextActive]}>
-                          {tam.nome}
-                        </Text>
-                        <Text style={styles.optionSub}>
-                          Até {tam.maxSabores} {tam.maxSabores > 1 ? 'sabores' : 'sabor'} • {tam.fatias} fatias
-                        </Text>
-                      </View>
-                      <View style={styles.optionRight}>
-                        <Text style={[styles.optionPrice, isSelected && styles.optionTextActive]}>
-                          R$ {Number(tam.precoBase).toFixed(2).replace('.', ',')}
-                        </Text>
-                        <View style={[styles.radioCircle, isSelected && styles.radioCircleActive]}>
-                          {isSelected && <View style={styles.radioInner} />}
+            {/* 1. Tamanho (apenas se houver mais de um tamanho selecionável) */}
+            {tamanhos.length > 1 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>1. Escolha o Tamanho</Text>
+                  <Text style={styles.requiredTag}>Obrigatório</Text>
+                </View>
+                <View style={styles.optionsList}>
+                  {tamanhos.map((tam) => {
+                    const isSelected = tamanhoSelecionado?.id === tam.id;
+                    return (
+                      <TouchableOpacity
+                        key={tam.id}
+                        style={[styles.optionCard, isSelected && styles.optionCardActive]}
+                        onPress={() => {
+                          setTamanhoSelecionado(tam);
+                          if (saboresSelecionados.length > tam.maxSabores) {
+                            setSaboresSelecionados(saboresSelecionados.slice(0, tam.maxSabores));
+                          }
+                        }}
+                      >
+                        <View style={styles.optionInfo}>
+                          <Text style={[styles.optionName, isSelected && styles.optionTextActive]}>
+                            {tam.nome}
+                          </Text>
+                          <Text style={styles.optionSub}>
+                            Até {tam.maxSabores} {tam.maxSabores > 1 ? 'sabores' : 'sabor'} • {tam.fatias} fatias
+                          </Text>
                         </View>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
+                        <View style={styles.optionRight}>
+                          <Text style={[styles.optionPrice, isSelected && styles.optionTextActive]}>
+                            R$ {Number(tam.precoBase).toFixed(2).replace('.', ',')}
+                          </Text>
+                          <View style={[styles.radioCircle, isSelected && styles.radioCircleActive]}>
+                            {isSelected && <View style={styles.radioInner} />}
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
+            )}
 
             {/* 2. Sabores */}
-            {tamanhoSelecionado && (
+            {sabores.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>
-                    2. Escolha os Sabores ({saboresSelecionados.length}/{tamanhoSelecionado.maxSabores})
+                    {tamanhos.length > 1 ? '2. ' : ''}Escolha os Sabores ({saboresSelecionados.length}/{tamanhoSelecionado?.maxSabores || 2})
                   </Text>
-                  <Text style={styles.requiredTag}>Selecione até {tamanhoSelecionado.maxSabores}</Text>
+                  <Text style={styles.requiredTag}>Selecione até {tamanhoSelecionado?.maxSabores || 2}</Text>
                 </View>
                 <View style={styles.optionsList}>
                   {sabores.map((sabor) => {
