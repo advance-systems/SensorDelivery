@@ -235,7 +235,7 @@ router.get('/:id/opcoes', async (req, res) => {
         );
 
         return res.status(200).json({
-            variacoes: variacoes.rows,
+            variacoes: (variacoes.rows && variacoes.rows.length > 0) ? variacoes.rows : [{ id: produtoId, nome: 'Tamanho Padrão', preco: 0, max_sabores: 2 }],
             sabores: sabores.rows,
             bordas: bordas.rows,
             adicionais: adicionais.rows,
