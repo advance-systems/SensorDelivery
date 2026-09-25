@@ -100,6 +100,7 @@ router.get('/status', async (req, res) => {
                 taxa_entrega,
                 pedido_minimo,
                 tempo_entrega_minutos,
+                pix_chave,
                 pix_cidade_recebedor
             FROM loja_configuracao
             WHERE empresa_id = $1
@@ -261,6 +262,7 @@ router.get('/status', async (req, res) => {
             tempoEntregaMax: config.tempo_entrega_minutos || 50,
             taxaEntregaPadrao: Number(config.taxa_entrega || 0),
             pedidoMinimo: Number(config.pedido_minimo || 0),
+            pixHabilitado: Boolean(config.pix_chave && config.pix_chave.trim().length > 0),
         });
     } catch (error) {
         console.error('Erro ao consultar status da loja:', error);

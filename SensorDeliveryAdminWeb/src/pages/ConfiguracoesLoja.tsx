@@ -36,6 +36,9 @@ export const ConfiguracoesLoja: React.FC = () => {
   const [mensagemFechada, setMensagemFechada] = useState('');
   const [cancelarRascunhosAntigos, setCancelarRascunhosAntigos] = useState(true);
   const [aceitarPedidosAutomaticamente, setAceitarPedidosAutomaticamente] = useState(false);
+  const [pixChave, setPixChave] = useState('');
+  const [pixNomeRecebedor, setPixNomeRecebedor] = useState('');
+  const [pixCidadeRecebedor, setPixCidadeRecebedor] = useState('');
 
   // Horários de Domingo a Sábado (0 a 6)
   const [horarios, setHorarios] = useState<HorarioItem[]>(
@@ -68,6 +71,9 @@ export const ConfiguracoesLoja: React.FC = () => {
       if (dados.aceitar_pedidos_automaticamente !== undefined) {
         setAceitarPedidosAutomaticamente(Boolean(dados.aceitar_pedidos_automaticamente));
       }
+      if (dados.pix_chave) setPixChave(dados.pix_chave);
+      if (dados.pix_nome_recebedor) setPixNomeRecebedor(dados.pix_nome_recebedor);
+      if (dados.pix_cidade_recebedor) setPixCidadeRecebedor(dados.pix_cidade_recebedor);
 
       if (Array.isArray(listaHorarios) && listaHorarios.length > 0) {
         const preenchidos = Array.from({ length: 7 }, (_, dia) => {
@@ -133,6 +139,9 @@ export const ConfiguracoesLoja: React.FC = () => {
         tempoEntregaMinutos: Number(tempoMaximoEntrega) || 45,
         aceitarPedidosAutomaticamente,
         cancelarRascunhosAntigos,
+        pixChave,
+        pixNomeRecebedor,
+        pixCidadeRecebedor,
         horarios: payloadHorarios,
       });
 
@@ -367,6 +376,60 @@ export const ConfiguracoesLoja: React.FC = () => {
                 type="text"
                 value={taxaEntregaPadrao}
                 onChange={(e) => setTaxaEntregaPadrao(e.target.value)}
+                className="w-full bg-[#0B132B] border border-[#2A405B] focus:border-[#8C63FF] text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none transition-colors"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Card Configurações do PIX */}
+        <div className="bg-[#152439] border border-[#2A405B] rounded-2xl p-6 shadow-xl space-y-4">
+          <h3 className="font-bold text-base text-white border-b border-[#2A405B] pb-3 flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-[#8C63FF]" />
+            Configuração do PIX
+          </h3>
+          <p className="text-xs text-[#9CAABC]">
+            Informe os dados da sua chave PIX para que o aplicativo possa gerar cobranças com QR Code automaticamente.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-[#9CAABC] uppercase tracking-wider mb-1.5">
+                Chave PIX (CPF, CNPJ, Telefone, Email ou Aleatória)
+              </label>
+              <input
+                type="text"
+                value={pixChave}
+                onChange={(e) => setPixChave(e.target.value)}
+                placeholder="Ex: 00.000.000/0001-00 ou chave aleatória"
+                className="w-full bg-[#0B132B] border border-[#2A405B] focus:border-[#8C63FF] text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-[#9CAABC] uppercase tracking-wider mb-1.5">
+                Nome do Recebedor (máx 25 car.)
+              </label>
+              <input
+                type="text"
+                maxLength={25}
+                value={pixNomeRecebedor}
+                onChange={(e) => setPixNomeRecebedor(e.target.value)}
+                placeholder="Ex: Minha Pizzaria"
+                className="w-full bg-[#0B132B] border border-[#2A405B] focus:border-[#8C63FF] text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-[#9CAABC] uppercase tracking-wider mb-1.5">
+                Cidade do Recebedor (máx 15 car.)
+              </label>
+              <input
+                type="text"
+                maxLength={15}
+                value={pixCidadeRecebedor}
+                onChange={(e) => setPixCidadeRecebedor(e.target.value)}
+                placeholder="Ex: Bombinhas"
                 className="w-full bg-[#0B132B] border border-[#2A405B] focus:border-[#8C63FF] text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none transition-colors"
               />
             </div>

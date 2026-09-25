@@ -36,7 +36,9 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
   const { empresa, statusLoja } = useStore();
 
   const [tipoEntrega, setTipoEntrega] = useState('DELIVERY');
-  const [formaPagamento, setFormaPagamento] = useState('PIX');
+  const [formaPagamento, setFormaPagamento] = useState(
+    statusLoja?.pixHabilitado !== false ? 'PIX' : 'DINHEIRO'
+  );
   const [trocoPara, setTrocoPara] = useState('');
   const [observacaoGeral, setObservacaoGeral] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -150,10 +152,10 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
       }
 
       const payload = {
-        empresaId: empresa?.id || 1,
-        clienteNome: nome,
-        clienteTelefone: telefone,
-        clienteCpf: cpf || null,
+        empresaId: empresa?.id || 'a24167b2-21e4-4b66-b3ff-38827d4a45ea',
+        clienteNome: nome.trim(),
+        clienteTelefone: telefone.trim(),
+        clienteCpf: cpf ? cpf.trim() : null,
         tipoEntrega,
         formaPagamento,
         trocoPara: formaPagamento === 'DINHEIRO' && trocoPara ? Number(trocoPara.replace(',', '.')) : null,
@@ -173,13 +175,22 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
         } : null,
         itens: itens.map((item) => ({
           produtoId: item.produtoId,
-          tipoProduto: item.tipoProduto || 'PRODUTO',
+          tipoProduto: item.tipo || item.tipoProduto || 'PRODUTO',
           nome: item.nome,
           quantidade: item.quantidade,
           precoUnitario: item.precoUnitario,
-          precoTotal: item.precoTotal,
+          precoTotal: item.precoUnitario * item.quantidade,
           observacao: item.observacao,
-          detalhesPizza: item.detalhesPizza || null,
+          tamanhoId: item.tamanho?.id || null,
+          tamanhoDescricao: item.tamanho?.nome || null,
+          bordaId: item.borda?.id || null,
+          bordaDescricao: item.borda?.nome || null,
+          valorBorda: item.borda?.preco ? Number(item.borda.preco) : 0,
+          sabores: (item.sabores || []).map((s) => ({
+            id: s.id,
+            descricao: s.nome || s.descricao,
+            valor: s.precoAdicional ? Number(s.precoAdicional) : 0,
+          })),
           adicionais: item.adicionais || [],
         })),
       };
@@ -427,15 +438,26 @@ export const CheckoutScreen = ({ onBack, onOrderSuccess }) => {
               style={[
                 styles.paymentOption,
                 formaPagamento === 'PIX' && styles.paymentOptionActive,
+                statusLoja?.pixHabilitado === false && styles.paymentOptionDisabled,
               ]}
-              onPress={() => setFormaPagamento('PIX')}
+              onPress={() => {
+                if (statusLoja?.pixHabilitado === false) {
+                  Alert.alert('PIX Indisponível', 'A loja ainda não configurou uma chave PIX. Por favor, selecione Dinheiro ou Cartão na Entrega.');
+                  return;
+                }
+                setFormaPagamento('PIX');
+              }}
             >
               <QrCode size={20} color={formaPagamento === 'PIX' ? THEME.colors.primary : THEME.colors.textSecondary} />
               <View style={styles.paymentInfo}>
                 <Text style={[styles.paymentTitle, formaPagamento === 'PIX' && styles.paymentTitleActive]}>
                   PIX Instantâneo
                 </Text>
-                <Text style={styles.paymentDesc}>Aprovação automática e envio imediato</Text>
+                <Text style={styles.paymentDesc}>
+                  {statusLoja?.pixHabilitado === false
+                    ? 'Indisponível no momento'
+                    : 'Aprovação automática e envio imediato'}
+                </Text>
               </View>
               {formaPagamento === 'PIX' && <CheckCircle2 size={18} color={THEME.colors.primary} />}
             </TouchableOpacity>
@@ -691,6 +713,9 @@ const styles = StyleSheet.create({
   paymentOptionActive: {
     borderColor: THEME.colors.primary,
     backgroundColor: THEME.colors.primaryLight,
+  },
+  paymentOptionDisabled: {
+    opacity: 0.5,
   },
   paymentInfo: {
     flex: 1,

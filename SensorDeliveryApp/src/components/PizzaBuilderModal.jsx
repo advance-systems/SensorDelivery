@@ -45,15 +45,28 @@ export const PizzaBuilderModal = ({ visible, produto, onClose }) => {
         ApiService.getBordas(produto.id),
       ]);
 
-      let listaTamanhos = saboresTamanhos.tamanhos || [];
+      let listaTamanhos = (saboresTamanhos.tamanhos || []).filter(t => t.precoBase > 0 || saboresTamanhos.tamanhos.length > 1);
+      
+      const precoPadraoProduto = Number(
+        produto.precoPromocional && Number(produto.precoPromocional) > 0
+          ? produto.precoPromocional
+          : produto.preco || 0
+      );
+
       if (listaTamanhos.length === 0) {
         listaTamanhos = [{
           id: produto.id,
           nome: produto.nome,
-          precoBase: Number(produto.preco || 0),
+          precoBase: precoPadraoProduto,
           maxSabores: 2,
           fatias: 8,
         }];
+      } else {
+        // Se a lista possui um único tamanho e ele veio com precoBase zerado, aplica o precoPadraoProduto
+        listaTamanhos = listaTamanhos.map(t => ({
+          ...t,
+          precoBase: Number(t.precoBase) > 0 ? Number(t.precoBase) : precoPadraoProduto
+        }));
       }
 
       setTamanhos(listaTamanhos);
@@ -65,11 +78,11 @@ export const PizzaBuilderModal = ({ visible, produto, onClose }) => {
 
       if (saboresTamanhos.sabores?.length > 0) {
         setSaboresSelecionados([saboresTamanhos.sabores[0]]);
+      } else {
+        setSaboresSelecionados([]);
       }
 
-      if (listaBordas?.length > 0) {
-        setBordaSelecionada(null);
-      }
+      setBordaSelecionada(null);
 
       setQuantidade(1);
       setObservacao('');
@@ -97,7 +110,16 @@ export const PizzaBuilderModal = ({ visible, produto, onClose }) => {
     }
   };
 
-  const precoBase = tamanhoSelecionado ? Number(tamanhoSelecionado.precoBase) : Number(produto?.preco || 0);
+  const valorProdutoFallback = Number(
+    produto?.precoPromocional && Number(produto?.precoPromocional) > 0
+      ? produto?.precoPromocional
+      : produto?.preco || 0
+  );
+
+  const precoBase = tamanhoSelecionado && Number(tamanhoSelecionado.precoBase) > 0
+    ? Number(tamanhoSelecionado.precoBase)
+    : valorProdutoFallback;
+
   const maiorAdicionalSabor = saboresSelecionados.reduce(
     (max, s) => Math.max(max, Number(s.precoAdicional || 0)),
     0
@@ -106,21 +128,23 @@ export const PizzaBuilderModal = ({ visible, produto, onClose }) => {
   const precoUnitarioTotal = precoBase + maiorAdicionalSabor + precoBorda;
   const precoFinal = precoUnitarioTotal * quantidade;
 
+  const ehPizza = sabores.length > 0 || bordas.length > 0 || (tamanhos.length > 1);
+
   const handleConfirmar = () => {
     if (!produto) return;
 
     adicionarItem({
       produtoId: produto.id,
-      nome: tamanhoSelecionado
+      nome: (tamanhos.length > 1 && tamanhoSelecionado)
         ? `${produto.nome} (${tamanhoSelecionado.nome})`
         : produto.nome,
       precoUnitario: precoUnitarioTotal,
       quantidade,
       observacao,
-      tipo: 'PIZZA',
-      tamanho: tamanhoSelecionado,
-      sabores: saboresSelecionados,
-      borda: bordaSelecionada,
+      tipo: ehPizza ? 'PIZZA' : 'PRODUTO',
+      tamanho: ehPizza ? tamanhoSelecionado : null,
+      sabores: ehPizza ? saboresSelecionados : [],
+      borda: ehPizza ? bordaSelecionada : null,
       imagemUrl: produto.imagemUrl,
     });
 
@@ -135,7 +159,7 @@ export const PizzaBuilderModal = ({ visible, produto, onClose }) => {
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <X size={22} color={THEME.colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Montar Pizza</Text>
+          <Text style={styles.headerTitle}>{ehPizza ? 'Montar Pizza' : 'Detalhes do Item'}</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -156,7 +180,7 @@ export const PizzaBuilderModal = ({ visible, produto, onClose }) => {
                 </View>
               )}
               <Text style={styles.prodName}>{produto?.nome}</Text>
-              <Text style={styles.prodDesc}>{produto?.descricao || 'Personalize o tamanho, sabores e borda recheada'}</Text>
+              <Text style={styles.prodDesc}>{produto?.descricao || (ehPizza ? 'Personalize o tamanho, sabores e borda recheada' : 'Adicione observações ou selecione a quantidade')}</Text>
             </View>
 
             {/* 1. Tamanho (apenas se houver mais de um tamanho selecionável) */}
@@ -252,13 +276,59 @@ export const PizzaBuilderModal = ({ visible, produto, onClose }) => {
                   <Text style={styles.optionalTag}>Opcional</Text>
                 </View>
                 <View style={styles.optionsList}>
+                  {/* Opção Sem Borda */}
+                  <TouchableOpacity
+                    style={[
+                      styles.optionCard,
+                      (!bordaSelecionada || bordaSelecionada?.id === 'sem_borda') &&
+                        styles.optionCardActive,
+                    ]}
+                    onPress={() => setBordaSelecionada(null)}
+                  >
+                    <View style={styles.optionInfo}>
+                      <Text
+                        style={[
+                          styles.optionName,
+                          (!bordaSelecionada || bordaSelecionada?.id === 'sem_borda') &&
+                            styles.optionTextActive,
+                        ]}
+                      >
+                        Sem Borda
+                      </Text>
+                    </View>
+                    <View style={styles.optionRight}>
+                      <Text
+                        style={[
+                          styles.optionPrice,
+                          (!bordaSelecionada || bordaSelecionada?.id === 'sem_borda') &&
+                            styles.optionTextActive,
+                        ]}
+                      >
+                        Grátis
+                      </Text>
+                      <View
+                        style={[
+                          styles.radioCircle,
+                          (!bordaSelecionada || bordaSelecionada?.id === 'sem_borda') &&
+                            styles.radioCircleActive,
+                        ]}
+                      >
+                        {(!bordaSelecionada || bordaSelecionada?.id === 'sem_borda') && (
+                          <View style={styles.radioInner} />
+                        )}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+
                   {bordas.map((borda) => {
                     const isSelected = bordaSelecionada?.id === borda.id;
                     return (
                       <TouchableOpacity
                         key={borda.id}
                         style={[styles.optionCard, isSelected && styles.optionCardActive]}
-                        onPress={() => setBordaSelecionada(borda)}
+                        onPress={() =>
+                          setBordaSelecionada(isSelected ? null : borda)
+                        }
                       >
                         <View style={styles.optionInfo}>
                           <Text style={[styles.optionName, isSelected && styles.optionTextActive]}>

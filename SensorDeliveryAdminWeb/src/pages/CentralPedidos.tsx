@@ -127,6 +127,7 @@ export const CentralPedidos: React.FC = () => {
   const [modalDetalhesAberto, setModalDetalhesAberto] = useState(false);
   const [carregandoDetalhes, setCarregandoDetalhes] = useState(false);
   const [atualizandoStatus, setAtualizandoStatus] = useState<string | number | null>(null);
+  const [confirmarCancelamentoAberto, setConfirmarCancelamentoAberto] = useState(false);
 
   const carregarPedidos = async () => {
     try {
@@ -560,24 +561,63 @@ export const CentralPedidos: React.FC = () => {
               <div className="flex items-center gap-2">
                 {pedidoSelecionado.status !== 'cancelado' && (
                   <button
-                    onClick={() => {
-                      if (confirm('Deseja realmente cancelar este pedido?')) {
-                        alterarStatus(pedidoSelecionado.id, 'cancelado');
-                        setModalDetalhesAberto(false);
-                      }
-                    }}
-                    className="px-3 py-2 text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/10 rounded-xl transition-colors cursor-pointer"
+                    onClick={() => setConfirmarCancelamentoAberto(true)}
+                    className="px-3.5 py-2.5 text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/15 rounded-xl border border-transparent hover:border-[#EF4444]/30 transition-all cursor-pointer"
                   >
                     Cancelar Pedido
                   </button>
                 )}
                 <button
                   onClick={() => setModalDetalhesAberto(false)}
-                  className="px-4 py-2.5 bg-[#2A405B] hover:bg-[#3B82F6] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                  className="px-5 py-2.5 bg-[#2A405B] hover:bg-[#3B82F6] text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md"
                 >
                   Fechar
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Moderno de Confirmação de Cancelamento */}
+      {confirmarCancelamentoAberto && pedidoSelecionado && (
+        <div className="fixed inset-0 z-60 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-[#152439] border border-[#2A405B] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Topo com Ícone */}
+            <div className="p-6 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-[#EF4444]/15 border border-[#EF4444]/30 flex items-center justify-center mx-auto mb-4 text-[#EF4444]">
+                <AlertTriangle className="w-7 h-7" />
+              </div>
+              <h3 className="text-lg font-extrabold text-white">Cancelar Pedido?</h3>
+              <p className="text-xs text-[#9CAABC] mt-2 leading-relaxed">
+                Tem certeza de que deseja cancelar o <strong className="text-white">Pedido #{pedidoSelecionado.numero_pedido || pedidoSelecionado.id}</strong> de <strong className="text-white">{pedidoSelecionado.cliente_nome}</strong>?
+              </p>
+              <p className="text-[11px] text-[#EF4444] mt-2 font-medium bg-[#EF4444]/10 p-2 rounded-xl border border-[#EF4444]/20">
+                ⚠️ Esta ação não poderá ser desfeita e o pedido será cancelado no sistema.
+              </p>
+            </div>
+
+            {/* Ações */}
+            <div className="p-4 bg-[#0B132B]/80 border-t border-[#2A405B] grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmarCancelamentoAberto(false)}
+                className="w-full py-2.5 px-4 rounded-xl border border-[#2A405B] bg-[#152439] hover:bg-[#1c2e47] text-white font-semibold text-xs transition-all cursor-pointer"
+              >
+                Voltar
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  alterarStatus(pedidoSelecionado.id, 'cancelado');
+                  setConfirmarCancelamentoAberto(false);
+                  setModalDetalhesAberto(false);
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#EF4444] to-[#DC2626] hover:from-[#DC2626] hover:to-[#B91C1C] text-white font-bold text-xs transition-all cursor-pointer shadow-lg shadow-[#EF4444]/25"
+              >
+                Sim, Cancelar
+              </button>
             </div>
           </div>
         </div>

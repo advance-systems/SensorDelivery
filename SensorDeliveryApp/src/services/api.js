@@ -5,6 +5,8 @@ export const STORAGE_KEYS = {
   EMPRESA_ID: '@SensorDelivery:empresaId',
   CLIENTE_INFO: '@SensorDelivery:clienteInfo',
   CLIENTE_ENDERECO: '@SensorDelivery:clienteEndereco',
+  USER_DATA: '@SensorDelivery:userData',
+  LAST_ADDRESS: '@SensorDelivery:lastAddress',
   CARRINHO: '@SensorDelivery:carrinho',
 };
 
@@ -64,7 +66,12 @@ export class ApiService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Erro ${response.status}: ${errorText || response.statusText}`);
+        let errorMsg = errorText || response.statusText;
+        try {
+          const parsed = JSON.parse(errorText);
+          errorMsg = parsed.erro || parsed.detalhe || parsed.mensagem || parsed.message || errorMsg;
+        } catch {}
+        throw new Error(errorMsg);
       }
 
       return await response.json();

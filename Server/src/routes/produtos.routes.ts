@@ -234,8 +234,16 @@ router.get('/:id/opcoes', async (req, res) => {
             [produtoId]
         );
 
+        const produtoRes = await database.query(
+            'SELECT id, nome, preco, preco_promocional FROM produtos WHERE id = $1',
+            [produtoId]
+        );
+        const precoPadrao = produtoRes.rows.length > 0
+            ? Number(produtoRes.rows[0].preco_promocional && Number(produtoRes.rows[0].preco_promocional) > 0 ? produtoRes.rows[0].preco_promocional : produtoRes.rows[0].preco || 0)
+            : 0;
+
         return res.status(200).json({
-            variacoes: (variacoes.rows && variacoes.rows.length > 0) ? variacoes.rows : [{ id: produtoId, nome: 'Tamanho Padrão', preco: 0, max_sabores: 2 }],
+            variacoes: (variacoes.rows && variacoes.rows.length > 0) ? variacoes.rows : [{ id: produtoId, nome: 'Tamanho Padrão', preco: precoPadrao, max_sabores: 2 }],
             sabores: sabores.rows,
             bordas: bordas.rows,
             adicionais: adicionais.rows,

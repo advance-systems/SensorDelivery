@@ -187,13 +187,16 @@ export const HomeScreen = ({ onOpenProduct, onOpenCart }) => {
                   </Text>
                 ) : null}
                 <View style={styles.priceRow}>
-                  <Text style={styles.productPrice}>
-                    {item.precoPromocional && item.precoPromocional > 0
-                      ? `R$ ${item.precoPromocional.toFixed(2).replace('.', ',')}`
-                      : item.preco > 0
-                        ? `R$ ${item.preco.toFixed(2).replace('.', ',')}`
-                        : 'Consulte o valor'}
-                  </Text>
+                  <View style={styles.priceContainer}>
+                    <Text style={styles.pricePrefix}>A Partir de</Text>
+                    <Text style={styles.productPrice}>
+                      {item.precoPromocional && item.precoPromocional > 0
+                        ? `R$ ${item.precoPromocional.toFixed(2).replace('.', ',')}`
+                        : item.preco > 0
+                          ? `R$ ${item.preco.toFixed(2).replace('.', ',')}`
+                          : 'Consulte o valor'}
+                    </Text>
+                  </View>
                   <View style={styles.sensorAddButton}>
                     <Plus size={16} color={THEME.colors.white} />
                   </View>
@@ -427,8 +430,19 @@ const styles = StyleSheet.create({
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     marginTop: 4,
+  },
+  priceContainer: {
+    justifyContent: 'flex-end',
+  },
+  pricePrefix: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: THEME.colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 1,
   },
   productPrice: {
     fontSize: 15,
