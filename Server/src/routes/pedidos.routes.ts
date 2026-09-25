@@ -728,10 +728,16 @@ router.post('/', async (req, res) => {
             const pedidoItemId = resultadoItem.rows[0].id;
 
             // =====================================================
-            // SABORES
+            // SABORES (Apenas se o item for PIZZA ou se o produto cadastrado for do tipo PIZZA)
             // =====================================================
 
-            if (Array.isArray(item.sabores)) {
+            const idProd = item.produtoId || item.produto_id || null;
+            const prodTipoRes = idProd ? await client.query('SELECT tipo FROM produtos WHERE id = $1', [idProd]) : null;
+            const ehTipoPizza = prodTipoRes && prodTipoRes.rows.length > 0
+                ? prodTipoRes.rows[0].tipo === 'PIZZA'
+                : (item.tipoProduto === 'PIZZA' || item.tipo === 'PIZZA');
+
+            if (ehTipoPizza && Array.isArray(item.sabores)) {
                 for (const sabor of item.sabores) {
                     await client.query(
                         `
