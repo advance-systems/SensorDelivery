@@ -392,22 +392,22 @@ export const ConfiguracoesLoja: React.FC = () => {
             Informe os dados da sua chave PIX para que o aplicativo possa gerar cobranças com QR Code automaticamente.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-[#9CAABC] uppercase tracking-wider mb-1.5">
-                Chave PIX (CPF, CNPJ, Telefone, Email ou Aleatória)
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex flex-col justify-between">
+              <label className="block text-xs font-semibold text-[#9CAABC] uppercase tracking-wider mb-1.5 h-8 flex items-end">
+                Chave PIX (CPF, CNPJ, Tel, Email ou Chave)
               </label>
               <input
                 type="text"
                 value={pixChave}
                 onChange={(e) => setPixChave(e.target.value)}
-                placeholder="Ex: 00.000.000/0001-00 ou chave aleatória"
+                placeholder="Ex: 00.000.000/0001-00 ou chave"
                 className="w-full bg-[#0B132B] border border-[#2A405B] focus:border-[#8C63FF] text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none transition-colors"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-[#9CAABC] uppercase tracking-wider mb-1.5">
+            <div className="flex flex-col justify-between">
+              <label className="block text-xs font-semibold text-[#9CAABC] uppercase tracking-wider mb-1.5 h-8 flex items-end">
                 Nome do Recebedor (máx 25 car.)
               </label>
               <input
@@ -420,8 +420,8 @@ export const ConfiguracoesLoja: React.FC = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-[#9CAABC] uppercase tracking-wider mb-1.5">
+            <div className="flex flex-col justify-between">
+              <label className="block text-xs font-semibold text-[#9CAABC] uppercase tracking-wider mb-1.5 h-8 flex items-end">
                 Cidade do Recebedor (máx 15 car.)
               </label>
               <input
