@@ -32,6 +32,7 @@ function normalizarFormaPagamento(valor: unknown): string {
     if (forma === 'DINHEIRO') return 'DINHEIRO';
     if (forma.includes('CREDITO')) return 'CARTAO_CREDITO';
     if (forma.includes('DEBITO')) return 'CARTAO_DEBITO';
+    if (forma.includes('CARTAO')) return 'CARTAO_CREDITO';
     if (forma === 'ONLINE') return 'ONLINE';
     return 'OUTRO';
 }
@@ -492,9 +493,9 @@ router.post('/', async (req, res) => {
         } | null = null;
         const formaPagamento = normalizarFormaPagamento(formaPagamentoInformada);
         const resultadoConfig = await client.query(
-            `SELECT lc.pix_chave, lc.aceitar_pedidos_automaticamente, e.pix_provedor
+            `SELECT lc.pix_chave, lc.aceitar_pedidos_automaticamente, COALESCE(e.pix_provedor, 'MERCADO_PAGO') AS pix_provedor
                FROM loja_configuracao lc
-               JOIN empresas e ON e.id = lc.empresa_id
+               LEFT JOIN empresas e ON e.id = lc.empresa_id
               WHERE lc.empresa_id = $1
               LIMIT 1`,
             [empresaId],
@@ -513,7 +514,7 @@ router.post('/', async (req, res) => {
 
         const statusInicial = formaPagamento === 'PIX'
             ? 'AGUARDANDO_PAGAMENTO'
-            : (aceitarAutomatico && ['DINHEIRO', 'CARTAO_CREDITO', 'CARTAO_DEBITO'].includes(formaPagamento)
+            : (aceitarAutomatico
                 ? 'EM_PREPARO'
                 : 'RASCUNHO');
 
@@ -1153,12 +1154,22 @@ router.get('/:id/status', async (req, res) => {
         const resultado = await database.query(
             `
             SELECT
-                id,
-                numero,
-                status,
-                criado_em
-            FROM pedidos
-            WHERE id = $1
+                p.id,
+                p.numero,
+                p.status,
+                p.subtotal,
+                p.taxa_entrega,
+                p.desconto,
+                p.acrescimo,
+                p.valor_total AS total,
+                p.tipo_atendimento AS tipo_entrega,
+                p.criado_em,
+                COALESCE(
+                    (SELECT pg.forma::text FROM pagamentos pg WHERE pg.pedido_id = p.id ORDER BY pg.id DESC LIMIT 1),
+                    'PIX'
+                ) AS forma_pagamento
+            FROM pedidos p
+            WHERE p.id = $1
             LIMIT 1
             `,
             [pedidoId]
@@ -1177,6 +1188,11 @@ router.get('/:id/status', async (req, res) => {
                 id: pedido.id,
                 numero: pedido.numero,
                 status: pedido.status,
+                total: Number(pedido.total || 0),
+                subtotal: Number(pedido.subtotal || 0),
+                taxaEntrega: Number(pedido.taxa_entrega || 0),
+                tipoEntrega: pedido.tipo_entrega,
+                formaPagamento: pedido.forma_pagamento,
                 criadoEm: pedido.criado_em,
             },
         });

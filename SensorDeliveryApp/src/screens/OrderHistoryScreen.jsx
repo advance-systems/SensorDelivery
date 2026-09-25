@@ -28,13 +28,20 @@ export const OrderHistoryScreen = ({ onSelectOrder, onBackToMenu }) => {
   const carregarHistorico = async () => {
     setCarregando(true);
     try {
-      const infoStr = await AsyncStorage.getItem(STORAGE_KEYS.CLIENTE_INFO);
       let tel = '';
-      if (infoStr) {
-        const info = JSON.parse(infoStr);
-        tel = info.telefone || '';
-        setTelefone(tel);
+      const userStr = await AsyncStorage.getItem(STORAGE_KEYS.USER_DATA);
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        tel = u.telefone || '';
       }
+      if (!tel) {
+        const infoStr = await AsyncStorage.getItem(STORAGE_KEYS.CLIENTE_INFO);
+        if (infoStr) {
+          const info = JSON.parse(infoStr);
+          tel = info.telefone || '';
+        }
+      }
+      setTelefone(tel);
 
       if (tel && empresa?.id) {
         const lista = await ApiService.getHistorico(empresa.id, tel);
@@ -54,8 +61,14 @@ export const OrderHistoryScreen = ({ onSelectOrder, onBackToMenu }) => {
         return { label: 'Entregue', bg: THEME.colors.successLight, color: THEME.colors.success };
       case 'CANCELADO':
         return { label: 'Cancelado', bg: THEME.colors.dangerLight, color: THEME.colors.danger };
+      case 'EM_PREPARO':
+        return { label: 'Em Preparo', bg: THEME.colors.primaryLight, color: THEME.colors.primary };
+      case 'PRONTO':
+      case 'SAIU_ENTREGA':
+      case 'SAIU_PARA_ENTREGA':
+        return { label: 'Em Entrega', bg: THEME.colors.primaryLight, color: THEME.colors.primary };
       default:
-        return { label: 'Em Andamento', bg: THEME.colors.primaryLight, color: THEME.colors.primary };
+        return { label: 'Recebido', bg: THEME.colors.primaryLight, color: THEME.colors.primary };
     }
   };
 
@@ -81,6 +94,7 @@ export const OrderHistoryScreen = ({ onSelectOrder, onBackToMenu }) => {
           }
           renderItem={({ item }) => {
             const badge = getStatusBadge(item.status);
+            const totalValor = item.valor_total ?? item.total ?? 0;
             return (
               <TouchableOpacity
                 style={styles.orderCard}
@@ -91,7 +105,7 @@ export const OrderHistoryScreen = ({ onSelectOrder, onBackToMenu }) => {
                   <View>
                     <Text style={styles.orderNum}>Pedido #{item.numero}</Text>
                     <Text style={styles.orderDate}>
-                      {new Date(item.criadoEm || Date.now()).toLocaleDateString('pt-BR', {
+                      {new Date(item.criado_em || item.criadoEm || Date.now()).toLocaleDateString('pt-BR', {
                         day: '2-digit',
                         month: '2-digit',
                         hour: '2-digit',
@@ -108,7 +122,7 @@ export const OrderHistoryScreen = ({ onSelectOrder, onBackToMenu }) => {
 
                 <View style={styles.cardBottom}>
                   <Text style={styles.orderTotal}>
-                    R$ {Number(item.total).toFixed(2).replace('.', ',')}
+                    R$ {Number(totalValor).toFixed(2).replace('.', ',')}
                   </Text>
                   <View style={styles.trackLink}>
                     <Text style={styles.trackLinkText}>Ver detalhes</Text>

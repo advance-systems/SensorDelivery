@@ -69,7 +69,7 @@ export const OrderTrackingScreen = ({ pedidoId, onBack, onGoHome }) => {
     setCarregando(true);
     try {
       const res = await ApiService.getStatusPedido(pedidoId);
-      setPedido(res);
+      setPedido(res?.pedido || res);
     } catch (err) {
       console.warn('Erro ao carregar pedido:', err);
     } finally {
@@ -80,7 +80,7 @@ export const OrderTrackingScreen = ({ pedidoId, onBack, onGoHome }) => {
   const carregarPedidoSilencioso = async () => {
     try {
       const res = await ApiService.getStatusPedido(pedidoId);
-      setPedido(res);
+      setPedido(res?.pedido || res);
     } catch {
       // Silencioso
     }
@@ -89,6 +89,8 @@ export const OrderTrackingScreen = ({ pedidoId, onBack, onGoHome }) => {
   const getStatusIndex = (status) => {
     switch (status) {
       case 'RASCUNHO':
+      case 'AGUARDANDO_PAGAMENTO':
+      case 'AGUARDANDO_CONFIRMACAO':
       case 'NOVO':
         return 0;
       case 'CONFIRMADO':
@@ -97,6 +99,7 @@ export const OrderTrackingScreen = ({ pedidoId, onBack, onGoHome }) => {
         return 2;
       case 'PRONTO':
       case 'SAIU_ENTREGA':
+      case 'SAIU_PARA_ENTREGA':
         return 3;
       case 'ENTREGUE':
       case 'FINALIZADO':
