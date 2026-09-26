@@ -243,6 +243,7 @@ export const Pdv: React.FC = () => {
   const [buscaMesaComanda, setBuscaMesaComanda] = useState('');
   const [itemMesaSelecionado, setItemMesaSelecionado] = useState<number | null>(1);
   const [tipoMesaOuComandaEscolhida, setTipoMesaOuComandaEscolhida] = useState<'MESA' | 'COMANDA'>('MESA');
+  const [botoesLancamentoAbertos, setBotoesLancamentoAbertos] = useState(false);
 
   // Modais Auxiliares
   const [modalObsPedidoAberto, setModalObsPedidoAberto] = useState(false);
@@ -1118,30 +1119,70 @@ export const Pdv: React.FC = () => {
 
           {/* Inputs do Cliente (Telefone + Nome + Autocomplete) */}
           <div className="p-3 bg-[#121f30] border-t border-[#2A405B] space-y-2 relative">
-            {/* Se for Mesa, mostra card estilizado de Mesa / Comanda que ao clicar ou dar ENTER abre a tela de seleção */}
+            {/* Se for Mesa, mostra card estilizado de Mesa / Comanda que ao dar ENTER/clicar habilita os botões de ação */}
             {tipoAtendimento === 'MESA' && (
-              <div
-                tabIndex={0}
-                onClick={() => setModalMesaAberto(true)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setModalMesaAberto(true);
-                  }
-                }}
-                className="bg-white rounded-xl border-2 border-gray-300 hover:border-[#0284C7] transition-all cursor-pointer overflow-hidden p-2.5 shadow-sm group focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20 select-none"
-              >
-                <div className="flex items-center justify-between px-1 pb-1.5">
-                  <span className="font-extrabold text-sm text-gray-800">
-                    {tipoMesaOuComandaEscolhida === 'COMANDA' ? 'Comanda' : 'Mesa'} {mesaNumero || '1'}
-                  </span>
-                  <div className="p-1 rounded-md text-gray-400 group-hover:text-[#0284C7] group-hover:bg-[#0284C7]/10 transition-colors">
-                    <ArrowLeftRight className="w-4 h-4" />
+              <div className="space-y-2">
+                <div
+                  tabIndex={0}
+                  onClick={() => setBotoesLancamentoAbertos((prev) => !prev)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setBotoesLancamentoAbertos((prev) => !prev);
+                    }
+                  }}
+                  className={`bg-white rounded-xl border-2 transition-all cursor-pointer overflow-hidden p-2.5 shadow-sm group focus:outline-none select-none ${
+                    botoesLancamentoAbertos
+                      ? 'border-[#0284C7] ring-2 ring-[#0284C7]/20'
+                      : 'border-gray-300 hover:border-[#0284C7]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between px-1 pb-1.5">
+                    <span className="font-extrabold text-sm text-gray-800">
+                      {tipoMesaOuComandaEscolhida === 'COMANDA' ? 'Comanda' : 'Mesa'} {mesaNumero || '1'}
+                    </span>
+                    <div className="p-1 rounded-md text-gray-400 group-hover:text-[#0284C7] group-hover:bg-[#0284C7]/10 transition-colors">
+                      <ArrowLeftRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="bg-[#5FB580] text-white text-xs font-bold py-1 rounded-md text-center tracking-wide">
+                    Livre
                   </div>
                 </div>
-                <div className="bg-[#5FB580] text-white text-xs font-bold py-1 rounded-md text-center tracking-wide">
-                  Livre
-                </div>
+
+                {/* Opções de lançamento acionadas pelo ENTER/Clique */}
+                {botoesLancamentoAbertos && (
+                  <div className="bg-[#0B132B] border border-[#2A405B] rounded-xl p-3 space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                    <p className="text-xs font-bold text-white tracking-wide">
+                      Como deseja lançar o pedido?
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAbaMesaOuComanda('COMANDAS');
+                          setModalMesaAberto(true);
+                        }}
+                        className="py-2.5 px-2 bg-[#7E96AD] hover:bg-[#68829B] text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                      >
+                        <Link2 className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Vincular comanda</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAbaMesaOuComanda('MESAS');
+                          setModalMesaAberto(true);
+                        }}
+                        className="py-2.5 px-2 bg-[#7E96AD] hover:bg-[#68829B] text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                      >
+                        <Utensils className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Lançar na mesa</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
