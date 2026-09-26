@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
+  Check,
   ChevronLeft,
   ChevronRight,
   Clock3,
   Home,
+  Layers,
   Loader2,
   Menu,
   Minus,
@@ -15,23 +17,96 @@ import {
   RefreshCw,
   Search,
   ShoppingBag,
+  Sparkles,
   Store,
+  Tag,
+  Trash2,
   UserRound,
+  X,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
+  type Adicional,
+  type Borda,
   type Categoria,
   type LojaStatus,
+  type OpcoesProduto,
   type Produto,
+  type Sabor,
   fetchCategorias,
   fetchEmpresas,
   fetchLojaStatus,
+  fetchProdutoOpcoes,
   fetchProdutos,
   formatImageUrl,
 } from '@/lib/api';
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+export interface ItemCarrinhoCustomizado {
+  idTemp: string;
+  produtoId: string;
+  produtoNome: string;
+  imagemUrl?: string | null;
+  precoUnitario: number;
+  quantidade: number;
+  observacoes?: string;
+  sabores?: Array<{ saborId: string; saborNome: string; fracao: string }>;
+  borda?: { bordaId: string; bordaNome: string; preco: number };
+  adicionais?: Array<{ adicionalId: string; nome: string; quantidade: number; valor: number }>;
+  valorTotal: number;
+}
+
+function ehPizzaProduto(prod?: Produto | null, categoriasLista: Categoria[] = []): boolean {
+  if (!prod) return false;
+  const nomeLower = (prod.nome || '').toLowerCase();
+  const cat = categoriasLista.find((c) => c.id === prod.categoria_id);
+  const catLower = (cat?.nome || prod.categoria_nome || '').toLowerCase();
+  return (
+    catLower.includes('pizza') ||
+    nomeLower.includes('pizza') ||
+    nomeLower.includes('25cm') ||
+    nomeLower.includes('30cm') ||
+    nomeLower.includes('35cm') ||
+    nomeLower.includes('40cm') ||
+    nomeLower.includes('45cm') ||
+    nomeLower.includes('50cm') ||
+    nomeLower.includes('pequena') ||
+    nomeLower.includes('méd') ||
+    nomeLower.includes('med') ||
+    nomeLower.includes('grande') ||
+    nomeLower.includes('fam') ||
+    nomeLower.includes('gigante') ||
+    nomeLower.includes('broto')
+  );
+}
+
+function obterMaxSaboresPizza(prod?: Produto | null): number {
+  if (!prod) return 1;
+  const nomeLower = (prod.nome || '').toLowerCase();
+  if (nomeLower.includes('pequena') || nomeLower.includes('25cm') || nomeLower.includes('broto')) {
+    return 2;
+  }
+  if (nomeLower.includes('média') || nomeLower.includes('media') || nomeLower.includes('30cm')) {
+    return 2;
+  }
+  if (nomeLower.includes('grande') || nomeLower.includes('35cm')) {
+    return 3;
+  }
+  if (
+    nomeLower.includes('família') ||
+    nomeLower.includes('familia') ||
+    nomeLower.includes('famiia') ||
+    nomeLower.includes('40cm')
+  ) {
+    return 4;
+  }
+  if (nomeLower.includes('gigante') || nomeLower.includes('45cm') || nomeLower.includes('50cm')) {
+    return 4;
+  }
+  return 2;
+}
 
 export default function HomePage() {
   const [empresaId, setEmpresaId] = useState<string>('');
@@ -43,9 +118,22 @@ export default function HomePage() {
 
   const [category, setCategory] = useState('Todos');
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<Produto | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
-  const [cart, setCart] = useState<Record<string, number>>({});
+  const [cartItems, setCartItems] = useState<ItemCarrinhoCustomizado[]>([]);
+
+  // Estado da Tela/Modal de Montagem
+  const [produtoConfigurando, setProdutoConfigurando] = useState<Produto | null>(null);
+  const [carregandoOpcoes, setCarregandoOpcoes] = useState(false);
+  const [opcoesProduto, setOpcoesProduto] = useState<OpcoesProduto | null>(null);
+  const [quantConfig, setQuantConfig] = useState(1);
+  const [obsConfig, setObsConfig] = useState('');
+  const [saboresEscolhidos, setSaboresEscolhidos] = useState<Array<{ saborId: string; saborNome: string; fracao: string }>>([]);
+  const [bordaEscolhida, setBordaEscolhida] = useState<{ bordaId: string; bordaNome: string; preco: number } | null>(null);
+  const [adicionaisEscolhidos, setAdicionaisEscolhidos] = useState<
+    Array<{ adicionalId: string; nome: string; quantidade: number; valor: number }>
+  >([]);
+  const [numFracoesPizza, setNumFracoesPizza] = useState<number>(1);
+  const [buscaSaborModal, setBuscaSaborModal] = useState('');
 
   const categoriesRef = useRef<HTMLDivElement | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -85,12 +173,10 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
-      // 1. Obter empresas ativas para identificar empresaId
       const empresas = await fetchEmpresas();
       const currentEmpresaId = empresas.length > 0 ? empresas[0].id : '';
       setEmpresaId(currentEmpresaId);
 
-      // 2. Buscar status da loja, categorias e produtos em paralelo
       const [statusRes, catRes, prodRes] = await Promise.all([
         fetchLojaStatus(currentEmpresaId),
         fetchCategorias(currentEmpresaId),
@@ -134,29 +220,117 @@ export default function HomePage() {
     });
   }, [category, search, products, categories]);
 
-  // Itens do carrinho
-  const cartItems = useMemo(() => {
-    return products
-      .filter((p) => cart[p.id])
-      .map((p) => ({
-        ...p,
-        numericPrice: Number(p.preco_promocional && Number(p.preco_promocional) > 0 ? p.preco_promocional : p.preco) || 0,
-        quantity: cart[p.id],
-      }));
-  }, [cart, products]);
+  // Totais do carrinho
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantidade, 0);
+  const cartTotal = cartItems.reduce((sum, item) => sum + item.valorTotal, 0);
 
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotal = cartItems.reduce((sum, item) => sum + item.numericPrice * item.quantity, 0);
-
-  function changeQuantity(product: Produto, difference: number) {
-    setCart((current) => {
-      const next = Math.max(0, (current[product.id] ?? 0) + difference);
-      const updated = { ...current };
-      if (next === 0) delete updated[product.id];
-      else updated[product.id] = next;
-      return updated;
-    });
+  function alterarQuantidadeItemCarrinho(idTemp: string, diferenca: number) {
+    setCartItems((prev) =>
+      prev
+        .map((it) => {
+          if (it.idTemp === idTemp) {
+            const novaQuant = it.quantidade + diferenca;
+            if (novaQuant <= 0) return null;
+            const precoUnit = it.valorTotal / it.quantidade;
+            return {
+              ...it,
+              quantidade: novaQuant,
+              valorTotal: precoUnit * novaQuant,
+            };
+          }
+          return it;
+        })
+        .filter(Boolean) as ItemCarrinhoCustomizado[]
+    );
   }
+
+  function removerItemCarrinho(idTemp: string) {
+    setCartItems((prev) => prev.filter((it) => it.idTemp !== idTemp));
+  }
+
+  // Abrir Tela de Montagem do Produto
+  const abrirMontagemProduto = async (product: Produto) => {
+    setProdutoConfigurando(product);
+    setQuantConfig(1);
+    setObsConfig('');
+    setSaboresEscolhidos([]);
+    setBordaEscolhida(null);
+    setAdicionaisEscolhidos([]);
+    setNumFracoesPizza(1);
+    setBuscaSaborModal('');
+    setCarregandoOpcoes(true);
+
+    try {
+      const opcoes = await fetchProdutoOpcoes(product.id, empresaId);
+      setOpcoesProduto(opcoes);
+    } catch (err) {
+      console.error('Erro ao buscar opções de montagem do produto:', err);
+      setOpcoesProduto(null);
+    } finally {
+      setCarregandoOpcoes(false);
+    }
+  };
+
+  const isPizzaAtual = useMemo(() => {
+    return ehPizzaProduto(produtoConfigurando, categories);
+  }, [produtoConfigurando, categories]);
+
+  const maxSaboresPizzaAtual = useMemo(() => {
+    return obterMaxSaboresPizza(produtoConfigurando);
+  }, [produtoConfigurando]);
+
+  const saboresFiltrados = useMemo(() => {
+    if (!opcoesProduto?.sabores) return [];
+    const term = buscaSaborModal.trim().toLowerCase();
+    if (!term) return opcoesProduto.sabores;
+    return opcoesProduto.sabores.filter(
+      (s) => s.nome.toLowerCase().includes(term) || (s.descricao && s.descricao.toLowerCase().includes(term))
+    );
+  }, [opcoesProduto, buscaSaborModal]);
+
+  // Preço calculado da montagem
+  const precoCalculadoItem = useMemo(() => {
+    if (!produtoConfigurando) return 0;
+    const base =
+      Number(
+        produtoConfigurando.preco_promocional && Number(produtoConfigurando.preco_promocional) > 0
+          ? produtoConfigurando.preco_promocional
+          : produtoConfigurando.preco
+      ) || 0;
+    const extraBorda = bordaEscolhida?.preco || 0;
+    const extraAdicionais = adicionaisEscolhidos.reduce((acc, a) => acc + a.valor * a.quantidade, 0);
+    return (base + extraBorda + extraAdicionais) * quantConfig;
+  }, [produtoConfigurando, quantConfig, bordaEscolhida, adicionaisEscolhidos]);
+
+  // Salvar Produto Montado no Carrinho
+  const salvarMontagemNoCarrinho = () => {
+    if (!produtoConfigurando) return;
+
+    const baseUnit =
+      Number(
+        produtoConfigurando.preco_promocional && Number(produtoConfigurando.preco_promocional) > 0
+          ? produtoConfigurando.preco_promocional
+          : produtoConfigurando.preco
+      ) || 0;
+
+    const novoItem: ItemCarrinhoCustomizado = {
+      idTemp: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      produtoId: produtoConfigurando.id,
+      produtoNome: produtoConfigurando.nome,
+      imagemUrl: produtoConfigurando.imagem_url,
+      precoUnitario: baseUnit,
+      quantidade: quantConfig,
+      observacoes: obsConfig.trim() || undefined,
+      sabores: saboresEscolhidos.length > 0 ? saboresEscolhidos : undefined,
+      borda: bordaEscolhida || undefined,
+      adicionais: adicionaisEscolhidos.length > 0 ? adicionaisEscolhidos : undefined,
+      valorTotal: precoCalculadoItem,
+    };
+
+    setCartItems((prev) => [...prev, novoItem]);
+    setProdutoConfigurando(null);
+    setCartOpen(true);
+  };
 
   // Integração WebMCP
   useEffect(() => {
@@ -195,41 +369,17 @@ export default function HomePage() {
     });
 
     register({
-      name: 'add_delivery_product_to_cart',
-      title: 'Adicionar produto ao carrinho',
-      description: 'Adiciona uma quantidade de um produto do cardápio ao carrinho e abre o carrinho na tela.',
-      inputSchema: {
-        type: 'object',
-        properties: { productId: { type: 'string' }, quantity: { type: 'integer', minimum: 1, maximum: 20 } },
-        required: ['productId'],
-        additionalProperties: false,
-      },
-      annotations: { readOnlyHint: false, untrustedContentHint: false },
-      execute: (input: unknown) => {
-        const value = input as { productId?: string; quantity?: number };
-        const product = products.find((item) => String(item.id) === String(value.productId));
-        const quantity = value.quantity ?? 1;
-        if (!product || !Number.isInteger(quantity) || quantity < 1 || quantity > 20)
-          throw new Error('Produto ou quantidade inválida.');
-        const nextQuantity = (cart[product.id] ?? 0) + quantity;
-        setCart((current) => ({ ...current, [product.id]: (current[product.id] ?? 0) + quantity }));
-        setCartOpen(true);
-        return { productId: product.id, name: product.name, quantity: nextQuantity, status: 'added' };
-      },
-    });
-
-    register({
       name: 'read_delivery_cart',
       title: 'Consultar carrinho',
       description: 'Consulta os itens, quantidades e o total atual do carrinho.',
       inputSchema: { type: 'object', properties: {}, additionalProperties: false },
       annotations: { readOnlyHint: true, untrustedContentHint: false },
       execute: () => ({
-        items: cartItems.map(({ id, nome, numericPrice, quantity }) => ({
-          id,
-          name: nome,
-          price: numericPrice,
-          quantity,
+        items: cartItems.map(({ produtoId, produtoNome, valorTotal, quantidade }) => ({
+          id: produtoId,
+          name: produtoNome,
+          total: valorTotal,
+          quantity: quantidade,
         })),
         count: cartCount,
         total: cartTotal,
@@ -237,7 +387,7 @@ export default function HomePage() {
     });
 
     return () => lifecycle.abort();
-  }, [cart, cartCount, cartItems, cartTotal, category, filtered, products, search]);
+  }, [cartCount, cartItems, cartTotal, category, filtered, products, search]);
 
   const nomeLoja = lojaStatus?.empresa?.nome || 'Sensor Delivery';
   const cidadeLoja = lojaStatus?.empresa?.cidade || 'Bombinhas · SC';
@@ -312,7 +462,7 @@ export default function HomePage() {
         {/* Mobile Search Box */}
         <SearchBox value={search} onChange={setSearch} />
 
-        {/* Categories Bar with integrated arrow buttons */}
+        {/* Categories Bar */}
         <div className="mt-7 flex items-center gap-2">
           <button
             type="button"
@@ -371,7 +521,9 @@ export default function HomePage() {
               {category === 'Todos' ? 'Peça do seu jeito' : category}
             </h2>
           </div>
-          <span className="text-sm text-[#858894]">{filtered.length} {filtered.length === 1 ? 'item' : 'itens'}</span>
+          <span className="text-sm text-[#858894]">
+            {filtered.length} {filtered.length === 1 ? 'item' : 'itens'}
+          </span>
         </div>
 
         {/* Loading State */}
@@ -399,11 +551,12 @@ export default function HomePage() {
         {!loading && !error && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((product) => {
-              const precoFinal = Number(
-                product.preco_promocional && Number(product.preco_promocional) > 0
-                  ? product.preco_promocional
-                  : product.preco
-              ) || 0;
+              const precoFinal =
+                Number(
+                  product.preco_promocional && Number(product.preco_promocional) > 0
+                    ? product.preco_promocional
+                    : product.preco
+                ) || 0;
 
               return (
                 <article
@@ -411,9 +564,9 @@ export default function HomePage() {
                   className="product-card group overflow-hidden rounded-[24px] border border-[#eee9e6] bg-white transition hover:shadow-md"
                 >
                   <button
-                    onClick={() => setSelected(product)}
-                    className="block w-full text-left"
-                    aria-label={`Ver ${product.nome}`}
+                    onClick={() => abrirMontagemProduto(product)}
+                    className="block w-full text-left cursor-pointer"
+                    aria-label={`Ver e montar ${product.nome}`}
                   >
                     <div className="relative h-44 overflow-hidden bg-[#fff2ec]">
                       <img
@@ -421,7 +574,6 @@ export default function HomePage() {
                         alt={product.nome}
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                         onError={(e) => {
-                          // Fallback se a imagem quebrar
                           (e.target as HTMLImageElement).src = '/pizza-media.jpg';
                         }}
                       />
@@ -449,9 +601,9 @@ export default function HomePage() {
                       <strong className="text-lg text-[#ff4b0a]">{money.format(precoFinal)}</strong>
                     </div>
                     <button
-                      onClick={() => changeQuantity(product, 1)}
-                      className="grid size-11 place-items-center rounded-2xl bg-[#ff4b0a] text-white transition hover:bg-[#ec3f00]"
-                      aria-label={`Adicionar ${product.nome}`}
+                      onClick={() => abrirMontagemProduto(product)}
+                      className="grid size-11 place-items-center rounded-2xl bg-[#ff4b0a] text-white transition hover:bg-[#ec3f00] cursor-pointer shadow-sm active:scale-95"
+                      aria-label={`Montar e adicionar ${product.nome}`}
                     >
                       <Plus className="size-5" />
                     </button>
@@ -496,49 +648,325 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Product Detail Dialog */}
-      <Dialog open={Boolean(selected)} onOpenChange={(open) => !open && setSelected(null)}>
-        {selected && (
-          <DialogContent className="overflow-hidden rounded-[26px] p-0 sm:max-w-lg">
-            <div className="h-56 bg-[#fff2ec]">
+      {/* ======================================================== */}
+      {/* TELA / MODAL DE MONTAGEM E PERSONALIZAÇÃO DO PRODUTO */}
+      {/* ======================================================== */}
+      <Dialog
+        open={Boolean(produtoConfigurando)}
+        onOpenChange={(open) => !open && setProdutoConfigurando(null)}
+      >
+        {produtoConfigurando && (
+          <DialogContent className="max-h-[90vh] overflow-hidden rounded-[26px] p-0 sm:max-w-lg flex flex-col">
+            {/* Header com Imagem */}
+            <div className="relative h-44 shrink-0 bg-[#fff2ec]">
               <img
-                src={formatImageUrl(selected.imagem_url)}
-                alt={selected.nome}
+                src={formatImageUrl(produtoConfigurando.imagem_url)}
+                alt={produtoConfigurando.nome}
                 className="h-full w-full object-cover"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/pizza-media.jpg';
                 }}
               />
-            </div>
-            <div className="p-6">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-extrabold">{selected.nome}</DialogTitle>
-                <DialogDescription className="text-[15px] leading-6">
-                  {selected.descricao || 'Item preparado especialmente para o seu pedido.'}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="mt-5 rounded-2xl bg-[#f8f6f4] p-4">
-                <p className="text-sm font-bold">Personalize no próximo passo</p>
-                <p className="mt-1 text-sm text-[#777a86]">Escolha tamanho, sabores, borda e adicionais.</p>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end p-5">
+                <div className="text-white">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#ff4b0a] px-2.5 py-0.5 text-xs font-bold text-white mb-1 shadow">
+                    {isPizzaAtual ? 'Montagem de Pizza' : 'Personalizar Item'}
+                  </span>
+                  <h2 className="text-xl font-extrabold leading-tight text-white drop-shadow-sm">
+                    {produtoConfigurando.nome}
+                  </h2>
+                </div>
               </div>
+            </div>
+
+            {/* Conteúdo com Scroll */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              {/* Descrição do Produto */}
+              {produtoConfigurando.descricao && (
+                <p className="text-sm text-[#747783] leading-relaxed bg-[#faf8f6] p-3.5 rounded-2xl border border-[#f0ece9]">
+                  {produtoConfigurando.descricao}
+                </p>
+              )}
+
+              {/* Quantidade */}
+              <div className="flex items-center justify-between rounded-2xl border border-[#eee9e6] bg-[#fdfcfb] p-3.5">
+                <div>
+                  <span className="block text-sm font-extrabold text-[#202332]">Quantidade</span>
+                  <span className="text-xs text-[#9a9ca5]">Selecione quantas unidades</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setQuantConfig((q) => Math.max(1, q - 1))}
+                    className="grid size-8 place-items-center rounded-xl border border-[#eee9e6] bg-white text-[#202332] shadow-sm transition hover:bg-[#fff0e9] hover:text-[#ff4b0a]"
+                  >
+                    <Minus className="size-4" />
+                  </button>
+                  <span className="w-6 text-center text-base font-extrabold text-[#202332]">
+                    {quantConfig}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantConfig((q) => q + 1)}
+                    className="grid size-8 place-items-center rounded-xl border border-[#eee9e6] bg-white text-[#202332] shadow-sm transition hover:bg-[#fff0e9] hover:text-[#ff4b0a]"
+                  >
+                    <Plus className="size-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Indicador de carregamento das opções */}
+              {carregandoOpcoes && (
+                <div className="flex items-center justify-center gap-2 py-6 text-sm font-semibold text-[#ff4b0a]">
+                  <Loader2 className="size-5 animate-spin" /> Carregando opções de montagem...
+                </div>
+              )}
+
+              {/* SE FOR PIZZA: Escolha de Sabores e Frações */}
+              {!carregandoOpcoes && isPizzaAtual && (opcoesProduto?.sabores?.length ?? 0) > 0 && (
+                <div className="rounded-2xl border border-[#eee9e6] bg-white p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-extrabold uppercase tracking-wider text-[#ff4b0a] flex items-center gap-1.5">
+                      <Sparkles className="size-4 text-[#ff4b0a]" />
+                      Escolher Sabores (Máx {maxSaboresPizzaAtual})
+                    </label>
+
+                    {/* Botões de Fração */}
+                    <div className="flex gap-1">
+                      {Array.from({ length: maxSaboresPizzaAtual }, (_, i) => i + 1).map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => {
+                            setNumFracoesPizza(n);
+                            setSaboresEscolhidos([]);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition ${
+                            numFracoesPizza === n
+                              ? 'bg-[#ff4b0a] text-white border-[#ff4b0a] shadow-sm'
+                              : 'bg-white border-[#eee9e6] text-[#747783] hover:text-[#202332]'
+                          }`}
+                        >
+                          {n} Sabor{n > 1 ? 'es' : ''}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-[#9a9ca5]">
+                    {saboresEscolhidos.length} de {numFracoesPizza} sabor(es) selecionado(s)
+                  </p>
+
+                  {/* Busca de Sabores */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#9a9ca5]" />
+                    <input
+                      type="text"
+                      value={buscaSaborModal}
+                      onChange={(e) => setBuscaSaborModal(e.target.value)}
+                      placeholder="Buscar sabor de pizza..."
+                      className="w-full rounded-xl border border-[#eee9e6] bg-[#faf8f6] py-2 pl-9 pr-3 text-xs outline-none focus:border-[#ff4b0a] focus:bg-white"
+                    />
+                  </div>
+
+                  {/* Grid de Sabores */}
+                  <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
+                    {saboresFiltrados.map((sab) => {
+                      const selecionado = saboresEscolhidos.some((s) => s.saborId === sab.id);
+                      return (
+                        <button
+                          key={sab.id}
+                          type="button"
+                          onClick={() => {
+                            if (selecionado) {
+                              setSaboresEscolhidos((prev) => prev.filter((s) => s.saborId !== sab.id));
+                            } else {
+                              if (saboresEscolhidos.length >= numFracoesPizza) {
+                                // Substitui o último ou alerta
+                                setSaboresEscolhidos((prev) => {
+                                  const fracao = numFracoesPizza === 1 ? '1/1' : `1/${numFracoesPizza}`;
+                                  return [...prev.slice(0, numFracoesPizza - 1), { saborId: sab.id, saborNome: sab.nome, fracao }];
+                                });
+                                return;
+                              }
+                              const fracao = numFracoesPizza === 1 ? '1/1' : `1/${numFracoesPizza}`;
+                              setSaboresEscolhidos((prev) => [
+                                ...prev,
+                                { saborId: sab.id, saborNome: sab.nome, fracao },
+                              ]);
+                            }
+                          }}
+                          className={`w-full p-2.5 rounded-xl text-left text-xs font-semibold border transition flex items-center justify-between cursor-pointer ${
+                            selecionado
+                              ? 'bg-[#fff0e9] border-[#ff4b0a] text-[#ff4b0a] font-bold shadow-xs'
+                              : 'bg-white border-[#eee9e6] text-[#202332] hover:border-[#ff4b0a]/30'
+                          }`}
+                        >
+                          <div className="min-w-0 flex-1 pr-2">
+                            <span className="block truncate font-bold">{sab.nome}</span>
+                            {sab.descricao && (
+                              <span className="block truncate text-[11px] text-[#858894] font-normal">
+                                {sab.descricao}
+                              </span>
+                            )}
+                          </div>
+                          {selecionado ? (
+                            <div className="grid size-5 shrink-0 place-items-center rounded-full bg-[#ff4b0a] text-white">
+                              <Check className="size-3.5" />
+                            </div>
+                          ) : (
+                            <div className="size-5 shrink-0 rounded-full border border-[#ddd6d2]" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* SE FOR PIZZA: Escolha de Bordas */}
+              {!carregandoOpcoes && isPizzaAtual && (opcoesProduto?.bordas?.length ?? 0) > 0 && (
+                <div className="rounded-2xl border border-[#eee9e6] bg-white p-4 space-y-2.5">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-[#202332] flex items-center gap-1.5">
+                    <Tag className="size-4 text-[#ff4b0a]" />
+                    Borda Recheada
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto">
+                    <button
+                      type="button"
+                      onClick={() => setBordaEscolhida(null)}
+                      className={`p-2.5 rounded-xl text-left text-xs font-semibold border transition cursor-pointer ${
+                        !bordaEscolhida
+                          ? 'bg-[#fff0e9] border-[#ff4b0a] text-[#ff4b0a] font-bold shadow-xs'
+                          : 'bg-white border-[#eee9e6] text-[#666a76] hover:border-[#ff4b0a]/30'
+                      }`}
+                    >
+                      Sem Borda
+                    </button>
+                    {opcoesProduto?.bordas.map((b) => {
+                      const precoBorda = Number(b.valor) || 0;
+                      const selecionada = bordaEscolhida?.bordaId === b.id;
+                      return (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onClick={() =>
+                            setBordaEscolhida({ bordaId: b.id, bordaNome: b.nome, preco: precoBorda })
+                          }
+                          className={`p-2.5 rounded-xl text-left text-xs font-semibold border transition flex items-center justify-between cursor-pointer ${
+                            selecionada
+                              ? 'bg-[#fff0e9] border-[#ff4b0a] text-[#ff4b0a] font-bold shadow-xs'
+                              : 'bg-white border-[#eee9e6] text-[#202332] hover:border-[#ff4b0a]/30'
+                          }`}
+                        >
+                          <span className="truncate">{b.nome}</span>
+                          <span className="text-[11px] text-[#22c55e] font-bold shrink-0 ml-1">
+                            +{money.format(precoBorda)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* ADICIONAIS E OPCIONAIS */}
+              {!carregandoOpcoes && (opcoesProduto?.adicionais?.length ?? 0) > 0 && (
+                <div className="rounded-2xl border border-[#eee9e6] bg-white p-4 space-y-2.5">
+                  <label className="text-xs font-extrabold uppercase tracking-wider text-[#202332] flex items-center gap-1.5">
+                    <Layers className="size-4 text-[#ff4b0a]" />
+                    Adicionais e Opcionais
+                  </label>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {opcoesProduto?.adicionais.map((ad) => {
+                      const valorAdic = Number(ad.preco) || 0;
+                      const existente = adicionaisEscolhidos.find((a) => a.adicionalId === ad.id);
+                      const quant = existente ? existente.quantidade : 0;
+
+                      return (
+                        <div
+                          key={ad.id}
+                          className="flex items-center justify-between rounded-xl border border-[#eee9e6] p-2.5 bg-[#fdfcfb]"
+                        >
+                          <div>
+                            <span className="block text-xs font-bold text-[#202332]">{ad.nome}</span>
+                            <span className="text-[11px] font-bold text-[#22c55e]">
+                              +{money.format(valorAdic)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {quant > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setAdicionaisEscolhidos((prev) =>
+                                    prev
+                                      .map((a) =>
+                                        a.adicionalId === ad.id ? { ...a, quantidade: a.quantidade - 1 } : a
+                                      )
+                                      .filter((a) => a.quantidade > 0)
+                                  );
+                                }}
+                                className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6]"
+                              >
+                                <Minus className="size-3.5" />
+                              </button>
+                            )}
+                            {quant > 0 && (
+                              <span className="w-5 text-center text-xs font-bold">{quant}</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAdicionaisEscolhidos((prev) => {
+                                  const item = prev.find((a) => a.adicionalId === ad.id);
+                                  if (item) {
+                                    return prev.map((a) =>
+                                      a.adicionalId === ad.id ? { ...a, quantidade: a.quantidade + 1 } : a
+                                    );
+                                  }
+                                  return [
+                                    ...prev,
+                                    { adicionalId: ad.id, nome: ad.nome, quantidade: 1, valor: valorAdic },
+                                  ];
+                                });
+                              }}
+                              className="grid size-7 place-items-center rounded-lg bg-[#ff4b0a] text-white transition hover:bg-[#e03f04]"
+                            >
+                              <Plus className="size-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Observações do Item */}
+              <div className="rounded-2xl border border-[#eee9e6] bg-white p-4 space-y-2">
+                <label className="text-xs font-extrabold uppercase tracking-wider text-[#202332]">
+                  Observações
+                </label>
+                <textarea
+                  value={obsConfig}
+                  onChange={(e) => setObsConfig(e.target.value)}
+                  placeholder="Ex: sem cebola, ponto da carne, caprichar no molho..."
+                  rows={2}
+                  className="w-full rounded-xl border border-[#eee9e6] bg-[#faf8f6] p-3 text-xs outline-none focus:border-[#ff4b0a] focus:bg-white resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Rodapé com Preço Total e Botão de Adicionar */}
+            <div className="border-t border-[#eee9e6] bg-white p-4">
               <button
-                onClick={() => {
-                  changeQuantity(selected, 1);
-                  setSelected(null);
-                  setCartOpen(true);
-                }}
-                className="mt-5 flex h-13 w-full items-center justify-between rounded-2xl bg-[#ff4b0a] px-5 font-bold text-white transition hover:bg-[#e03f04]"
+                type="button"
+                onClick={salvarMontagemNoCarrinho}
+                className="flex h-13 w-full items-center justify-between rounded-2xl bg-[#ff4b0a] px-5 font-extrabold text-white shadow-[0_8px_20px_rgba(255,75,10,.25)] transition hover:bg-[#e03f04] cursor-pointer active:scale-98"
               >
                 <span>Adicionar ao carrinho</span>
-                <span>
-                  {money.format(
-                    Number(
-                      selected.preco_promocional && Number(selected.preco_promocional) > 0
-                        ? selected.preco_promocional
-                        : selected.preco
-                    ) || 0
-                  )}
-                </span>
+                <span className="text-base">{money.format(precoCalculadoItem)}</span>
               </button>
             </div>
           </DialogContent>
@@ -555,50 +983,100 @@ export default function HomePage() {
             </SheetDescription>
           </SheetHeader>
           <div className="flex-1 overflow-y-auto p-5">
-            {cartItems.map((item) => (
-              <div key={item.id} className="mb-3 flex gap-3 rounded-2xl border border-[#eee9e6] p-3">
-                <img
-                  src={formatImageUrl(item.imagem_url)}
-                  alt={item.nome}
-                  className="size-20 rounded-xl object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/pizza-media.jpg';
-                  }}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold">{item.nome}</p>
-                  <p className="mt-1 text-sm font-semibold text-[#ff4b0a]">
-                    {money.format(item.numericPrice * item.quantity)}
-                  </p>
-                  <div className="mt-2 flex items-center gap-3">
-                    <button
-                      onClick={() => changeQuantity(item, -1)}
-                      className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6]"
-                      aria-label="Diminuir"
-                    >
-                      <Minus className="size-4" />
-                    </button>
-                    <span className="text-sm font-bold">{item.quantity}</span>
-                    <button
-                      onClick={() => changeQuantity(item, 1)}
-                      className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6]"
-                      aria-label="Aumentar"
-                    >
-                      <Plus className="size-4" />
-                    </button>
+            {cartItems.length === 0 ? (
+              <div className="py-16 text-center text-[#9a9ca5]">
+                <ShoppingBag className="mx-auto size-12 opacity-30 mb-3" />
+                <p className="font-bold">Seu carrinho está vazio</p>
+                <p className="text-xs mt-1">Adicione itens deliciosos para começar seu pedido.</p>
+              </div>
+            ) : (
+              cartItems.map((item) => (
+                <div key={item.idTemp} className="mb-3 rounded-2xl border border-[#eee9e6] p-3.5 bg-white">
+                  <div className="flex gap-3">
+                    <img
+                      src={formatImageUrl(item.imagemUrl)}
+                      alt={item.produtoNome}
+                      className="size-16 rounded-xl object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/pizza-media.jpg';
+                      }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-1">
+                        <p className="font-bold text-sm leading-tight text-[#202332]">{item.produtoNome}</p>
+                        <button
+                          onClick={() => removerItemCarrinho(item.idTemp)}
+                          className="text-[#9a9ca5] hover:text-[#ef4444] p-0.5"
+                          aria-label="Remover item"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+
+                      {/* Sabores */}
+                      {item.sabores && item.sabores.length > 0 && (
+                        <p className="text-[11px] text-[#ff4b0a] font-semibold mt-1">
+                          Sabores: {item.sabores.map((s) => `${s.saborNome} (${s.fracao})`).join(', ')}
+                        </p>
+                      )}
+
+                      {/* Borda */}
+                      {item.borda && (
+                        <p className="text-[11px] text-[#747783] mt-0.5">
+                          Borda: {item.borda.bordaNome} (+{money.format(item.borda.preco)})
+                        </p>
+                      )}
+
+                      {/* Adicionais */}
+                      {item.adicionais && item.adicionais.length > 0 && (
+                        <p className="text-[11px] text-[#747783] mt-0.5">
+                          Adicionais: {item.adicionais.map((a) => `${a.quantidade}x ${a.nome}`).join(', ')}
+                        </p>
+                      )}
+
+                      {/* Observações */}
+                      {item.observacoes && (
+                        <p className="text-[11px] text-[#f59e0b] italic mt-0.5">
+                          Obs: {item.observacoes}
+                        </p>
+                      )}
+
+                      <div className="mt-3 flex items-center justify-between">
+                        <p className="text-sm font-extrabold text-[#ff4b0a]">
+                          {money.format(item.valorTotal)}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => alterarQuantidadeItemCarrinho(item.idTemp, -1)}
+                            className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6]"
+                            aria-label="Diminuir"
+                          >
+                            <Minus className="size-4" />
+                          </button>
+                          <span className="w-5 text-center text-xs font-bold">{item.quantidade}</span>
+                          <button
+                            onClick={() => alterarQuantidadeItemCarrinho(item.idTemp, 1)}
+                            className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6]"
+                            aria-label="Aumentar"
+                          >
+                            <Plus className="size-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           <div className="border-t border-[#eee9e6] bg-white p-5 pb-7">
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-[#777a86]">Total</span>
-              <strong className="text-xl">{money.format(cartTotal)}</strong>
+              <span className="text-[#777a86] font-medium">Total</span>
+              <strong className="text-xl text-[#202332]">{money.format(cartTotal)}</strong>
             </div>
             <button
               disabled={!cartCount}
-              className="flex h-13 w-full items-center justify-between rounded-2xl bg-[#ff4b0a] px-5 font-bold text-white transition hover:bg-[#e03f04] disabled:opacity-40"
+              className="flex h-13 w-full items-center justify-between rounded-2xl bg-[#ff4b0a] px-5 font-bold text-white transition hover:bg-[#e03f04] disabled:opacity-40 cursor-pointer shadow-[0_8px_20px_rgba(255,75,10,.2)]"
             >
               <span>Continuar pedido</span>
               <ArrowRight className="size-5" />
@@ -631,3 +1109,4 @@ function SearchBox({
     </div>
   );
 }
+
