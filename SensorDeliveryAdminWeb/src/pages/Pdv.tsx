@@ -36,7 +36,8 @@ import {
   Store,
   Bike,
   Link2,
-  Utensils
+  Utensils,
+  ArrowLeftRight
 } from 'lucide-react';
 
 interface Categoria {
@@ -1117,6 +1118,34 @@ export const Pdv: React.FC = () => {
 
           {/* Inputs do Cliente (Telefone + Nome + Autocomplete) */}
           <div className="p-3 bg-[#121f30] border-t border-[#2A405B] space-y-2 relative">
+            {/* Se for Mesa, mostra card estilizado de Mesa / Comanda que ao clicar ou dar ENTER abre a tela de seleção */}
+            {tipoAtendimento === 'MESA' && (
+              <div
+                tabIndex={0}
+                onClick={() => setModalMesaAberto(true)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setModalMesaAberto(true);
+                  }
+                }}
+                className="bg-white rounded-xl border-2 border-gray-300 hover:border-[#0284C7] transition-all cursor-pointer overflow-hidden p-2.5 shadow-sm group focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20 select-none"
+              >
+                <div className="flex items-center justify-between px-1 pb-1.5">
+                  <span className="font-extrabold text-sm text-gray-800">
+                    {tipoMesaOuComandaEscolhida === 'COMANDA' ? 'Comanda' : 'Mesa'} {mesaNumero || '1'}
+                  </span>
+                  <div className="p-1 rounded-md text-gray-400 group-hover:text-[#0284C7] group-hover:bg-[#0284C7]/10 transition-colors">
+                    <ArrowLeftRight className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="bg-[#5FB580] text-white text-xs font-bold py-1 rounded-md text-center tracking-wide">
+                  Livre
+                </div>
+              </div>
+            )}
+
+            {/* Inputs do Cliente (Telefone + Nome + Autocomplete) */}
             <div className="grid grid-cols-2 gap-2">
               <div className="relative">
                 <input
@@ -1158,29 +1187,6 @@ export const Pdv: React.FC = () => {
                   placeholder="Rua, número, bairro e complemento..."
                   className="w-full bg-[#0B132B] border border-[#2A405B] text-xs text-white rounded-xl px-3 py-1.5 focus:outline-none focus:border-[#8C63FF]"
                 />
-              </div>
-            )}
-
-            {/* Se for Mesa, mostra número da mesa com atalho para abrir o modal */}
-            {tipoAtendimento === 'MESA' && (
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    value={mesaNumero}
-                    onChange={(e) => setMesaNumero(e.target.value)}
-                    placeholder={tipoMesaOuComandaEscolhida === 'COMANDA' ? "Número da Comanda (ex: 12)" : "Número da Mesa (ex: 1)"}
-                    className="w-full bg-[#0B132B] border border-[#8C63FF] text-xs text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#8C63FF] font-semibold"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setModalMesaAberto(true)}
-                  className="px-3 py-2 bg-[#8C63FF]/20 hover:bg-[#8C63FF]/30 border border-[#8C63FF] text-[#C4B5FD] hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>Selecionar</span>
-                </button>
               </div>
             )}
 
