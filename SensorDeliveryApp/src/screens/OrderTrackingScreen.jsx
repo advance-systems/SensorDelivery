@@ -17,11 +17,12 @@ import {
   Bike,
   PackageCheck,
   RefreshCw,
+  Store,
 } from 'lucide-react-native';
 import { THEME } from '../constants/theme';
 import { ApiService } from '../services/api';
 
-const STEPS = [
+const STEPS_DELIVERY = [
   {
     status: 'NOVO',
     label: 'Pedido Recebido',
@@ -49,6 +50,39 @@ const STEPS = [
   {
     status: 'ENTREGUE',
     label: 'Pedido Entregue',
+    desc: 'Bom apetite!',
+    icon: PackageCheck,
+  },
+];
+
+const STEPS_RETIRADA = [
+  {
+    status: 'NOVO',
+    label: 'Pedido Recebido',
+    desc: 'Aguardando confirmação do restaurante',
+    icon: Clock,
+  },
+  {
+    status: 'CONFIRMADO',
+    label: 'Pedido Confirmado',
+    desc: 'Pagamento identificado e pedido aceito',
+    icon: CheckCircle2,
+  },
+  {
+    status: 'EM_PREPARO',
+    label: 'Em Preparo',
+    desc: 'Nossos pizzaiolos estão preparando seu pedido',
+    icon: ChefHat,
+  },
+  {
+    status: 'PRONTO_RETIRADA',
+    label: 'Pronto para Retirada',
+    desc: 'Seu pedido já pode ser retirado no balcão',
+    icon: Store,
+  },
+  {
+    status: 'ENTREGUE',
+    label: 'Pedido Retirado',
     desc: 'Bom apetite!',
     icon: PackageCheck,
   },
@@ -109,6 +143,8 @@ export const OrderTrackingScreen = ({ pedidoId, onBack, onGoHome }) => {
     }
   };
 
+  const isDelivery = pedido?.tipoEntrega === 'DELIVERY' || pedido?.tipoEntrega === 'ENTREGA';
+  const steps = isDelivery ? STEPS_DELIVERY : STEPS_RETIRADA;
   const currentStepIndex = getStatusIndex(pedido?.status);
 
   return (
@@ -165,7 +201,11 @@ export const OrderTrackingScreen = ({ pedidoId, onBack, onGoHome }) => {
             </View>
             <View style={styles.orderMetaRow}>
               <Text style={styles.metaLabel}>Entrega:</Text>
-              <Text style={styles.metaValue}>{pedido?.tipoEntrega === 'DELIVERY' ? 'Delivery' : 'Retirada no Balcão'}</Text>
+              <Text style={styles.metaValue}>
+                {(pedido?.tipoEntrega === 'DELIVERY' || pedido?.tipoEntrega === 'ENTREGA')
+                  ? 'Delivery'
+                  : 'Retirada no Balcão'}
+              </Text>
             </View>
           </View>
 
@@ -174,11 +214,11 @@ export const OrderTrackingScreen = ({ pedidoId, onBack, onGoHome }) => {
             <Text style={styles.stepperTitle}>Progresso do Pedido</Text>
 
             <View style={styles.stepsContainer}>
-              {STEPS.map((step, index) => {
+              {steps.map((step, index) => {
                 const IconComponent = step.icon;
                 const isCompleted = index <= currentStepIndex;
                 const isCurrent = index === currentStepIndex;
-                const isLast = index === STEPS.length - 1;
+                const isLast = index === steps.length - 1;
 
                 return (
                   <View key={step.status} style={styles.stepRow}>

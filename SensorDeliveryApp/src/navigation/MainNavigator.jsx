@@ -67,12 +67,18 @@ export const MainNavigator = () => {
     return (
       <CheckoutScreen
         onBack={() => setInCheckout(false)}
-        onOrderSuccess={(pedido) => {
+        onOrderSuccess={(res) => {
           setInCheckout(false);
-          if (pedido.formaPagamento === 'PIX' && pedido.pix) {
-            setPixPedido(pedido);
+          const ped = res?.pedido || res;
+          if (ped?.formaPagamento === 'PIX' && res?.pix) {
+            setPixPedido({ ...ped, pix: res.pix });
           } else {
-            setTrackingPedidoId(pedido.id);
+            const pedidoId = ped?.id || ped?.pedidoId;
+            if (pedidoId) {
+              setTrackingPedidoId(pedidoId);
+            } else {
+              setActiveTab('PEDIDOS');
+            }
           }
         }}
       />

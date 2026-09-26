@@ -78,6 +78,47 @@ function normalizarStatus(statusDb?: string): Pedido['status'] {
   return 'novo';
 }
 
+function obterInfoStatus(status: Pedido['status']) {
+  switch (status) {
+    case 'novo':
+      return {
+        label: 'Novo / Pendente',
+        corBadge: 'bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/30',
+        icone: AlertTriangle,
+      };
+    case 'em_preparo':
+      return {
+        label: 'Em Preparo',
+        corBadge: 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/30',
+        icone: Clock,
+      };
+    case 'saiu_entrega':
+      return {
+        label: 'Saiu p/ Entrega',
+        corBadge: 'bg-[#0EA5E9]/20 text-[#0EA5E9] border-[#0EA5E9]/30',
+        icone: Truck,
+      };
+    case 'entregue':
+      return {
+        label: 'Concluído / Entregue',
+        corBadge: 'bg-[#10B981]/20 text-[#10B981] border-[#10B981]/30',
+        icone: CheckCircle2,
+      };
+    case 'cancelado':
+      return {
+        label: 'Cancelado',
+        corBadge: 'bg-[#64748B]/20 text-[#94A3B8] border-[#64748B]/30',
+        icone: XCircle,
+      };
+    default:
+      return {
+        label: 'Novo',
+        corBadge: 'bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/30',
+        icone: AlertTriangle,
+      };
+  }
+}
+
 function normalizarPedido(raw: any): Pedido {
   return {
     id: raw.id,
@@ -404,14 +445,26 @@ export const CentralPedidos: React.FC = () => {
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-[#152439] border border-[#2A405B] rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             {/* Header Modal */}
-            <div className="p-4 md:p-6 border-b border-[#2A405B] flex items-center justify-between bg-[#121f30]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#8C63FF]/20 border border-[#8C63FF]/30 flex items-center justify-center text-[#8C63FF] font-bold">
+            <div className="p-4 md:p-6 border-b border-[#2A405B] flex items-center justify-between bg-[#121f30] gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-[#8C63FF]/20 border border-[#8C63FF]/30 flex items-center justify-center text-[#8C63FF] font-bold shrink-0">
                   #{pedidoSelecionado.numero_pedido || pedidoSelecionado.id}
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Detalhes do Pedido #{pedidoSelecionado.numero_pedido || pedidoSelecionado.id}</h3>
-                  <p className="text-xs text-[#9CAABC]">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h3 className="text-lg font-bold text-white">Detalhes do Pedido #{pedidoSelecionado.numero_pedido || pedidoSelecionado.id}</h3>
+                    {(() => {
+                      const infoStatus = obterInfoStatus(pedidoSelecionado.status);
+                      const StatusIcon = infoStatus.icone;
+                      return (
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${infoStatus.corBadge}`}>
+                          <StatusIcon className="w-3.5 h-3.5" />
+                          {infoStatus.label}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  <p className="text-xs text-[#9CAABC] mt-0.5">
                     Criado em {new Date(pedidoSelecionado.criado_em).toLocaleString('pt-BR')}
                   </p>
                 </div>
@@ -419,7 +472,7 @@ export const CentralPedidos: React.FC = () => {
 
               <button
                 onClick={() => setModalDetalhesAberto(false)}
-                className="p-2 text-[#9CAABC] hover:text-white rounded-lg hover:bg-[#1c2e47] transition-colors cursor-pointer"
+                className="p-2 text-[#9CAABC] hover:text-white rounded-lg hover:bg-[#1c2e47] transition-colors cursor-pointer shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -558,18 +611,51 @@ export const CentralPedidos: React.FC = () => {
                 <span>Imprimir Comanda</span>
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap justify-end">
+                {pedidoSelecionado.status === 'novo' && (
+                  <button
+                    onClick={() => alterarStatus(pedidoSelecionado.id, 'em_preparo')}
+                    disabled={atualizandoStatus === pedidoSelecionado.id}
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#F59E0B] hover:bg-[#D97706] text-slate-900 font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md disabled:opacity-50"
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span>Aceitar & Preparar</span>
+                  </button>
+                )}
+
+                {pedidoSelecionado.status === 'em_preparo' && (
+                  <button
+                    onClick={() => alterarStatus(pedidoSelecionado.id, 'saiu_entrega')}
+                    disabled={atualizandoStatus === pedidoSelecionado.id}
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md disabled:opacity-50"
+                  >
+                    <Truck className="w-4 h-4" />
+                    <span>Despachar / Pronto</span>
+                  </button>
+                )}
+
+                {pedidoSelecionado.status === 'saiu_entrega' && (
+                  <button
+                    onClick={() => alterarStatus(pedidoSelecionado.id, 'entregue')}
+                    disabled={atualizandoStatus === pedidoSelecionado.id}
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#10B981] hover:bg-[#059669] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Concluir Entrega</span>
+                  </button>
+                )}
+
                 {pedidoSelecionado.status !== 'cancelado' && (
                   <button
                     onClick={() => setConfirmarCancelamentoAberto(true)}
-                    className="px-3.5 py-2.5 text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/15 rounded-xl border border-transparent hover:border-[#EF4444]/30 transition-all cursor-pointer"
+                    className="px-3 py-2.5 text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/15 rounded-xl border border-transparent hover:border-[#EF4444]/30 transition-all cursor-pointer"
                   >
                     Cancelar Pedido
                   </button>
                 )}
                 <button
                   onClick={() => setModalDetalhesAberto(false)}
-                  className="px-5 py-2.5 bg-[#2A405B] hover:bg-[#3B82F6] text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md"
+                  className="px-4 py-2.5 bg-[#2A405B] hover:bg-[#3B82F6] text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md"
                 >
                   Fechar
                 </button>
