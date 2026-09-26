@@ -24,7 +24,6 @@ import {
   UserRound,
   X,
 } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
   type Adicional,
@@ -651,13 +650,10 @@ export default function HomePage() {
       {/* ======================================================== */}
       {/* TELA / MODAL DE MONTAGEM E PERSONALIZAÇÃO DO PRODUTO */}
       {/* ======================================================== */}
-      <Dialog
-        open={Boolean(produtoConfigurando)}
-        onOpenChange={(open) => !open && setProdutoConfigurando(null)}
-      >
-        {produtoConfigurando && (
-          <DialogContent className="max-h-[90vh] overflow-hidden rounded-[26px] p-0 sm:max-w-lg flex flex-col">
-            {/* Header com Imagem */}
+      {produtoConfigurando && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl animate-in zoom-in-95 duration-200">
+            {/* Header com Imagem e Botão Fechar */}
             <div className="relative h-44 shrink-0 bg-[#fff2ec]">
               <img
                 src={formatImageUrl(produtoConfigurando.imagem_url)}
@@ -667,7 +663,7 @@ export default function HomePage() {
                   (e.target as HTMLImageElement).src = '/pizza-media.jpg';
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end p-5">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent flex items-end p-5">
                 <div className="text-white">
                   <span className="inline-flex items-center gap-1 rounded-full bg-[#ff4b0a] px-2.5 py-0.5 text-xs font-bold text-white mb-1 shadow">
                     {isPizzaAtual ? 'Montagem de Pizza' : 'Personalizar Item'}
@@ -677,6 +673,14 @@ export default function HomePage() {
                   </h2>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={() => setProdutoConfigurando(null)}
+                className="absolute top-3 right-3 grid size-9 place-items-center rounded-full bg-black/50 text-white backdrop-blur hover:bg-black/75 transition cursor-pointer"
+                aria-label="Fechar"
+              >
+                <X className="size-5" />
+              </button>
             </div>
 
             {/* Conteúdo com Scroll */}
@@ -698,7 +702,7 @@ export default function HomePage() {
                   <button
                     type="button"
                     onClick={() => setQuantConfig((q) => Math.max(1, q - 1))}
-                    className="grid size-8 place-items-center rounded-xl border border-[#eee9e6] bg-white text-[#202332] shadow-sm transition hover:bg-[#fff0e9] hover:text-[#ff4b0a]"
+                    className="grid size-8 place-items-center rounded-xl border border-[#eee9e6] bg-white text-[#202332] shadow-sm transition hover:bg-[#fff0e9] hover:text-[#ff4b0a] cursor-pointer"
                   >
                     <Minus className="size-4" />
                   </button>
@@ -708,7 +712,7 @@ export default function HomePage() {
                   <button
                     type="button"
                     onClick={() => setQuantConfig((q) => q + 1)}
-                    className="grid size-8 place-items-center rounded-xl border border-[#eee9e6] bg-white text-[#202332] shadow-sm transition hover:bg-[#fff0e9] hover:text-[#ff4b0a]"
+                    className="grid size-8 place-items-center rounded-xl border border-[#eee9e6] bg-white text-[#202332] shadow-sm transition hover:bg-[#fff0e9] hover:text-[#ff4b0a] cursor-pointer"
                   >
                     <Plus className="size-4" />
                   </button>
@@ -741,7 +745,7 @@ export default function HomePage() {
                             setNumFracoesPizza(n);
                             setSaboresEscolhidos([]);
                           }}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition ${
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${
                             numFracoesPizza === n
                               ? 'bg-[#ff4b0a] text-white border-[#ff4b0a] shadow-sm'
                               : 'bg-white border-[#eee9e6] text-[#747783] hover:text-[#202332]'
@@ -782,7 +786,6 @@ export default function HomePage() {
                               setSaboresEscolhidos((prev) => prev.filter((s) => s.saborId !== sab.id));
                             } else {
                               if (saboresEscolhidos.length >= numFracoesPizza) {
-                                // Substitui o último ou alerta
                                 setSaboresEscolhidos((prev) => {
                                   const fracao = numFracoesPizza === 1 ? '1/1' : `1/${numFracoesPizza}`;
                                   return [...prev.slice(0, numFracoesPizza - 1), { saborId: sab.id, saborNome: sab.nome, fracao }];
@@ -907,7 +910,7 @@ export default function HomePage() {
                                       .filter((a) => a.quantidade > 0)
                                   );
                                 }}
-                                className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6]"
+                                className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6] cursor-pointer"
                               >
                                 <Minus className="size-3.5" />
                               </button>
@@ -931,7 +934,7 @@ export default function HomePage() {
                                   ];
                                 });
                               }}
-                              className="grid size-7 place-items-center rounded-lg bg-[#ff4b0a] text-white transition hover:bg-[#e03f04]"
+                              className="grid size-7 place-items-center rounded-lg bg-[#ff4b0a] text-white transition hover:bg-[#e03f04] cursor-pointer"
                             >
                               <Plus className="size-3.5" />
                             </button>
@@ -969,9 +972,9 @@ export default function HomePage() {
                 <span className="text-base">{money.format(precoCalculadoItem)}</span>
               </button>
             </div>
-          </DialogContent>
-        )}
-      </Dialog>
+          </div>
+        </div>
+      )}
 
       {/* Cart Sheet */}
       <Sheet open={cartOpen} onOpenChange={setCartOpen}>
@@ -1006,7 +1009,7 @@ export default function HomePage() {
                         <p className="font-bold text-sm leading-tight text-[#202332]">{item.produtoNome}</p>
                         <button
                           onClick={() => removerItemCarrinho(item.idTemp)}
-                          className="text-[#9a9ca5] hover:text-[#ef4444] p-0.5"
+                          className="text-[#9a9ca5] hover:text-[#ef4444] p-0.5 cursor-pointer"
                           aria-label="Remover item"
                         >
                           <Trash2 className="size-4" />
@@ -1048,7 +1051,7 @@ export default function HomePage() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => alterarQuantidadeItemCarrinho(item.idTemp, -1)}
-                            className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6]"
+                            className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6] cursor-pointer"
                             aria-label="Diminuir"
                           >
                             <Minus className="size-4" />
@@ -1056,7 +1059,7 @@ export default function HomePage() {
                           <span className="w-5 text-center text-xs font-bold">{item.quantidade}</span>
                           <button
                             onClick={() => alterarQuantidadeItemCarrinho(item.idTemp, 1)}
-                            className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6]"
+                            className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6] cursor-pointer"
                             aria-label="Aumentar"
                           >
                             <Plus className="size-4" />
@@ -1109,4 +1112,3 @@ function SearchBox({
     </div>
   );
 }
-
