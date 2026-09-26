@@ -1785,24 +1785,141 @@ export const Pdv: React.FC = () => {
               </p>
             </div>
 
-            <div className="pt-2 border-t border-[#2A405B] flex flex-col gap-2">
+            <div className="no-print pt-2 border-t border-[#2A405B] flex flex-col gap-2">
               <button
+                type="button"
                 onClick={() => {
                   window.print();
                 }}
                 className="w-full py-2.5 bg-[#152439] hover:bg-[#1c2e47] border border-[#2A405B] text-white font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <Printer className="w-4 h-4 text-[#8C63FF]" />
-                <span>Imprimir Comanda</span>
+                <span>Imprimir Comanda (80mm)</span>
               </button>
 
               <button
+                type="button"
                 onClick={() => setModalSucessoAberto(false)}
                 className="w-full py-3 bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] text-white font-bold text-xs rounded-xl shadow-lg shadow-[#0EA5E9]/20 transition-all cursor-pointer"
               >
                 Iniciar Novo Pedido
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* COMANDA TÉRMICA 80MM PARA IMPRESSÃO DO PDV */}
+      {/* ======================================================== */}
+      {pedidoGerado && (
+        <div id="secao-comanda-impressao" className="hidden print:block text-black bg-white font-mono text-[12px] leading-tight">
+          <div className="text-center pb-2 border-b-2 border-dashed border-black">
+            <h2 className="text-base font-black uppercase tracking-wider">SENSOR DELIVERY</h2>
+            <p className="text-[11px] font-bold mt-0.5">COMPROVANTE DE PEDIDO</p>
+            <div className="my-1.5 py-1 px-2 border border-black inline-block rounded font-black text-lg">
+              PEDIDO #{pedidoGerado.numero || pedidoGerado.id}
+            </div>
+            <p className="text-[11px]">
+              {new Date().toLocaleString('pt-BR')}
+            </p>
+            <p className="font-black text-xs mt-1 uppercase">
+              TIPO: {tipoAtendimento === 'DELIVERY' ? '🛵 ENTREGA' : '🏪 RETIRADA / BALCÃO'}
+            </p>
+          </div>
+
+          <div className="py-2 border-b-2 border-dashed border-black space-y-0.5">
+            <p className="font-bold"><strong>CLIENTE:</strong> {clienteNome || 'Consumidor'}</p>
+            <p><strong>TELEFONE:</strong> {clienteTelefone || 'Não informado'}</p>
+            {tipoAtendimento === 'DELIVERY' && enderecoTexto && (
+              <div className="mt-1 pt-1 border-t border-dotted border-black">
+                <p className="font-bold"><strong>ENDEREÇO DE ENTREGA:</strong></p>
+                <p>{enderecoTexto}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="py-2 border-b-2 border-dashed border-black">
+            <div className="flex justify-between font-black border-b border-black pb-1 mb-1.5 text-[11px]">
+              <span>QTD ITEM / DESCRIÇÃO</span>
+              <span>VALOR</span>
+            </div>
+
+            <div className="space-y-2">
+              {itensCarrinho.map((item, idx) => (
+                <div key={idx} className="space-y-0.5">
+                  <div className="flex justify-between font-bold">
+                    <span className="break-words max-w-[70%]">
+                      {item.quantidade}x {item.produtoNome}
+                    </span>
+                    <span className="shrink-0">{formatarMoeda(item.valorTotal)}</span>
+                  </div>
+
+                  {item.sabores && item.sabores.length > 0 && (
+                    <p className="text-[11px] pl-2 font-medium">
+                      • Sabores: {item.sabores.map((s) => `${s.saborNome}${s.fracao ? ` (${s.fracao})` : ''}`).join(', ')}
+                    </p>
+                  )}
+
+                  {item.borda && (
+                    <p className="text-[11px] pl-2 font-medium">
+                      • Borda: {item.borda.bordaNome}
+                    </p>
+                  )}
+
+                  {item.adicionais && item.adicionais.length > 0 && (
+                    <p className="text-[11px] pl-2 font-medium">
+                      • Adicionais: {item.adicionais.map((a) => `${a.quantidade}x ${a.nome}`).join(', ')}
+                    </p>
+                  )}
+
+                  {item.observacoes && (
+                    <p className="text-[11px] pl-2 font-black italic">
+                      • Obs: {item.observacoes}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="py-2 border-b-2 border-dashed border-black space-y-1">
+            <div className="flex justify-between">
+              <span>Subtotal:</span>
+              <span>{formatarMoeda(subtotal)}</span>
+            </div>
+            {taxaEntrega > 0 && (
+              <div className="flex justify-between">
+                <span>Taxa de Entrega:</span>
+                <span>{formatarMoeda(taxaEntrega)}</span>
+              </div>
+            )}
+            {desconto > 0 && (
+              <div className="flex justify-between">
+                <span>Desconto:</span>
+                <span>-{formatarMoeda(desconto)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-sm font-black border-t border-black pt-1 mt-1">
+              <span>TOTAL DO PEDIDO:</span>
+              <span>{formatarMoeda(total)}</span>
+            </div>
+            <div className="pt-1 text-[11px]">
+              <p><strong>FORMA DE PGTO:</strong> {formaPagamento} {trocoPara ? `(Troco p/ ${formatarMoeda(Number(trocoPara) || 0)})` : ''}</p>
+            </div>
+          </div>
+
+          {observacaoPedido && (
+            <div className="py-2 border-b-2 border-dashed border-black">
+              <p className="font-bold">OBSERVAÇÃO GERAL:</p>
+              <p className="italic">{observacaoPedido}</p>
+            </div>
+          )}
+
+          <div className="pt-3 text-center text-[10px] space-y-0.5">
+            <p className="font-bold">Obrigado pela preferência!</p>
+            <p>Sensor Delivery - Sistema de Pedidos</p>
+            <p className="pt-2 text-[9px] text-gray-500">. . . . . . . . . . . . . . . . . . . . . . . . . .</p>
           </div>
         </div>
       )}

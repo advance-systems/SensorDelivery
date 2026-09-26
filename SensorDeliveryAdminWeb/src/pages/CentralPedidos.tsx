@@ -48,6 +48,7 @@ export interface Pedido {
   endereco_numero?: string;
   endereco_bairro?: string;
   endereco_complemento?: string;
+  observacoes?: string;
   itens_resumo?: string;
   criado_em: string;
   itens?: PedidoItem[];
@@ -606,14 +607,15 @@ export const CentralPedidos: React.FC = () => {
               </div>
             </div>
 
-            {/* Footer Modal / Ações de Impressão e Status */}
-            <div className="p-4 border-t border-[#2A405B] bg-[#121f30] flex items-center justify-between gap-3">
+            {/* Footer Modal / Ações de Impressão e Status (Oculto na impressão térmica) */}
+            <div className="no-print p-4 border-t border-[#2A405B] bg-[#121f30] flex items-center justify-between gap-3">
               <button
+                type="button"
                 onClick={() => window.print()}
                 className="flex items-center gap-2 px-4 py-2.5 bg-[#0B132B] hover:bg-[#1c2e47] border border-[#2A405B] text-xs font-semibold text-white rounded-xl transition-colors cursor-pointer"
               >
                 <Printer className="w-4 h-4 text-[#8C63FF]" />
-                <span>Imprimir Comanda</span>
+                <span>Imprimir Comanda (80mm)</span>
               </button>
 
               <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -710,6 +712,138 @@ export const CentralPedidos: React.FC = () => {
                 Sim, Cancelar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* COMANDA TÉRMICA 80MM PARA IMPRESSÃO (NÃO APARECE NA TELA) */}
+      {/* ======================================================== */}
+      {pedidoSelecionado && (
+        <div id="secao-comanda-impressao" className="hidden print:block text-black bg-white font-mono text-[12px] leading-tight">
+          {/* Cabeçalho */}
+          <div className="text-center pb-2 border-b-2 border-dashed border-black">
+            <h2 className="text-base font-black uppercase tracking-wider">SENSOR DELIVERY</h2>
+            <p className="text-[11px] font-bold mt-0.5">COMPROVANTE DE PEDIDO</p>
+            <div className="my-1.5 py-1 px-2 border border-black inline-block rounded font-black text-lg">
+              PEDIDO #{pedidoSelecionado.numero_pedido || pedidoSelecionado.id}
+            </div>
+            <p className="text-[11px]">
+              {new Date(pedidoSelecionado.criado_em).toLocaleString('pt-BR')}
+            </p>
+            <p className="font-black text-xs mt-1 uppercase">
+              TIPO: {String(pedidoSelecionado.tipo_entrega).toLowerCase() === 'entrega' ? '🛵 ENTREGA' : '🏪 RETIRADA / BALCÃO'}
+            </p>
+          </div>
+
+          {/* Dados do Cliente */}
+          <div className="py-2 border-b-2 border-dashed border-black space-y-0.5">
+            <p className="font-bold"><strong>CLIENTE:</strong> {pedidoSelecionado.cliente_nome}</p>
+            <p><strong>TEL/WHATS:</strong> {pedidoSelecionado.cliente_telefone || 'Não informado'}</p>
+            {pedidoSelecionado.endereco_rua && (
+              <div className="mt-1 pt-1 border-t border-dotted border-black">
+                <p className="font-bold"><strong>ENDEREÇO DE ENTREGA:</strong></p>
+                <p>
+                  {pedidoSelecionado.endereco_rua}
+                  {pedidoSelecionado.endereco_numero ? `, Nº ${pedidoSelecionado.endereco_numero}` : ''}
+                </p>
+                {pedidoSelecionado.endereco_bairro && <p>Bairro: {pedidoSelecionado.endereco_bairro}</p>}
+                {pedidoSelecionado.endereco_complemento && <p>Compl: {pedidoSelecionado.endereco_complemento}</p>}
+              </div>
+            )}
+          </div>
+
+          {/* Itens do Pedido */}
+          <div className="py-2 border-b-2 border-dashed border-black">
+            <div className="flex justify-between font-black border-b border-black pb-1 mb-1.5 text-[11px]">
+              <span>QTD ITEM / DESCRIÇÃO</span>
+              <span>VALOR</span>
+            </div>
+
+            {pedidoSelecionado.itens && pedidoSelecionado.itens.length > 0 ? (
+              <div className="space-y-2">
+                {pedidoSelecionado.itens.map((item, idx) => (
+                  <div key={idx} className="space-y-0.5">
+                    <div className="flex justify-between font-bold">
+                      <span className="break-words max-w-[70%]">
+                        {item.quantidade}x {item.produto_nome}
+                      </span>
+                      <span className="shrink-0">{formatarMoeda(item.preco_total)}</span>
+                    </div>
+
+                    {item.sabores && item.sabores.length > 0 && (
+                      <p className="text-[11px] pl-2 font-medium">
+                        • Sabores: {item.sabores.map((s) => `${s.sabor_nome}${s.fracao ? ` (${s.fracao})` : ''}`).join(', ')}
+                      </p>
+                    )}
+
+                    {item.borda_nome && (
+                      <p className="text-[11px] pl-2 font-medium">
+                        • Borda: {item.borda_nome}
+                      </p>
+                    )}
+
+                    {item.adicionais && item.adicionais.length > 0 && (
+                      <p className="text-[11px] pl-2 font-medium">
+                        • Adicionais: {item.adicionais.map((a) => `${a.quantidade}x ${a.adicional_nome}`).join(', ')}
+                      </p>
+                    )}
+
+                    {item.observacoes && (
+                      <p className="text-[11px] pl-2 font-black italic">
+                        • Obs: {item.observacoes}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : pedidoSelecionado.itens_resumo ? (
+              <p className="whitespace-pre-line font-medium">{pedidoSelecionado.itens_resumo}</p>
+            ) : (
+              <p className="italic">Nenhum item informado</p>
+            )}
+          </div>
+
+          {/* Totais e Pagamento */}
+          <div className="py-2 border-b-2 border-dashed border-black space-y-1">
+            <div className="flex justify-between">
+              <span>Subtotal:</span>
+              <span>{formatarMoeda(pedidoSelecionado.subtotal || pedidoSelecionado.total)}</span>
+            </div>
+            {pedidoSelecionado.taxa_entrega > 0 && (
+              <div className="flex justify-between">
+                <span>Taxa de Entrega:</span>
+                <span>{formatarMoeda(pedidoSelecionado.taxa_entrega)}</span>
+              </div>
+            )}
+            {pedidoSelecionado.desconto > 0 && (
+              <div className="flex justify-between">
+                <span>Desconto:</span>
+                <span>-{formatarMoeda(pedidoSelecionado.desconto)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-sm font-black border-t border-black pt-1 mt-1">
+              <span>TOTAL DO PEDIDO:</span>
+              <span>{formatarMoeda(pedidoSelecionado.total)}</span>
+            </div>
+            <div className="pt-1 text-[11px]">
+              <p><strong>FORMA DE PGTO:</strong> {formatarFormaPagamento(pedidoSelecionado.forma_pagamento, pedidoSelecionado.troco_para)}</p>
+            </div>
+          </div>
+
+          {/* Observações Gerais */}
+          {pedidoSelecionado.observacoes && (
+            <div className="py-2 border-b-2 border-dashed border-black">
+              <p className="font-bold">OBSERVAÇÃO GERAL:</p>
+              <p className="italic">{pedidoSelecionado.observacoes}</p>
+            </div>
+          )}
+
+          {/* Rodapé da Comanda */}
+          <div className="pt-3 text-center text-[10px] space-y-0.5">
+            <p className="font-bold">Obrigado pela preferência!</p>
+            <p>Sensor Delivery - Sistema de Pedidos</p>
+            <p className="pt-2 text-[9px] text-gray-500">. . . . . . . . . . . . . . . . . . . . . . . . . .</p>
           </div>
         </div>
       )}

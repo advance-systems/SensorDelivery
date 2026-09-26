@@ -39,3 +39,59 @@
     background: #8C63FF;
   }
 }
+
+/* =========================================================
+   ESTILOS DE IMPRESSÃO - COMANDA TÉRMICA 80MM
+   ========================================================= */
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  html, body {
+    width: 80mm !important;
+    max-width: 80mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    font-family: 'Courier New', Courier, monospace, -apple-system, sans-serif !important;
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+  }
+
+  /* Oculta tudo que não for o conteúdo da comanda */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Exibe exclusivamente a comanda térmica e seus filhos */
+  #secao-comanda-impressao,
+  #secao-comanda-impressao * {
+    visibility: visible !important;
+  }
+
+  #secao-comanda-impressao {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    padding: 3mm 4mm !important;
+    margin: 0 auto !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Elementos a não imprimir */
+  .no-print,
+  button,
+  nav,
+  aside,
+  header {
+    display: none !important;
+  }
+}
