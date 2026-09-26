@@ -54,6 +54,20 @@ import {
 
 const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
+function formatarTelefone(valor: string): string {
+  const digits = valor.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 2) {
+    return digits.length > 0 ? `(${digits}` : '';
+  }
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  }
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+}
+
 export interface ItemCarrinhoCustomizado {
   idTemp: string;
   produtoId: string;
@@ -1359,7 +1373,8 @@ export default function HomePage() {
                         id="input-cliente-telefone"
                         type="tel"
                         value={clienteTelefone}
-                        onChange={(e) => setClienteTelefone(e.target.value)}
+                        onChange={(e) => setClienteTelefone(formatarTelefone(e.target.value))}
+                        maxLength={15}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
