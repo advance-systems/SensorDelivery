@@ -4,9 +4,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
+  AlertTriangle,
   Bike,
   Building,
   Check,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Clock3,
@@ -182,6 +184,23 @@ export default function HomePage() {
   const [pedidoRealizado, setPedidoRealizado] = useState<any>(null);
   const [pixDados, setPixDados] = useState<any>(null);
   const [copiadoPix, setCopiadoPix] = useState(false);
+
+  // Modal de Notificação/Alerta Moderno
+  const [alertaModal, setAlertaModal] = useState<{
+    aberto: boolean;
+    tipo: 'erro' | 'aviso' | 'sucesso';
+    titulo: string;
+    mensagem: string;
+  }>({
+    aberto: false,
+    tipo: 'aviso',
+    titulo: '',
+    mensagem: '',
+  });
+
+  const mostrarAlerta = (titulo: string, mensagem: string, tipo: 'erro' | 'aviso' | 'sucesso' = 'aviso') => {
+    setAlertaModal({ aberto: true, tipo, titulo, mensagem });
+  };
 
   const categoriesRef = useRef<HTMLDivElement | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -392,11 +411,11 @@ export default function HomePage() {
   // Avançar da etapa de Dados para Pagamento
   const avancarParaPagamento = () => {
     if (!clienteNome.trim() || !clienteTelefone.trim()) {
-      alert('Por favor, informe seu nome e telefone.');
+      mostrarAlerta('Identificação Necessária', 'Por favor, informe seu nome e telefone para identificarmos seu pedido.', 'aviso');
       return;
     }
     if (tipoAtendimento === 'ENTREGA' && (!enderecoLogradouro.trim() || !enderecoBairro.trim())) {
-      alert('Por favor, informe a rua e o bairro de entrega.');
+      mostrarAlerta('Endereço Incompleto', 'Por favor, informe ao menos a rua e o bairro de entrega.', 'aviso');
       return;
     }
     setCheckoutStep('PAGAMENTO');
@@ -405,13 +424,13 @@ export default function HomePage() {
   // Finalizar e Enviar Pedido
   const finalizarPedidoOnline = async () => {
     if (!clienteNome.trim() || !clienteTelefone.trim()) {
-      alert('Por favor, informe seu nome e telefone.');
+      mostrarAlerta('Identificação Necessária', 'Por favor, informe seu nome e telefone antes de finalizar.', 'aviso');
       setCheckoutStep('DADOS');
       return;
     }
 
     if (tipoAtendimento === 'ENTREGA' && (!enderecoLogradouro.trim() || !enderecoBairro.trim())) {
-      alert('Por favor, preencha o endereço completo de entrega.');
+      mostrarAlerta('Endereço Incompleto', 'Por favor, preencha o endereço completo de entrega.', 'aviso');
       setCheckoutStep('DADOS');
       return;
     }
@@ -419,15 +438,34 @@ export default function HomePage() {
     setEnviandoPedido(true);
 
     const payloadItens = cartItems.map((it) => ({
+      produtoId: it.produtoId,
       produto_id: it.produtoId,
+      produtoNome: it.produtoNome,
       produto_nome: it.produtoNome,
       quantidade: it.quantidade,
-      preco_unitario: it.precoUnitario,
-      valor_total: it.valorTotal,
+      precoUnitario: it.precoUnitario,
+      valorUnitario: it.precoUnitario,
+      valorTotal: it.valorTotal,
       observacoes: it.observacoes,
-      sabores: it.sabores?.map((s) => ({ sabor_id: s.saborId, nome: s.saborNome, fracao: s.fracao })),
-      borda: it.borda ? { borda_id: it.borda.bordaId, nome: it.borda.bordaNome, preco: it.borda.preco } : undefined,
-      adicionais: it.adicionais?.map((a) => ({ adicional_id: a.adicionalId, nome: a.nome, quantidade: a.quantidade, valor: a.valor })),
+      sabores: it.sabores?.map((s) => ({
+        id: s.saborId,
+        saborId: s.saborId,
+        descricao: `${s.saborNome} (${s.fracao})`,
+        nome: s.saborNome,
+        fracao: s.fracao,
+        valor: 0,
+      })),
+      bordaId: it.borda?.bordaId,
+      bordaDescricao: it.borda?.bordaNome,
+      valorBorda: it.borda?.preco || 0,
+      adicionais: it.adicionais?.map((a) => ({
+        id: a.adicionalId,
+        adicionalId: a.adicionalId,
+        descricao: a.nome,
+        nome: a.nome,
+        quantidade: a.quantidade,
+        valor: a.valor,
+      })),
     }));
 
     const payload = {
@@ -459,7 +497,7 @@ export default function HomePage() {
       setCartItems([]);
       setCheckoutStep('CONFIRMACAO');
     } else {
-      alert(res.erro || 'Não foi possível registrar o pedido.');
+      mostrarAlerta('Atenção ao Gravar Pedido', res.erro || 'Não foi possível registrar o pedido no momento. Verifique as opções selecionadas e tente novamente.', 'erro');
     }
   };
 
@@ -1664,6 +1702,47 @@ export default function HomePage() {
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL DIÁLOGO MODERNO (ALERT / ERROS / SUCESSO) */}
+      {/* ======================================================== */}
+      {alertaModal.aberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-sm rounded-[24px] bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-center">
+            {/* Ícone */}
+            <div className={`mx-auto mb-4 grid size-14 place-items-center rounded-2xl shadow-xs ${
+              alertaModal.tipo === 'erro'
+                ? 'bg-[#fef2f2] text-[#ef4444]'
+                : alertaModal.tipo === 'sucesso'
+                ? 'bg-[#f0fdf4] text-[#22c55e]'
+                : 'bg-[#fffbeb] text-[#f59e0b]'
+            }`}>
+              {alertaModal.tipo === 'erro' && <AlertTriangle className="size-7" />}
+              {alertaModal.tipo === 'sucesso' && <CheckCircle2 className="size-7" />}
+              {alertaModal.tipo === 'aviso' && <AlertTriangle className="size-7" />}
+            </div>
+
+            {/* Título & Mensagem */}
+            <h4 className="text-lg font-extrabold text-[#202332] mb-1.5">{alertaModal.titulo}</h4>
+            <p className="text-xs leading-relaxed text-[#747783] mb-6 whitespace-pre-line">{alertaModal.mensagem}</p>
+
+            {/* Botão de Fechar */}
+            <button
+              type="button"
+              onClick={() => setAlertaModal((prev) => ({ ...prev, aberto: false }))}
+              className={`w-full h-11 rounded-xl font-bold text-xs text-white transition active:scale-98 cursor-pointer shadow-sm ${
+                alertaModal.tipo === 'erro'
+                  ? 'bg-[#ef4444] hover:bg-[#dc2626]'
+                  : alertaModal.tipo === 'sucesso'
+                  ? 'bg-[#22c55e] hover:bg-[#16a34a]'
+                  : 'bg-[#ff4b0a] hover:bg-[#e03f04]'
+              }`}
+            >
+              Entendido
+            </button>
           </div>
         </div>
       )}

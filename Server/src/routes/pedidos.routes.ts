@@ -765,8 +765,8 @@ router.post('/', async (req, res) => {
                         `,
                         [
                             pedidoItemId,
-                            sabor.id || null,
-                            sabor.descricao,
+                            sabor.id || sabor.sabor_id || sabor.saborId || null,
+                            sabor.descricao || sabor.nome || sabor.saborNome || 'Sabor',
                             Number(sabor.valor || 0),
                         ],
                     );
@@ -812,8 +812,8 @@ router.post('/', async (req, res) => {
             `,
                         [
                             pedidoItemId,
-                            adicional.id || null,
-                            adicional.descricao,
+                            adicional.id || adicional.adicional_id || adicional.adicionalId || null,
+                            adicional.descricao || adicional.nome || adicional.adicionalNome || 'Adicional',
                             quantidadeAdicional,
                             valorUnitarioAdicional,
                             valorTotalAdicional,

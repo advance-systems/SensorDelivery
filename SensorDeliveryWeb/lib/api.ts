@@ -192,12 +192,13 @@ export async function createPedido(payload: Record<string, unknown>): Promise<{ 
 
     const data = await res.json();
     if (!res.ok) {
-      return { sucesso: false, erro: data.erro || data.detalhe || 'Erro ao criar pedido.' };
+      const msg = data.detalhe ? `${data.erro || 'Erro ao criar pedido'}: ${data.detalhe}` : (data.erro || 'Não foi possível registrar o pedido.');
+      return { sucesso: false, erro: msg };
     }
-    return { sucesso: true, pedido: data.pedido, respostaPix: data.respostaPix };
+    return { sucesso: true, pedido: data.pedido, respostaPix: data.pix || data.respostaPix };
   } catch (err) {
     console.error('Erro ao enviar pedido:', err);
-    return { sucesso: false, erro: 'Falha de conexão ao enviar o pedido.' };
+    return { sucesso: false, erro: 'Falha de conexão com o servidor ao enviar o pedido.' };
   }
 }
 
