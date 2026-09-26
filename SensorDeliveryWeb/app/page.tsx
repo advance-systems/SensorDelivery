@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   Home,
   Loader2,
@@ -44,6 +46,39 @@ export default function HomePage() {
   const [selected, setSelected] = useState<Produto | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
+
+  const categoriesRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkCategoryScroll = () => {
+    const el = categoriesRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 10);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+  };
+
+  const scrollCategories = (direction: 'left' | 'right') => {
+    const el = categoriesRef.current;
+    if (!el) return;
+    const scrollAmount = 280;
+    el.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    });
+  };
+
+  useEffect(() => {
+    const el = categoriesRef.current;
+    if (!el) return;
+    checkCategoryScroll();
+    el.addEventListener('scroll', checkCategoryScroll);
+    window.addEventListener('resize', checkCategoryScroll);
+    return () => {
+      el.removeEventListener('scroll', checkCategoryScroll);
+      window.removeEventListener('resize', checkCategoryScroll);
+    };
+  }, [categories]);
 
   // Carregar dados iniciais da API
   const carregarDados = async () => {
@@ -278,21 +313,47 @@ export default function HomePage() {
         <SearchBox value={search} onChange={setSearch} />
 
         {/* Categories Bar */}
-        <nav className="no-scrollbar mt-7 flex gap-2 overflow-x-auto pb-2" aria-label="Categorias">
-          {categoryNames.map((item) => (
+        <div className="relative mt-7">
+          {canScrollLeft && (
             <button
-              key={item}
-              onClick={() => setCategory(item)}
-              className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-bold transition ${
-                category === item
-                  ? 'bg-[#ff4b0a] text-white shadow-[0_7px_16px_rgba(255,75,10,.2)]'
-                  : 'border border-[#ebe7e4] bg-white text-[#666a76] hover:border-[#ff4b0a]/35 hover:text-[#ff4b0a]'
-              }`}
+              onClick={() => scrollCategories('left')}
+              className="absolute -left-3 top-1/2 z-10 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-[#ebe7e4] bg-white text-[#202332] shadow-[0_4px_14px_rgba(0,0,0,0.12)] transition hover:bg-[#fff5f0] hover:text-[#ff4b0a] active:scale-95"
+              aria-label="Rolar categorias para a esquerda"
             >
-              {item}
+              <ChevronLeft className="size-5" />
             </button>
-          ))}
-        </nav>
+          )}
+
+          <nav
+            ref={categoriesRef}
+            className="no-scrollbar flex gap-2 overflow-x-auto scroll-smooth px-1 pb-2"
+            aria-label="Categorias"
+          >
+            {categoryNames.map((item) => (
+              <button
+                key={item}
+                onClick={() => setCategory(item)}
+                className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-bold transition ${
+                  category === item
+                    ? 'bg-[#ff4b0a] text-white shadow-[0_7px_16px_rgba(255,75,10,.2)]'
+                    : 'border border-[#ebe7e4] bg-white text-[#666a76] hover:border-[#ff4b0a]/35 hover:text-[#ff4b0a]'
+                }`}
+              >
+                {item}
+              </button>
+            ))}
+          </nav>
+
+          {canScrollRight && (
+            <button
+              onClick={() => scrollCategories('right')}
+              className="absolute -right-3 top-1/2 z-10 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-[#ebe7e4] bg-white text-[#202332] shadow-[0_4px_14px_rgba(0,0,0,0.12)] transition hover:bg-[#fff5f0] hover:text-[#ff4b0a] active:scale-95"
+              aria-label="Rolar categorias para a direita"
+            >
+              <ChevronRight className="size-5" />
+            </button>
+          )}
+        </div>
 
         {/* Header List */}
         <div className="mb-5 mt-7 flex items-end justify-between">
