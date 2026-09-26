@@ -15,6 +15,7 @@ import { Adicionais } from './pages/Adicionais';
 import { Combos } from './pages/Combos';
 import { Dashboard } from './pages/Dashboard';
 import { Usuarios } from './pages/Usuarios';
+import { Pdv } from './pages/Pdv';
 import { RotaProtegida } from './components/auth/RotaProtegida';
 
 export const App: React.FC = () => {
@@ -27,6 +28,7 @@ export const App: React.FC = () => {
 
           <Route path="/" element={<AdminLayout />}>
             <Route index element={<RotaProtegida permissao="dashboard.visualizar"><CentralPedidos /></RotaProtegida>} />
+            <Route path="pdv" element={<RotaProtegida permissao="dashboard.visualizar"><Pdv /></RotaProtegida>} />
             <Route path="dashboard" element={<RotaProtegida permissao="pedidos.visualizar"><Dashboard /></RotaProtegida>} />
             <Route path="categorias" element={<RotaProtegida permissao="categorias.visualizar"><Categorias /></RotaProtegida>} />
             <Route path="produtos" element={<RotaProtegida permissao="cardapio.visualizar"><Produtos /></RotaProtegida>} />

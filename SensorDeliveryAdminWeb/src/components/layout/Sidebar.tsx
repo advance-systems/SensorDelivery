@@ -39,6 +39,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ aberto }) => {
       titulo: 'Principal',
       itens: [
         { nome: 'Central de Pedidos', path: '/', icone: ShoppingBag, badge: 'Live', permissao: 'dashboard.visualizar' },
+        { nome: 'Pedidos Balcão (PDV)', path: '/pdv', icone: Store, badge: 'PDV', permissao: 'dashboard.visualizar' },
         { nome: 'Dashboard & Vendas', path: '/dashboard', icone: BarChart3, permissao: 'pedidos.visualizar' },
       ]
     },
