@@ -70,6 +70,19 @@ function formatarTelefone(valor: string): string {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
 }
 
+function formatarMoedaInput(valor: string | number): string {
+  const digits = String(valor).replace(/\D/g, '');
+  if (!digits) return '';
+  const num = Number(digits) / 100;
+  return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function desformatarMoedaInput(valorFormatado: string): number {
+  const digits = String(valorFormatado).replace(/\D/g, '');
+  if (!digits) return 0;
+  return Number(digits) / 100;
+}
+
 export interface ItemCarrinhoCustomizado {
   idTemp: string;
   produtoId: string;
@@ -481,7 +494,7 @@ export default function HomePage() {
       },
       observacao: observacaoPedido.trim() || undefined,
       formaPagamento,
-      trocoPara: formaPagamento === 'DINHEIRO' && trocoPara ? Number(trocoPara) : undefined,
+      trocoPara: formaPagamento === 'DINHEIRO' && trocoPara ? desformatarMoedaInput(trocoPara) : undefined,
       subtotal: subtotalCart,
       taxaEntrega: taxaEntregaValor,
       total: totalPedidoFinal,
@@ -1572,13 +1585,17 @@ export default function HomePage() {
                   {formaPagamento === 'DINHEIRO' && (
                     <div className="rounded-2xl bg-[#faf8f6] border border-[#eee9e6] p-3.5 space-y-1.5">
                       <label className="block text-xs font-bold text-[#202332]">Precisa de troco para quanto?</label>
-                      <input
-                        type="number"
-                        value={trocoPara}
-                        onChange={(e) => setTrocoPara(e.target.value)}
-                        placeholder="Ex: 50 ou 100"
-                        className="w-full h-10 px-3 rounded-xl border border-[#eee9e6] bg-white text-xs outline-none focus:border-[#ff4b0a]"
-                      />
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#8a8d98]">R$</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={trocoPara}
+                          onChange={(e) => setTrocoPara(formatarMoedaInput(e.target.value))}
+                          placeholder="0,00"
+                          className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-[#eee9e6] bg-white text-xs font-bold text-[#202332] outline-none focus:border-[#ff4b0a]"
+                        />
+                      </div>
                     </div>
                   )}
 
