@@ -1402,17 +1402,18 @@ export const Pdv: React.FC = () => {
                     <Tag className="w-3.5 h-3.5 text-[#0EA5E9]" />
                     Borda Recheada
                   </label>
-                  <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto">
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                     <button
                       type="button"
                       onClick={() => setBordaEscolhida(null)}
-                      className={`p-2.5 rounded-xl text-left text-xs font-semibold border transition-all cursor-pointer ${
+                      className={`w-full p-2.5 rounded-xl text-left text-xs font-semibold border transition-all flex items-center justify-between cursor-pointer ${
                         !bordaEscolhida
                           ? 'bg-[#0EA5E9]/20 border-[#0EA5E9] text-white font-bold shadow-sm'
                           : 'bg-[#0B132B] border-[#2A405B] text-[#9CAABC] hover:text-white'
                       }`}
                     >
-                      Sem Borda
+                      <span>Sem Borda</span>
+                      {!bordaEscolhida && <Check className="w-3.5 h-3.5 text-[#0EA5E9] shrink-0" />}
                     </button>
                     {bordas.map((b) => {
                       const precoBorda = obterPrecoBordaParaProduto(b, produtoConfigurando.id);
@@ -1422,16 +1423,19 @@ export const Pdv: React.FC = () => {
                           key={b.id}
                           type="button"
                           onClick={() => setBordaEscolhida({ bordaId: b.id, bordaNome: b.nome, preco: precoBorda })}
-                          className={`p-2.5 rounded-xl text-left text-xs font-semibold border transition-all flex items-center justify-between cursor-pointer ${
+                          className={`w-full p-2.5 rounded-xl text-left text-xs font-semibold border transition-all flex items-center justify-between gap-2 cursor-pointer ${
                             selecionada
                               ? 'bg-[#0EA5E9]/20 border-[#0EA5E9] text-white font-bold shadow-sm'
                               : 'bg-[#0B132B] border-[#2A405B] text-[#9CAABC] hover:text-white'
                           }`}
                         >
-                          <span className="truncate">{b.nome}</span>
-                          <span className="text-[10px] text-[#10B981] font-bold shrink-0 ml-1">
-                            +{formatarMoeda(precoBorda)}
-                          </span>
+                          <span className="font-semibold flex-1 leading-snug break-words">{b.nome}</span>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="text-[11px] text-[#10B981] font-bold">
+                              +{formatarMoeda(precoBorda)}
+                            </span>
+                            {selecionada && <Check className="w-3.5 h-3.5 text-[#0EA5E9] shrink-0" />}
+                          </div>
                         </button>
                       );
                     })}
