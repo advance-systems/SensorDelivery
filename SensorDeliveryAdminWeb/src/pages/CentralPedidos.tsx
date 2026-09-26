@@ -645,7 +645,7 @@ export const CentralPedidos: React.FC = () => {
                   </button>
                 )}
 
-                {pedidoSelecionado.status !== 'cancelado' && (
+                {pedidoSelecionado.status !== 'cancelado' && pedidoSelecionado.status !== 'entregue' && (
                   <button
                     onClick={() => setConfirmarCancelamentoAberto(true)}
                     className="px-3 py-2.5 text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/15 rounded-xl border border-transparent hover:border-[#EF4444]/30 transition-all cursor-pointer"
