@@ -57,6 +57,8 @@ interface Produto {
   codigo_interno?: string;
   disponivel: boolean;
   destaque?: boolean;
+  quantidade_sabores?: number;
+  max_sabores?: number;
 }
 
 interface Sabor {
@@ -70,7 +72,10 @@ interface Sabor {
 interface Borda {
   id: string;
   nome: string;
-  valor_adicional: number;
+  valor?: number;
+  valor_adicional?: number;
+  ativo?: boolean;
+  precos_tamanho?: Array<{ produto_id: string; produto_nome?: string; valor: number }>;
 }
 
 interface Adicional {
@@ -111,6 +116,66 @@ interface RascunhoPedido {
   enderecoTexto: string;
   itens: ItemCarrinho[];
   total: number;
+}
+
+// Funções Auxiliares para Pizzas e Bordas
+function ehPizzaProduto(prod?: Produto | null, categoriasLista: Categoria[] = []): boolean {
+  if (!prod) return false;
+  const nomeLower = (prod.nome || '').toLowerCase();
+  const cat = categoriasLista.find((c) => c.id === prod.categoria_id);
+  const catLower = (cat?.nome || prod.categoria_nome || '').toLowerCase();
+  return (
+    catLower.includes('pizza') ||
+    nomeLower.includes('pizza') ||
+    nomeLower.includes('25cm') ||
+    nomeLower.includes('30cm') ||
+    nomeLower.includes('35cm') ||
+    nomeLower.includes('40cm') ||
+    nomeLower.includes('45cm') ||
+    nomeLower.includes('50cm') ||
+    nomeLower.includes('pequena') ||
+    nomeLower.includes('méd') ||
+    nomeLower.includes('med') ||
+    nomeLower.includes('grande') ||
+    nomeLower.includes('fam') ||
+    nomeLower.includes('gigante') ||
+    nomeLower.includes('broto')
+  );
+}
+
+function obterMaxSaboresPizza(prod?: Produto | null): number {
+  if (!prod) return 1;
+  if (prod.quantidade_sabores && prod.quantidade_sabores > 0) return prod.quantidade_sabores;
+  if (prod.max_sabores && prod.max_sabores > 0) return prod.max_sabores;
+
+  const nomeLower = (prod.nome || '').toLowerCase();
+  if (nomeLower.includes('pequena') || nomeLower.includes('25cm') || nomeLower.includes('broto')) {
+    return 2;
+  }
+  if (nomeLower.includes('média') || nomeLower.includes('media') || nomeLower.includes('30cm')) {
+    return 2;
+  }
+  if (nomeLower.includes('grande') || nomeLower.includes('35cm')) {
+    return 3;
+  }
+  if (nomeLower.includes('família') || nomeLower.includes('familia') || nomeLower.includes('famiia') || nomeLower.includes('40cm')) {
+    return 4;
+  }
+  if (nomeLower.includes('gigante') || nomeLower.includes('45cm') || nomeLower.includes('50cm')) {
+    return 4;
+  }
+  return 2;
+}
+
+function obterPrecoBordaParaProduto(borda: Borda, produtoId?: string): number {
+  if (!borda) return 0;
+  if (produtoId && Array.isArray(borda.precos_tamanho)) {
+    const pt = borda.precos_tamanho.find((p) => String(p.produto_id) === String(produtoId));
+    if (pt && pt.valor !== undefined && pt.valor !== null) {
+      return Number(pt.valor);
+    }
+  }
+  return Number(borda.valor_adicional ?? borda.valor ?? 0);
 }
 
 export const Pdv: React.FC = () => {
@@ -167,6 +232,7 @@ export const Pdv: React.FC = () => {
   const [bordaEscolhida, setBordaEscolhida] = useState<{ bordaId: string; bordaNome: string; preco: number } | null>(null);
   const [adicionaisEscolhidos, setAdicionaisEscolhidos] = useState<Array<{ adicionalId: string; nome: string; quantidade: number; valor: number }>>([]);
   const [numFracoesPizza, setNumFracoesPizza] = useState<number>(1);
+  const [buscaSaborModal, setBuscaSaborModal] = useState('');
 
   // Modais Auxiliares
   const [modalObsPedidoAberto, setModalObsPedidoAberto] = useState(false);
@@ -213,8 +279,9 @@ export const Pdv: React.FC = () => {
       if (resSab.status === 'fulfilled' && resSab.value.data?.sabores) {
         setSabores(resSab.value.data.sabores);
       }
-      if (resBord.status === 'fulfilled' && resBord.value.data?.bordas) {
-        setBordas(resBord.value.data.bordas);
+      if (resBord.status === 'fulfilled') {
+        const dadosBordas = resBord.value.data?.bordas || resBord.value.data?.sabores || [];
+        setBordas(dadosBordas);
       }
       if (resAdic.status === 'fulfilled' && resAdic.value.data?.adicionais) {
         setAdicionais(resAdic.value.data.adicionais);
@@ -287,7 +354,7 @@ export const Pdv: React.FC = () => {
         return;
       }
 
-      // ENTER sem modal: Gerar Pedido se não estiver dentro de input ou se apertar Ctrl+Enter
+      // ENTER sem modal: Gerar Pedido
       if ((e.key === 'Enter' && !isInput) || (e.ctrlKey && e.key === 'Enter')) {
         if (!modalProdutoAberto && !modalSucessoAberto && !modalRascunhosAberto) {
           e.preventDefault();
@@ -295,7 +362,6 @@ export const Pdv: React.FC = () => {
         }
       }
 
-      // Se estiver digitando em input, não dispara atalhos de letra única
       if (isInput) return;
 
       const key = e.key.toLowerCase();
@@ -408,6 +474,7 @@ export const Pdv: React.FC = () => {
 
   // Abrir Modal de Configuração de Produto
   const abrirModalConfiguracao = (prodOrItem: Produto | ItemCarrinho) => {
+    setBuscaSaborModal('');
     if ('idTemp' in prodOrItem) {
       // Editando item existente
       const prod = produtos.find((p) => p.id === prodOrItem.produtoId) || {
@@ -599,6 +666,21 @@ export const Pdv: React.FC = () => {
       setGerandoPedido(false);
     }
   };
+
+  const isPizzaAtual = ehPizzaProduto(produtoConfigurando, categorias);
+  const maxSaboresPizzaAtual = isPizzaAtual ? obterMaxSaboresPizza(produtoConfigurando) : 1;
+
+  // Sabores filtrados pela busca interna do modal
+  const saboresFiltradosModal = useMemo(() => {
+    return sabores.filter((s) => {
+      if (!s.ativo) return false;
+      if (buscaSaborModal) {
+        return s.nome.toLowerCase().includes(buscaSaborModal.toLowerCase()) ||
+          (s.descricao && s.descricao.toLowerCase().includes(buscaSaborModal.toLowerCase()));
+      }
+      return true;
+    });
+  }, [sabores, buscaSaborModal]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-5.5rem)] select-none text-[#F4F7FB] -m-4 md:-m-8">
@@ -1204,13 +1286,11 @@ export const Pdv: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* MODAIS AUXILIARES */}
+      {/* MODAL DE CONFIGURAÇÃO DE PRODUTO / PIZZA / ADICIONAIS */}
       {/* ======================================================== */}
-
-      {/* MODAL 1: CONFIGURAÇÃO DE PRODUTO / PIZZA / ADICIONAIS */}
       {modalProdutoAberto && produtoConfigurando && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#152439] border border-[#2A405B] rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-[#152439] border border-[#2A405B] rounded-2xl w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Topo Modal */}
             <div className="p-4 border-b border-[#2A405B] flex items-center justify-between bg-[#121f30]">
               <div>
@@ -1227,38 +1307,42 @@ export const Pdv: React.FC = () => {
               </button>
             </div>
 
-            {/* Conteúdo Modal */}
-            <div className="p-4 overflow-y-auto space-y-5">
+            {/* Conteúdo Modal com Scroll */}
+            <div className="p-4 overflow-y-auto space-y-4 flex-1">
               {/* Quantidade */}
               <div className="flex items-center justify-between bg-[#0B132B] p-3 rounded-xl border border-[#2A405B]">
                 <span className="text-xs font-bold text-white">Quantidade</span>
                 <div className="flex items-center gap-3">
                   <button
+                    type="button"
                     onClick={() => setQuantConfig((q) => Math.max(1, q - 1))}
-                    className="w-8 h-8 rounded-lg bg-[#152439] border border-[#2A405B] flex items-center justify-center text-white hover:bg-[#2A405B]"
+                    className="w-8 h-8 rounded-lg bg-[#152439] border border-[#2A405B] flex items-center justify-center text-white hover:bg-[#2A405B] cursor-pointer"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="font-extrabold text-sm text-white w-6 text-center">{quantConfig}</span>
                   <button
+                    type="button"
                     onClick={() => setQuantConfig((q) => q + 1)}
-                    className="w-8 h-8 rounded-lg bg-[#152439] border border-[#2A405B] flex items-center justify-center text-white hover:bg-[#2A405B]"
+                    className="w-8 h-8 rounded-lg bg-[#152439] border border-[#2A405B] flex items-center justify-center text-white hover:bg-[#2A405B] cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              {/* Seção de Sabores (se houver sabores cadastrados) */}
-              {sabores.length > 0 && (
+              {/* Se for Pizza: Seleção de Sabores */}
+              {isPizzaAtual && sabores.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-[#8C63FF]" />
-                      Escolher Sabores
+                      Escolher Sabores (Máx {maxSaboresPizzaAtual})
                     </label>
+
+                    {/* Botões de Fração gerados dinamicamente com base no tamanho da Pizza */}
                     <div className="flex gap-1">
-                      {[1, 2, 3, 4].map((n) => (
+                      {Array.from({ length: maxSaboresPizzaAtual }, (_, i) => i + 1).map((n) => (
                         <button
                           key={n}
                           type="button"
@@ -1266,10 +1350,10 @@ export const Pdv: React.FC = () => {
                             setNumFracoesPizza(n);
                             setSaboresEscolhidos([]);
                           }}
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-colors ${
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
                             numFracoesPizza === n
-                              ? 'bg-[#8C63FF] text-white border-[#8C63FF]'
-                              : 'bg-[#0B132B] border-[#2A405B] text-[#9CAABC]'
+                              ? 'bg-[#8C63FF] text-white border-[#8C63FF] shadow-sm'
+                              : 'bg-[#0B132B] border-[#2A405B] text-[#9CAABC] hover:text-white'
                           }`}
                         >
                           {n} Sabor{n > 1 ? 'es' : ''}
@@ -1278,8 +1362,21 @@ export const Pdv: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="max-h-36 overflow-y-auto border border-[#2A405B] rounded-xl p-2 grid grid-cols-2 gap-1.5 bg-[#0B132B]">
-                    {sabores.filter((s) => s.ativo).map((sab) => {
+                  {/* Campo de Busca Rápida de Sabores */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={buscaSaborModal}
+                      onChange={(e) => setBuscaSaborModal(e.target.value)}
+                      placeholder="Buscar sabor..."
+                      className="w-full bg-[#0B132B] border border-[#2A405B] text-xs text-white rounded-xl pl-8 pr-3 py-1.5 focus:outline-none focus:border-[#8C63FF]"
+                    />
+                    <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  </div>
+
+                  {/* Grid de Sabores */}
+                  <div className="max-h-40 overflow-y-auto border border-[#2A405B] rounded-xl p-2 grid grid-cols-2 gap-1.5 bg-[#0B132B]">
+                    {saboresFiltradosModal.map((sab) => {
                       const selecionado = saboresEscolhidos.some((s) => s.saborId === sab.id);
                       return (
                         <button
@@ -1290,16 +1387,16 @@ export const Pdv: React.FC = () => {
                               setSaboresEscolhidos((prev) => prev.filter((s) => s.saborId !== sab.id));
                             } else {
                               if (saboresEscolhidos.length >= numFracoesPizza) {
-                                notificar(`Limite de ${numFracoesPizza} sabor(es) atingido.`, 'info');
+                                notificar(`Você selecionou o modo de ${numFracoesPizza} sabor(es).`, 'info');
                                 return;
                               }
                               const fracao = numFracoesPizza === 1 ? '1/1' : `1/${numFracoesPizza}`;
                               setSaboresEscolhidos((prev) => [...prev, { saborId: sab.id, saborNome: sab.nome, fracao }]);
                             }
                           }}
-                          className={`p-2 rounded-lg text-left text-xs font-semibold border transition-all flex items-center justify-between ${
+                          className={`p-2 rounded-lg text-left text-xs font-semibold border transition-all flex items-center justify-between cursor-pointer ${
                             selecionado
-                              ? 'bg-[#8C63FF]/20 border-[#8C63FF] text-white'
+                              ? 'bg-[#8C63FF]/20 border-[#8C63FF] text-white font-bold'
                               : 'bg-[#152439] border-[#2A405B] text-[#9CAABC] hover:text-white'
                           }`}
                         >
@@ -1312,41 +1409,81 @@ export const Pdv: React.FC = () => {
                 </div>
               )}
 
-              {/* Seção de Bordas */}
-              {bordas.length > 0 && (
+              {/* Se for Pizza: Seleção de Bordas Recheadas */}
+              {isPizzaAtual && (
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                     <Tag className="w-3.5 h-3.5 text-[#0EA5E9]" />
                     Borda Recheada
                   </label>
-                  <div className="grid grid-cols-2 gap-1.5">
+                  <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto">
                     <button
                       type="button"
                       onClick={() => setBordaEscolhida(null)}
-                      className={`p-2 rounded-xl text-left text-xs font-semibold border transition-all ${
+                      className={`p-2.5 rounded-xl text-left text-xs font-semibold border transition-all cursor-pointer ${
                         !bordaEscolhida
-                          ? 'bg-[#0EA5E9]/20 border-[#0EA5E9] text-white font-bold'
-                          : 'bg-[#0B132B] border-[#2A405B] text-[#9CAABC]'
+                          ? 'bg-[#0EA5E9]/20 border-[#0EA5E9] text-white font-bold shadow-sm'
+                          : 'bg-[#0B132B] border-[#2A405B] text-[#9CAABC] hover:text-white'
                       }`}
                     >
                       Sem Borda
                     </button>
                     {bordas.map((b) => {
+                      const precoBorda = obterPrecoBordaParaProduto(b, produtoConfigurando.id);
                       const selecionada = bordaEscolhida?.bordaId === b.id;
                       return (
                         <button
                           key={b.id}
                           type="button"
-                          onClick={() => setBordaEscolhida({ bordaId: b.id, bordaNome: b.nome, preco: Number(b.valor_adicional || 0) })}
-                          className={`p-2 rounded-xl text-left text-xs font-semibold border transition-all flex items-center justify-between ${
+                          onClick={() => setBordaEscolhida({ bordaId: b.id, bordaNome: b.nome, preco: precoBorda })}
+                          className={`p-2.5 rounded-xl text-left text-xs font-semibold border transition-all flex items-center justify-between cursor-pointer ${
                             selecionada
-                              ? 'bg-[#0EA5E9]/20 border-[#0EA5E9] text-white font-bold'
-                              : 'bg-[#0B132B] border-[#2A405B] text-[#9CAABC]'
+                              ? 'bg-[#0EA5E9]/20 border-[#0EA5E9] text-white font-bold shadow-sm'
+                              : 'bg-[#0B132B] border-[#2A405B] text-[#9CAABC] hover:text-white'
                           }`}
                         >
                           <span className="truncate">{b.nome}</span>
-                          <span className="text-[10px] text-[#10B981] font-bold">
-                            +{formatarMoeda(b.valor_adicional)}
+                          <span className="text-[10px] text-[#10B981] font-bold shrink-0 ml-1">
+                            +{formatarMoeda(precoBorda)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Adicionais / Opcionais */}
+              {adicionais.length > 0 && !isPizzaAtual && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <Plus className="w-3.5 h-3.5 text-[#10B981]" />
+                    Adicionais e Opcionais
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto">
+                    {adicionais.map((ad) => {
+                      const adicItem = adicionaisEscolhidos.find((a) => a.adicionalId === ad.id);
+                      const selecionado = !!adicItem;
+                      return (
+                        <button
+                          key={ad.id}
+                          type="button"
+                          onClick={() => {
+                            if (selecionado) {
+                              setAdicionaisEscolhidos((prev) => prev.filter((a) => a.adicionalId !== ad.id));
+                            } else {
+                              setAdicionaisEscolhidos((prev) => [...prev, { adicionalId: ad.id, nome: ad.nome, quantidade: 1, valor: Number(ad.preco || 0) }]);
+                            }
+                          }}
+                          className={`p-2.5 rounded-xl text-left text-xs font-semibold border transition-all flex items-center justify-between cursor-pointer ${
+                            selecionado
+                              ? 'bg-[#10B981]/20 border-[#10B981] text-white font-bold shadow-sm'
+                              : 'bg-[#0B132B] border-[#2A405B] text-[#9CAABC] hover:text-white'
+                          }`}
+                        >
+                          <span className="truncate">{ad.nome}</span>
+                          <span className="text-[10px] text-[#10B981] font-bold shrink-0 ml-1">
+                            +{formatarMoeda(ad.preco)}
                           </span>
                         </button>
                       );
@@ -1383,7 +1520,7 @@ export const Pdv: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setModalProdutoAberto(false)}
-                  className="px-4 py-2 bg-[#152439] hover:bg-[#2A405B] border border-[#2A405B] text-white text-xs font-semibold rounded-xl transition-all"
+                  className="px-4 py-2 bg-[#152439] hover:bg-[#2A405B] border border-[#2A405B] text-white text-xs font-semibold rounded-xl transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -1421,7 +1558,7 @@ export const Pdv: React.FC = () => {
                 <button
                   key={f.id}
                   onClick={() => setFormaPagamento(f.id as any)}
-                  className={`w-full p-3 rounded-xl text-left text-xs font-bold border transition-all flex items-center justify-between ${
+                  className={`w-full p-3 rounded-xl text-left text-xs font-bold border transition-all flex items-center justify-between cursor-pointer ${
                     formaPagamento === f.id
                       ? 'bg-[#8C63FF] text-white border-[#8C63FF] shadow-md'
                       : 'bg-[#0B132B] border-[#2A405B] text-[#9CAABC] hover:text-white'
@@ -1542,13 +1679,13 @@ export const Pdv: React.FC = () => {
                   setCpfCnpj('');
                   setModalCpfAberto(false);
                 }}
-                className="flex-1 py-2 bg-[#152439] border border-[#2A405B] text-[#9CAABC] hover:text-white font-semibold text-xs rounded-xl transition-all"
+                className="flex-1 py-2 bg-[#152439] border border-[#2A405B] text-[#9CAABC] hover:text-white font-semibold text-xs rounded-xl transition-all cursor-pointer"
               >
                 Limpar
               </button>
               <button
                 onClick={() => setModalCpfAberto(false)}
-                className="flex-1 py-2 bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-xs rounded-xl transition-all shadow-md"
+                className="flex-1 py-2 bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-xs rounded-xl transition-all shadow-md cursor-pointer"
               >
                 Confirmar
               </button>

@@ -211,7 +211,7 @@ router.get('/bordas', async (req, res) => {
          FROM bordas b WHERE b.empresa_id=$1
            AND ($2='' OR b.nome ILIKE '%'||$2||'%')
          ORDER BY b.ativo DESC,b.ordem,b.nome`, [empresaId, busca]);
-    return res.json({ sabores: resultado.rows });
+    return res.json({ bordas: resultado.rows, sabores: resultado.rows });
 });
 
 async function salvarPrecosBorda(client: PoolClient, bordaId: string,
