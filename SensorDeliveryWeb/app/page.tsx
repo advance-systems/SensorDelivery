@@ -1175,20 +1175,32 @@ export default function HomePage() {
             </div>
 
             {/* Rodapé Carrinho */}
-            <div className="border-t border-[#eee9e6] bg-white p-5 pb-7">
-              <div className="mb-4 flex items-center justify-between">
+            <div className="border-t border-[#eee9e6] bg-white p-5 pb-7 space-y-3">
+              <div className="flex items-center justify-between">
                 <span className="text-[#777a86] font-medium">Subtotal</span>
                 <strong className="text-xl text-[#202332]">{money.format(subtotalCart)}</strong>
               </div>
-              <button
-                type="button"
-                disabled={!cartCount}
-                onClick={iniciarCheckout}
-                className="flex h-13 w-full items-center justify-between rounded-2xl bg-[#ff4b0a] px-5 font-bold text-white transition hover:bg-[#e03f04] disabled:opacity-40 cursor-pointer shadow-[0_8px_20px_rgba(255,75,10,.25)] active:scale-98"
-              >
-                <span>Continuar pedido</span>
-                <ArrowRight className="size-5" />
-              </button>
+
+              <div className="flex flex-col gap-2.5">
+                <button
+                  type="button"
+                  disabled={!cartCount}
+                  onClick={iniciarCheckout}
+                  className="flex h-13 w-full items-center justify-between rounded-2xl bg-[#ff4b0a] px-5 font-bold text-white transition hover:bg-[#e03f04] disabled:opacity-40 cursor-pointer shadow-[0_8px_20px_rgba(255,75,10,.25)] active:scale-98"
+                >
+                  <span>Finalizar Pedido</span>
+                  <ArrowRight className="size-5" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCartOpen(false)}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#eee9e6] bg-[#faf8f6] px-4 font-bold text-xs text-[#202332] hover:bg-[#fff0e9] hover:text-[#ff4b0a] hover:border-[#ff4b0a]/30 transition cursor-pointer active:scale-98"
+                >
+                  <Plus className="size-4 text-[#ff4b0a]" />
+                  <span>Adicionar mais itens</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
