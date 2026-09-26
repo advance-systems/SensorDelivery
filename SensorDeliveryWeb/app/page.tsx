@@ -1045,118 +1045,141 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Cart Sheet */}
-      <Sheet open={cartOpen} onOpenChange={setCartOpen}>
-        <SheetContent className="w-full gap-0 p-0 sm:max-w-md">
-          <SheetHeader className="border-b border-[#eee9e6] p-6">
-            <SheetTitle className="text-2xl font-extrabold">Meu carrinho</SheetTitle>
-            <SheetDescription>
-              {cartCount ? `${cartCount} ${cartCount === 1 ? 'item' : 'itens'} no pedido` : 'Seu carrinho está vazio'}
-            </SheetDescription>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto p-5">
-            {cartItems.length === 0 ? (
-              <div className="py-16 text-center text-[#9a9ca5]">
-                <ShoppingBag className="mx-auto size-12 opacity-30 mb-3" />
-                <p className="font-bold">Seu carrinho está vazio</p>
-                <p className="text-xs mt-1">Adicione itens deliciosos para começar seu pedido.</p>
+      {/* Gaveta do Carrinho (Drawer Lateral Direto) */}
+      {cartOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div
+            className="fixed inset-0"
+            onClick={() => setCartOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+            {/* Header Carrinho */}
+            <div className="flex items-center justify-between border-b border-[#eee9e6] p-5">
+              <div>
+                <h3 className="text-2xl font-extrabold text-[#202332]">Meu carrinho</h3>
+                <p className="text-xs text-[#747783] mt-0.5">
+                  {cartCount ? `${cartCount} ${cartCount === 1 ? 'item' : 'itens'} no pedido` : 'Seu carrinho está vazio'}
+                </p>
               </div>
-            ) : (
-              cartItems.map((item) => (
-                <div key={item.idTemp} className="mb-3 rounded-2xl border border-[#eee9e6] p-3.5 bg-white">
-                  <div className="flex gap-3">
-                    <img
-                      src={formatImageUrl(item.imagemUrl)}
-                      alt={item.produtoNome}
-                      className="size-16 rounded-xl object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/pizza-media.jpg';
-                      }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-1">
-                        <p className="font-bold text-sm leading-tight text-[#202332]">{item.produtoNome}</p>
-                        <button
-                          onClick={() => removerItemCarrinho(item.idTemp)}
-                          className="text-[#9a9ca5] hover:text-[#ef4444] p-0.5 cursor-pointer"
-                          aria-label="Remover item"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      </div>
+              <button
+                type="button"
+                onClick={() => setCartOpen(false)}
+                className="grid size-9 place-items-center rounded-full bg-[#faf8f6] text-[#747783] hover:text-[#202332] hover:bg-[#eee9e6] transition cursor-pointer"
+                aria-label="Fechar carrinho"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
 
-                      {/* Sabores */}
-                      {item.sabores && item.sabores.length > 0 && (
-                        <p className="text-[11px] text-[#ff4b0a] font-semibold mt-1">
-                          Sabores: {item.sabores.map((s) => `${s.saborNome} (${s.fracao})`).join(', ')}
-                        </p>
-                      )}
-
-                      {/* Borda */}
-                      {item.borda && (
-                        <p className="text-[11px] text-[#747783] mt-0.5">
-                          Borda: {item.borda.bordaNome} (+{money.format(item.borda.preco)})
-                        </p>
-                      )}
-
-                      {/* Adicionais */}
-                      {item.adicionais && item.adicionais.length > 0 && (
-                        <p className="text-[11px] text-[#747783] mt-0.5">
-                          Adicionais: {item.adicionais.map((a) => `${a.quantidade}x ${a.nome}`).join(', ')}
-                        </p>
-                      )}
-
-                      {/* Observações */}
-                      {item.observacoes && (
-                        <p className="text-[11px] text-[#f59e0b] italic mt-0.5">
-                          Obs: {item.observacoes}
-                        </p>
-                      )}
-
-                      <div className="mt-3 flex items-center justify-between">
-                        <p className="text-sm font-extrabold text-[#ff4b0a]">
-                          {money.format(item.valorTotal)}
-                        </p>
-                        <div className="flex items-center gap-2">
+            {/* Lista de Itens */}
+            <div className="flex-1 overflow-y-auto p-5">
+              {cartItems.length === 0 ? (
+                <div className="py-20 text-center text-[#9a9ca5]">
+                  <ShoppingBag className="mx-auto size-12 opacity-30 mb-3" />
+                  <p className="font-bold text-base text-[#202332]">Seu carrinho está vazio</p>
+                  <p className="text-xs mt-1">Adicione itens deliciosos para começar seu pedido.</p>
+                </div>
+              ) : (
+                cartItems.map((item) => (
+                  <div key={item.idTemp} className="mb-3 rounded-2xl border border-[#eee9e6] p-3.5 bg-white shadow-xs">
+                    <div className="flex gap-3">
+                      <img
+                        src={formatImageUrl(item.imagemUrl)}
+                        alt={item.produtoNome}
+                        className="size-16 rounded-xl object-cover shrink-0"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/pizza-media.jpg';
+                        }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-1">
+                          <p className="font-bold text-sm leading-tight text-[#202332]">{item.produtoNome}</p>
                           <button
-                            onClick={() => alterarQuantidadeItemCarrinho(item.idTemp, -1)}
-                            className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6] cursor-pointer"
-                            aria-label="Diminuir"
+                            onClick={() => removerItemCarrinho(item.idTemp)}
+                            className="text-[#9a9ca5] hover:text-[#ef4444] p-0.5 cursor-pointer"
+                            aria-label="Remover item"
                           >
-                            <Minus className="size-4" />
+                            <Trash2 className="size-4" />
                           </button>
-                          <span className="w-5 text-center text-xs font-bold">{item.quantidade}</span>
-                          <button
-                            onClick={() => alterarQuantidadeItemCarrinho(item.idTemp, 1)}
-                            className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6]"
-                            aria-label="Aumentar"
-                          >
-                            <Plus className="size-4" />
-                          </button>
+                        </div>
+
+                        {/* Sabores */}
+                        {item.sabores && item.sabores.length > 0 && (
+                          <p className="text-[11px] text-[#ff4b0a] font-semibold mt-1 leading-snug">
+                            Sabores: {item.sabores.map((s) => `${s.saborNome} (${s.fracao})`).join(', ')}
+                          </p>
+                        )}
+
+                        {/* Borda */}
+                        {item.borda && (
+                          <p className="text-[11px] text-[#747783] mt-0.5">
+                            Borda: {item.borda.bordaNome} (+{money.format(item.borda.preco)})
+                          </p>
+                        )}
+
+                        {/* Adicionais */}
+                        {item.adicionais && item.adicionais.length > 0 && (
+                          <p className="text-[11px] text-[#747783] mt-0.5">
+                            Adicionais: {item.adicionais.map((a) => `${a.quantidade}x ${a.nome}`).join(', ')}
+                          </p>
+                        )}
+
+                        {/* Observações */}
+                        {item.observacoes && (
+                          <p className="text-[11px] text-[#f59e0b] italic mt-0.5">
+                            Obs: {item.observacoes}
+                          </p>
+                        )}
+
+                        <div className="mt-3 flex items-center justify-between">
+                          <p className="text-sm font-extrabold text-[#ff4b0a]">
+                            {money.format(item.valorTotal)}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => alterarQuantidadeItemCarrinho(item.idTemp, -1)}
+                              className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6] cursor-pointer"
+                              aria-label="Diminuir"
+                            >
+                              <Minus className="size-4" />
+                            </button>
+                            <span className="w-5 text-center text-xs font-bold text-[#202332]">{item.quantidade}</span>
+                            <button
+                              onClick={() => alterarQuantidadeItemCarrinho(item.idTemp, 1)}
+                              className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6] cursor-pointer"
+                              aria-label="Aumentar"
+                            >
+                              <Plus className="size-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-          <div className="border-t border-[#eee9e6] bg-white p-5 pb-7">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-[#777a86] font-medium">Subtotal</span>
-              <strong className="text-xl text-[#202332]">{money.format(subtotalCart)}</strong>
+                ))
+              )}
             </div>
-            <button
-              disabled={!cartCount}
-              onClick={iniciarCheckout}
-              className="flex h-13 w-full items-center justify-between rounded-2xl bg-[#ff4b0a] px-5 font-bold text-white transition hover:bg-[#e03f04] disabled:opacity-40 cursor-pointer shadow-[0_8px_20px_rgba(255,75,10,.2)]"
-            >
-              <span>Continuar pedido</span>
-              <ArrowRight className="size-5" />
-            </button>
+
+            {/* Rodapé Carrinho */}
+            <div className="border-t border-[#eee9e6] bg-white p-5 pb-7">
+              <div className="mb-4 flex items-center justify-between">
+                <span className="text-[#777a86] font-medium">Subtotal</span>
+                <strong className="text-xl text-[#202332]">{money.format(subtotalCart)}</strong>
+              </div>
+              <button
+                type="button"
+                disabled={!cartCount}
+                onClick={iniciarCheckout}
+                className="flex h-13 w-full items-center justify-between rounded-2xl bg-[#ff4b0a] px-5 font-bold text-white transition hover:bg-[#e03f04] disabled:opacity-40 cursor-pointer shadow-[0_8px_20px_rgba(255,75,10,.25)] active:scale-98"
+              >
+                <span>Continuar pedido</span>
+                <ArrowRight className="size-5" />
+              </button>
+            </div>
           </div>
-        </SheetContent>
-      </Sheet>
+        </div>
+      )}
 
       {/* ======================================================== */}
       {/* MODAL DE CHECKOUT: ETAPA 1 (ENTREGA/RETIRADA) -> ETAPA 2 (DADOS) -> ETAPA 3 (PAGAMENTO) */}
