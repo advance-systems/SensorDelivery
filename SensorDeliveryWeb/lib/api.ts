@@ -178,3 +178,26 @@ export async function fetchProdutoOpcoes(produtoId: string, empresaId?: string):
     return null;
   }
 }
+
+export async function createPedido(payload: Record<string, unknown>): Promise<{ sucesso: boolean; pedido?: any; erro?: string; respostaPix?: any }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/pedidos`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      return { sucesso: false, erro: data.erro || data.detalhe || 'Erro ao criar pedido.' };
+    }
+    return { sucesso: true, pedido: data.pedido, respostaPix: data.respostaPix };
+  } catch (err) {
+    console.error('Erro ao enviar pedido:', err);
+    return { sucesso: false, erro: 'Falha de conexão ao enviar o pedido.' };
+  }
+}
+
