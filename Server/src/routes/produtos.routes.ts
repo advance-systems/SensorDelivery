@@ -3,8 +3,15 @@ import { database } from '../database/connection.js';
 
 const router = Router();
 
-function empresaPublica(req: { query: Record<string, unknown> }): string {
-    return String(req.query.empresaId ?? '').trim();
+async function empresaPublica(req: { query: Record<string, unknown> }): Promise<string> {
+    const direct = String(req.query.empresaId ?? '').trim();
+    if (direct) return direct;
+    try {
+        const first = await database.query('SELECT id FROM empresas WHERE ativo = TRUE ORDER BY id ASC LIMIT 1');
+        return first.rows.length > 0 ? String(first.rows[0].id) : '';
+    } catch {
+        return '';
+    }
 }
 
 async function produtoDaEmpresa(produtoId: string, empresaId: string): Promise<boolean> {
@@ -16,7 +23,7 @@ async function produtoDaEmpresa(produtoId: string, empresaId: string): Promise<b
 }
 
 router.get('/', async (req, res) => {
-    const empresaId = empresaPublica(req);
+    const empresaId = await empresaPublica(req);
     const categoriaId = String(req.query.categoriaId ?? '').trim();
     if (!empresaId) return res.status(400).json({ erro: 'empresaId é obrigatório.' });
     try {
@@ -25,6 +32,7 @@ router.get('/', async (req, res) => {
             SELECT
                 p.id,
                 p.categoria_id,
+                c.nome AS categoria_nome,
                 p.tipo,
                 p.nome,
                 p.descricao,
@@ -36,12 +44,14 @@ router.get('/', async (req, res) => {
                 p.destaque,
                 p.ordem
             FROM produtos p
+            LEFT JOIN categorias c ON c.id = p.categoria_id
             WHERE p.empresa_id = $1
               AND p.ativo = true
               AND p.disponivel = true
               AND ($2 = '' OR $2 = 'all' OR p.categoria_id::text = $2)
             ORDER BY
                 p.destaque DESC,
+                c.ordem ASC,
                 p.ordem ASC,
                 p.nome ASC
             `,
@@ -68,7 +78,7 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/categorias/lista', async (req, res) => {
-    const empresaId = empresaPublica(req);
+    const empresaId = await empresaPublica(req);
     if (!empresaId) return res.status(400).json({ erro: 'empresaId é obrigatório.' });
     try {
         const resultado = await database.query(
@@ -88,7 +98,7 @@ router.get('/categorias/lista', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
     const produtoId = String(req.params.id ?? '').trim();
-    const empresaId = empresaPublica(req);
+    const empresaId = await empresaPublica(req);
 
     if (!produtoId || !empresaId) {
         return res.status(400).json({
@@ -147,7 +157,7 @@ router.get('/:id', async (req, res) => {
 
 router.get('/:id/opcoes', async (req, res) => {
     const produtoId = String(req.params.id ?? '').trim();
-    const empresaId = empresaPublica(req);
+    const empresaId = await empresaPublica(req);
 
     if (!produtoId || !empresaId) {
         return res.status(400).json({
@@ -269,7 +279,7 @@ router.get('/:id/opcoes', async (req, res) => {
 
 router.get('/:id/variacoes', async (req, res) => {
     const produtoId = String(req.params.id ?? '').trim();
-    const empresaId = empresaPublica(req);
+    const empresaId = await empresaPublica(req);
 
     if (!produtoId || !empresaId) {
         return res.status(400).json({

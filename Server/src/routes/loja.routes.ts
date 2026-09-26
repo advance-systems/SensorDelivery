@@ -63,14 +63,19 @@ router.get('/empresas', async (req, res) => {
 
 router.get('/status', async (req, res) => {
     try {
-        const empresaId = String(
+        let empresaId = String(
             req.query.empresaId ?? ''
         ).trim();
 
         if (!empresaId) {
-            return res.status(400).json({
-                erro: 'empresaId é obrigatório.',
-            });
+            const firstEmp = await database.query('SELECT id FROM empresas WHERE ativo = TRUE ORDER BY id ASC LIMIT 1');
+            if (firstEmp.rows.length > 0) {
+                empresaId = String(firstEmp.rows[0].id);
+            } else {
+                return res.status(400).json({
+                    erro: 'Nenhuma empresa ativa encontrada.',
+                });
+            }
         }
 
         // ------------------------------------------------
