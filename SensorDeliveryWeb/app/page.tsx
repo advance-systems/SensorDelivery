@@ -375,6 +375,19 @@ export default function HomePage() {
     setModalCheckoutAberto(true);
   };
 
+  // Avançar da etapa de Dados para Pagamento
+  const avancarParaPagamento = () => {
+    if (!clienteNome.trim() || !clienteTelefone.trim()) {
+      alert('Por favor, informe seu nome e telefone.');
+      return;
+    }
+    if (tipoAtendimento === 'ENTREGA' && (!enderecoLogradouro.trim() || !enderecoBairro.trim())) {
+      alert('Por favor, informe a rua e o bairro de entrega.');
+      return;
+    }
+    setCheckoutStep('PAGAMENTO');
+  };
+
   // Finalizar e Enviar Pedido
   const finalizarPedidoOnline = async () => {
     if (!clienteNome.trim() || !clienteTelefone.trim()) {
@@ -1312,9 +1325,16 @@ export default function HomePage() {
                         <User className="size-3.5 text-[#ff4b0a]" /> Seu Nome *
                       </label>
                       <input
+                        id="input-cliente-nome"
                         type="text"
                         value={clienteNome}
                         onChange={(e) => setClienteNome(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            document.getElementById('input-cliente-telefone')?.focus();
+                          }
+                        }}
                         placeholder="Ex: João da Silva"
                         className="w-full h-11 px-3.5 rounded-xl border border-[#eee9e6] bg-[#faf8f6] text-xs outline-none focus:border-[#ff4b0a] focus:bg-white"
                       />
@@ -1324,9 +1344,20 @@ export default function HomePage() {
                         <Phone className="size-3.5 text-[#ff4b0a]" /> WhatsApp / Telefone *
                       </label>
                       <input
+                        id="input-cliente-telefone"
                         type="tel"
                         value={clienteTelefone}
                         onChange={(e) => setClienteTelefone(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (tipoAtendimento === 'ENTREGA') {
+                              document.getElementById('input-endereco-logradouro')?.focus();
+                            } else {
+                              document.getElementById('input-observacao-pedido')?.focus();
+                            }
+                          }
+                        }}
                         placeholder="(XX) 99999-9999"
                         className="w-full h-11 px-3.5 rounded-xl border border-[#eee9e6] bg-[#faf8f6] text-xs outline-none focus:border-[#ff4b0a] focus:bg-white"
                       />
@@ -1343,9 +1374,16 @@ export default function HomePage() {
                         <div className="col-span-2">
                           <label className="block text-[11px] font-bold text-[#747783] mb-1">Rua / Logradouro *</label>
                           <input
+                            id="input-endereco-logradouro"
                             type="text"
                             value={enderecoLogradouro}
                             onChange={(e) => setEnderecoLogradouro(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                document.getElementById('input-endereco-numero')?.focus();
+                              }
+                            }}
                             placeholder="Nome da rua ou avenida"
                             className="w-full h-11 px-3.5 rounded-xl border border-[#eee9e6] bg-[#faf8f6] text-xs outline-none focus:border-[#ff4b0a] focus:bg-white"
                           />
@@ -1353,9 +1391,16 @@ export default function HomePage() {
                         <div>
                           <label className="block text-[11px] font-bold text-[#747783] mb-1">Número *</label>
                           <input
+                            id="input-endereco-numero"
                             type="text"
                             value={enderecoNumero}
                             onChange={(e) => setEnderecoNumero(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                document.getElementById('input-endereco-bairro')?.focus();
+                              }
+                            }}
                             placeholder="123"
                             className="w-full h-11 px-3.5 rounded-xl border border-[#eee9e6] bg-[#faf8f6] text-xs outline-none focus:border-[#ff4b0a] focus:bg-white"
                           />
@@ -1366,9 +1411,16 @@ export default function HomePage() {
                         <div>
                           <label className="block text-[11px] font-bold text-[#747783] mb-1">Bairro *</label>
                           <input
+                            id="input-endereco-bairro"
                             type="text"
                             value={enderecoBairro}
                             onChange={(e) => setEnderecoBairro(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                document.getElementById('input-endereco-complemento')?.focus();
+                              }
+                            }}
                             placeholder="Ex: Centro"
                             className="w-full h-11 px-3.5 rounded-xl border border-[#eee9e6] bg-[#faf8f6] text-xs outline-none focus:border-[#ff4b0a] focus:bg-white"
                           />
@@ -1376,9 +1428,16 @@ export default function HomePage() {
                         <div>
                           <label className="block text-[11px] font-bold text-[#747783] mb-1">Complemento / Ref.</label>
                           <input
+                            id="input-endereco-complemento"
                             type="text"
                             value={enderecoComplemento}
                             onChange={(e) => setEnderecoComplemento(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                document.getElementById('input-observacao-pedido')?.focus();
+                              }
+                            }}
                             placeholder="Apto 101, casa azul"
                             className="w-full h-11 px-3.5 rounded-xl border border-[#eee9e6] bg-[#faf8f6] text-xs outline-none focus:border-[#ff4b0a] focus:bg-white"
                           />
@@ -1391,8 +1450,15 @@ export default function HomePage() {
                   <div className="pt-2 border-t border-[#eee9e6]">
                     <label className="block text-xs font-bold text-[#202332] mb-1">Observações do Pedido</label>
                     <textarea
+                      id="input-observacao-pedido"
                       value={observacaoPedido}
                       onChange={(e) => setObservacaoPedido(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          avancarParaPagamento();
+                        }
+                      }}
                       placeholder="Ex: Campainha não funciona, ligar ao chegar..."
                       rows={2}
                       className="w-full p-3 rounded-xl border border-[#eee9e6] bg-[#faf8f6] text-xs outline-none focus:border-[#ff4b0a] focus:bg-white resize-none"
@@ -1533,17 +1599,7 @@ export default function HomePage() {
               {checkoutStep === 'DADOS' && (
                 <button
                   type="button"
-                  onClick={() => {
-                    if (!clienteNome.trim() || !clienteTelefone.trim()) {
-                      alert('Por favor, informe seu nome e telefone.');
-                      return;
-                    }
-                    if (tipoAtendimento === 'ENTREGA' && (!enderecoLogradouro.trim() || !enderecoBairro.trim())) {
-                      alert('Por favor, informe a rua e o bairro de entrega.');
-                      return;
-                    }
-                    setCheckoutStep('PAGAMENTO');
-                  }}
+                  onClick={avancarParaPagamento}
                   className="flex h-13 w-full items-center justify-between rounded-2xl bg-[#ff4b0a] px-5 font-bold text-white shadow-[0_8px_20px_rgba(255,75,10,.25)] transition hover:bg-[#e03f04] cursor-pointer"
                 >
                   <span>Ir para Pagamento</span>
