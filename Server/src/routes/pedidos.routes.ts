@@ -471,10 +471,11 @@ router.post('/', async (req, res) => {
             });
         }
 
+        const tipoAtendimentoNorm = String(tipoAtendimento ?? '').toUpperCase();
         if (
-            !['ENTREGA', 'RETIRADA'].includes(
-                String(tipoAtendimento ?? '').toUpperCase()
-            )
+            !['ENTREGA', 'RETIRADA', 'CONSUMO_LOCAL'].includes(tipoAtendimentoNorm) &&
+            !tipoAtendimentoNorm.startsWith('MESA') &&
+            !tipoAtendimentoNorm.startsWith('COMANDA')
         ) {
             return res.status(400).json({
                 erro: 'tipoAtendimento inválido.',
@@ -573,6 +574,13 @@ router.post('/', async (req, res) => {
         // PEDIDO
         // =========================================================
 
+        let tipoAtendimentoEnum = 'ENTREGA';
+        if (tipoAtendimentoNorm === 'RETIRADA' || tipoAtendimentoNorm === 'BALCAO') {
+            tipoAtendimentoEnum = 'RETIRADA';
+        } else if (tipoAtendimentoNorm === 'CONSUMO_LOCAL' || tipoAtendimentoNorm.startsWith('MESA') || tipoAtendimentoNorm.startsWith('COMANDA')) {
+            tipoAtendimentoEnum = 'CONSUMO_LOCAL';
+        }
+
         const resultadoPedido = await client.query(
             `
             INSERT INTO pedidos (
@@ -595,7 +603,7 @@ router.post('/', async (req, res) => {
                 $2,
                 $3,
                 $4,
-                $5,
+                $5::tipo_atendimento,
                 $6,
                 $7,
                 $8,
@@ -616,7 +624,7 @@ router.post('/', async (req, res) => {
                 clienteIdFinal,
                 String(clienteNome).trim(),
                 String(clienteTelefone).trim(),
-                String(tipoAtendimento).toUpperCase(),
+                tipoAtendimentoEnum,
                 enderecoTexto || null,
                 observacoes || null,
                 Number(subtotal || 0),

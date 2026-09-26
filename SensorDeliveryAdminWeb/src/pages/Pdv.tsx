@@ -34,7 +34,9 @@ import {
   Layers,
   Save,
   Store,
-  Bike
+  Bike,
+  Link2,
+  Utensils
 } from 'lucide-react';
 
 interface Categoria {
@@ -234,6 +236,13 @@ export const Pdv: React.FC = () => {
   const [numFracoesPizza, setNumFracoesPizza] = useState<number>(1);
   const [buscaSaborModal, setBuscaSaborModal] = useState('');
 
+  // Modal Mesa / Comanda
+  const [modalMesaAberto, setModalMesaAberto] = useState(false);
+  const [abaMesaOuComanda, setAbaMesaOuComanda] = useState<'MESAS' | 'COMANDAS'>('MESAS');
+  const [buscaMesaComanda, setBuscaMesaComanda] = useState('');
+  const [itemMesaSelecionado, setItemMesaSelecionado] = useState<number | null>(1);
+  const [tipoMesaOuComandaEscolhida, setTipoMesaOuComandaEscolhida] = useState<'MESA' | 'COMANDA'>('MESA');
+
   // Modais Auxiliares
   const [modalObsPedidoAberto, setModalObsPedidoAberto] = useState(false);
   const [modalCpfAberto, setModalCpfAberto] = useState(false);
@@ -370,7 +379,7 @@ export const Pdv: React.FC = () => {
         setTipoAtendimento('DELIVERY');
       } else if (key === 'm') {
         e.preventDefault();
-        setTipoAtendimento('MESA');
+        setModalMesaAberto(true);
       } else if (key === 'b') {
         e.preventDefault();
         setTipoAtendimento('BALCAO');
@@ -617,9 +626,9 @@ export const Pdv: React.FC = () => {
       setGerandoPedido(true);
 
       const payload = {
-        clienteNome: clienteNome.trim() || 'Cliente Balcão',
+        clienteNome: clienteNome.trim() || (tipoAtendimento === 'MESA' ? (tipoMesaOuComandaEscolhida === 'COMANDA' ? `Comanda ${mesaNumero || '1'}` : `Mesa ${mesaNumero || '1'}`) : 'Cliente Balcão'),
         clienteTelefone: clienteTelefone.trim() || '00000000000',
-        tipoAtendimento: tipoAtendimento === 'MESA' ? `MESA ${mesaNumero || '1'}` : tipoAtendimento,
+        tipoAtendimento: tipoAtendimento === 'MESA' ? `${tipoMesaOuComandaEscolhida === 'COMANDA' ? 'COMANDA' : 'MESA'} ${mesaNumero || '1'}` : tipoAtendimento,
         formaPagamento,
         trocoPara: trocoPara ? Number(trocoPara) : undefined,
         enderecoTexto: tipoAtendimento === 'DELIVERY' ? enderecoTexto.trim() : undefined,
@@ -712,7 +721,9 @@ export const Pdv: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setTipoAtendimento('MESA')}
+            onClick={() => {
+              setModalMesaAberto(true);
+            }}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               tipoAtendimento === 'MESA'
                 ? 'bg-[#8C63FF] text-white shadow-md'
@@ -720,7 +731,9 @@ export const Pdv: React.FC = () => {
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            <span>[ M ] Mesas e Comandas</span>
+            <span>
+              [ M ] {tipoAtendimento === 'MESA' ? (mesaNumero ? `${tipoMesaOuComandaEscolhida === 'COMANDA' ? 'Comanda' : 'Mesa'} ${mesaNumero}` : 'Mesas e Comandas') : 'Mesas e Comandas'}
+            </span>
           </button>
         </div>
 
@@ -1148,16 +1161,26 @@ export const Pdv: React.FC = () => {
               </div>
             )}
 
-            {/* Se for Mesa, mostra número da mesa */}
+            {/* Se for Mesa, mostra número da mesa com atalho para abrir o modal */}
             {tipoAtendimento === 'MESA' && (
-              <div className="relative">
-                <input
-                  type="text"
-                  value={mesaNumero}
-                  onChange={(e) => setMesaNumero(e.target.value)}
-                  placeholder="Número da Mesa / Comanda (ex: 12)"
-                  className="w-full bg-[#0B132B] border border-[#8C63FF] text-xs text-white rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#8C63FF]"
-                />
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={mesaNumero}
+                    onChange={(e) => setMesaNumero(e.target.value)}
+                    placeholder={tipoMesaOuComandaEscolhida === 'COMANDA' ? "Número da Comanda (ex: 12)" : "Número da Mesa (ex: 1)"}
+                    className="w-full bg-[#0B132B] border border-[#8C63FF] text-xs text-white rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#8C63FF] font-semibold"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setModalMesaAberto(true)}
+                  className="px-3 py-2 bg-[#8C63FF]/20 hover:bg-[#8C63FF]/30 border border-[#8C63FF] text-[#C4B5FD] hover:text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Selecionar</span>
+                </button>
               </div>
             )}
 
@@ -1812,6 +1835,159 @@ export const Pdv: React.FC = () => {
               >
                 Iniciar Novo Pedido
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: SELEÇÃO DE MESA OU COMANDA */}
+      {modalMesaAberto && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white text-[#1e293b] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            {/* Topo / Header do Modal */}
+            <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 tracking-tight">
+                {abaMesaOuComanda === 'MESAS' ? 'Selecione uma mesa' : 'Selecione uma comanda'}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setModalMesaAberto(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Conteúdo com scroll */}
+            <div className="p-6 overflow-y-auto space-y-5 flex-1">
+              {/* Abas: Mesas vs Comandas */}
+              <div className="flex items-center gap-6 border-b border-gray-200 text-sm font-medium">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAbaMesaOuComanda('MESAS');
+                    setItemMesaSelecionado(1);
+                  }}
+                  className={`pb-2.5 transition-all relative cursor-pointer font-semibold ${
+                    abaMesaOuComanda === 'MESAS'
+                      ? 'text-[#0284C7] border-b-2 border-[#0284C7]'
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  Mesas
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAbaMesaOuComanda('COMANDAS');
+                    setItemMesaSelecionado(1);
+                  }}
+                  className={`pb-2.5 transition-all relative cursor-pointer font-semibold ${
+                    abaMesaOuComanda === 'COMANDAS'
+                      ? 'text-[#0284C7] border-b-2 border-[#0284C7]'
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  Comandas
+                </button>
+              </div>
+
+              {/* Barra de Pesquisa */}
+              <div className="relative">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={buscaMesaComanda}
+                  onChange={(e) => setBuscaMesaComanda(e.target.value)}
+                  placeholder={abaMesaOuComanda === 'MESAS' ? 'Mesa' : 'Comanda'}
+                  className="w-full bg-white border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#0284C7] focus:ring-1 focus:ring-[#0284C7] transition-all"
+                />
+                {buscaMesaComanda && (
+                  <button
+                    type="button"
+                    onClick={() => setBuscaMesaComanda('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Grid de Mesas ou Comandas */}
+              <div className="grid grid-cols-2 gap-3.5 max-h-72 overflow-y-auto pr-1">
+                {Array.from({ length: 30 }, (_, i) => i + 1)
+                  .filter((num) => {
+                    if (!buscaMesaComanda.trim()) return true;
+                    const termo = buscaMesaComanda.toLowerCase();
+                    const label = `${abaMesaOuComanda === 'MESAS' ? 'mesa' : 'comanda'} ${num}`;
+                    return label.includes(termo) || String(num).includes(termo);
+                  })
+                  .map((num) => {
+                    const isSelected = itemMesaSelecionado === num;
+                    const prefix = abaMesaOuComanda === 'MESAS' ? 'Mesa' : 'Comanda';
+
+                    return (
+                      <div
+                        key={num}
+                        onClick={() => setItemMesaSelecionado(num)}
+                        className={`border rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-[#0284C7] ring-2 ring-[#0284C7]/20 bg-[#ECFDF5]'
+                            : 'border-gray-200 hover:border-gray-300 bg-white shadow-xs'
+                        }`}
+                      >
+                        <div className="font-semibold text-gray-800 text-sm mb-3">
+                          {prefix} {num}
+                        </div>
+                        <div className="bg-[#D1FAE5] text-[#065F46] text-xs font-semibold py-1 rounded-md text-center">
+                          Livre
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* Rodapé / Ações */}
+              <div className="pt-3 space-y-3 border-t border-gray-100">
+                <p className="text-xs font-bold text-gray-800">
+                  Como deseja lançar o pedido?
+                </p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const num = itemMesaSelecionado || 1;
+                      setTipoAtendimento('MESA');
+                      setTipoMesaOuComandaEscolhida('COMANDA');
+                      setMesaNumero(String(num));
+                      setModalMesaAberto(false);
+                      notificar(`Comanda ${num} vinculada ao pedido!`, 'success');
+                    }}
+                    className="py-2.5 px-3 bg-[#859AB0] hover:bg-[#72879d] text-white font-bold text-xs rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
+                  >
+                    <Link2 className="w-4 h-4" />
+                    <span>Vincular comanda</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const num = itemMesaSelecionado || 1;
+                      setTipoAtendimento('MESA');
+                      setTipoMesaOuComandaEscolhida('MESA');
+                      setMesaNumero(String(num));
+                      setModalMesaAberto(false);
+                      notificar(`Mesa ${num} selecionada para o pedido!`, 'success');
+                    }}
+                    className="py-2.5 px-3 bg-[#859AB0] hover:bg-[#72879d] text-white font-bold text-xs rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs"
+                  >
+                    <Utensils className="w-4 h-4" />
+                    <span>Lançar na mesa</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

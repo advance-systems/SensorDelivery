@@ -125,7 +125,12 @@ function normalizarPedido(raw: any): Pedido {
     numero_pedido: String(raw.numero || raw.numero_pedido || raw.id),
     cliente_nome: raw.cliente_nome || 'Cliente',
     cliente_telefone: raw.cliente_telefone || '',
-    tipo_entrega: String(raw.tipo_atendimento || raw.tipo_entrega || 'entrega').toLowerCase().includes('retirada') ? 'retirada' : 'entrega',
+    tipo_entrega: (() => {
+      const rawTipo = String(raw.tipo_atendimento || raw.tipo_entrega || '').toLowerCase();
+      if (rawTipo.includes('mesa') || rawTipo.includes('consumo_local') || rawTipo.includes('comanda')) return 'mesa';
+      if (rawTipo.includes('retirada') || rawTipo.includes('balcao')) return 'retirada';
+      return 'entrega';
+    })(),
     status: normalizarStatus(raw.status),
     forma_pagamento: raw.forma_pagamento || raw.forma || 'PIX',
     subtotal: Number(raw.subtotal || raw.valor_total || 0),
@@ -368,7 +373,7 @@ export const CentralPedidos: React.FC = () => {
                         <span className="font-extrabold text-sm text-white flex items-center gap-1.5">
                           #{pedido.numero_pedido || pedido.id}
                           <span className="text-[10px] font-medium text-[#9CAABC] bg-[#0B132B] px-1.5 py-0.5 rounded border border-[#2A405B]">
-                            {pedido.tipo_entrega === 'entrega' ? 'Entrega' : 'Retirada'}
+                            {pedido.tipo_entrega === 'entrega' ? 'Entrega' : pedido.tipo_entrega === 'mesa' ? 'Mesa / Comanda' : 'Retirada'}
                           </span>
                         </span>
                         <span className="text-[11px] font-semibold text-[#9CAABC] flex items-center gap-1">
