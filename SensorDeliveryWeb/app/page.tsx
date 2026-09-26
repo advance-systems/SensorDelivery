@@ -834,17 +834,22 @@ export default function HomePage() {
                     <Tag className="size-4 text-[#ff4b0a]" />
                     Borda Recheada
                   </label>
-                  <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto">
+                  <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
                     <button
                       type="button"
                       onClick={() => setBordaEscolhida(null)}
-                      className={`p-2.5 rounded-xl text-left text-xs font-semibold border transition cursor-pointer ${
+                      className={`w-full p-3 rounded-xl text-left text-xs font-semibold border transition flex items-center justify-between cursor-pointer ${
                         !bordaEscolhida
                           ? 'bg-[#fff0e9] border-[#ff4b0a] text-[#ff4b0a] font-bold shadow-xs'
                           : 'bg-white border-[#eee9e6] text-[#666a76] hover:border-[#ff4b0a]/30'
                       }`}
                     >
-                      Sem Borda
+                      <span>Sem Borda</span>
+                      {!bordaEscolhida && (
+                        <div className="grid size-5 shrink-0 place-items-center rounded-full bg-[#ff4b0a] text-white">
+                          <Check className="size-3.5" />
+                        </div>
+                      )}
                     </button>
                     {opcoesProduto?.bordas.map((b) => {
                       const precoBorda = Number(b.valor) || 0;
@@ -856,16 +861,25 @@ export default function HomePage() {
                           onClick={() =>
                             setBordaEscolhida({ bordaId: b.id, bordaNome: b.nome, preco: precoBorda })
                           }
-                          className={`p-2.5 rounded-xl text-left text-xs font-semibold border transition flex items-center justify-between cursor-pointer ${
+                          className={`w-full p-3 rounded-xl text-left text-xs font-semibold border transition flex items-center justify-between gap-2 cursor-pointer ${
                             selecionada
                               ? 'bg-[#fff0e9] border-[#ff4b0a] text-[#ff4b0a] font-bold shadow-xs'
                               : 'bg-white border-[#eee9e6] text-[#202332] hover:border-[#ff4b0a]/30'
                           }`}
                         >
-                          <span className="truncate">{b.nome}</span>
-                          <span className="text-[11px] text-[#22c55e] font-bold shrink-0 ml-1">
-                            +{money.format(precoBorda)}
-                          </span>
+                          <span className="font-bold flex-1 leading-snug break-words">{b.nome}</span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs text-[#22c55e] font-extrabold">
+                              +{money.format(precoBorda)}
+                            </span>
+                            {selecionada ? (
+                              <div className="grid size-5 place-items-center rounded-full bg-[#ff4b0a] text-white">
+                                <Check className="size-3.5" />
+                              </div>
+                            ) : (
+                              <div className="size-5 rounded-full border border-[#ddd6d2]" />
+                            )}
+                          </div>
                         </button>
                       );
                     })}
