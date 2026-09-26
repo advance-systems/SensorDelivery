@@ -312,21 +312,25 @@ export default function HomePage() {
         {/* Mobile Search Box */}
         <SearchBox value={search} onChange={setSearch} />
 
-        {/* Categories Bar */}
-        <div className="relative mt-7">
-          {canScrollLeft && (
-            <button
-              onClick={() => scrollCategories('left')}
-              className="absolute -left-3 top-1/2 z-10 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-[#ebe7e4] bg-white text-[#202332] shadow-[0_4px_14px_rgba(0,0,0,0.12)] transition hover:bg-[#fff5f0] hover:text-[#ff4b0a] active:scale-95"
-              aria-label="Rolar categorias para a esquerda"
-            >
-              <ChevronLeft className="size-5" />
-            </button>
-          )}
+        {/* Categories Bar with integrated arrow buttons */}
+        <div className="mt-7 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => scrollCategories('left')}
+            disabled={!canScrollLeft}
+            className={`grid size-10 shrink-0 place-items-center rounded-full border border-[#ebe7e4] bg-white text-[#202332] shadow-sm transition active:scale-95 ${
+              canScrollLeft
+                ? 'cursor-pointer text-[#ff4b0a] hover:border-[#ff4b0a]/40 hover:bg-[#fff5f0]'
+                : 'cursor-not-allowed opacity-30 text-[#9a9ca5]'
+            }`}
+            aria-label="Rolar categorias para a esquerda"
+          >
+            <ChevronLeft className="size-5" />
+          </button>
 
           <nav
             ref={categoriesRef}
-            className="no-scrollbar flex gap-2 overflow-x-auto scroll-smooth px-1 pb-2"
+            className="no-scrollbar flex flex-1 gap-2 overflow-x-auto scroll-smooth py-1"
             aria-label="Categorias"
           >
             {categoryNames.map((item) => (
@@ -344,15 +348,19 @@ export default function HomePage() {
             ))}
           </nav>
 
-          {canScrollRight && (
-            <button
-              onClick={() => scrollCategories('right')}
-              className="absolute -right-3 top-1/2 z-10 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-[#ebe7e4] bg-white text-[#202332] shadow-[0_4px_14px_rgba(0,0,0,0.12)] transition hover:bg-[#fff5f0] hover:text-[#ff4b0a] active:scale-95"
-              aria-label="Rolar categorias para a direita"
-            >
-              <ChevronRight className="size-5" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => scrollCategories('right')}
+            disabled={!canScrollRight}
+            className={`grid size-10 shrink-0 place-items-center rounded-full border border-[#ebe7e4] bg-white text-[#202332] shadow-sm transition active:scale-95 ${
+              canScrollRight
+                ? 'cursor-pointer text-[#ff4b0a] hover:border-[#ff4b0a]/40 hover:bg-[#fff5f0]'
+                : 'cursor-not-allowed opacity-30 text-[#9a9ca5]'
+            }`}
+            aria-label="Rolar categorias para a direita"
+          >
+            <ChevronRight className="size-5" />
+          </button>
         </div>
 
         {/* Header List */}
