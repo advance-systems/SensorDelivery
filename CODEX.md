@@ -9,7 +9,7 @@ Atualizado em **17/10/2026**. Este é o documento principal para continuar o des
   - `staging`: Branch oficial de homologação.
   - `main`: Branch oficial de produção.
 - **Railway — Ambiente de Homologação (`staging`):**
-  - **API:** `https://sensordelivery-staging.up.railway.app` (conectada à branch `staging`).
+  - **API:** `https://teste-delivery.sistemassensor.com.br` (domínio oficial) ou `https://sensordelivery-staging.up.railway.app` (conectada à branch `staging`).
   - **PostgreSQL:** Instância dedicada de staging na rede privada (`postgres.railway.internal:5432/railway`), volume de 5GB.
   - **Volume de Arquivos da API:** `/data` (5GB) montado para `/data/uploads` e `/data/downloads`.
   - **Dados Espelhados:** Banco de homologação populado com a cópia real dos 101 produtos, categorias, sabores, bordas e configurações da pizzaria.
