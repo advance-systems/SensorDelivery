@@ -1,8 +1,9 @@
-const DEFAULT_API_URL = 'https://api-sensordelivery.sistemassensor.com.br/api';
+const DEFAULT_API_URL = 'http://localhost:3001';
 
 export const API_BASE_URL = (
-  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_URL) ||
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
+  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_URL) ||
+  (typeof process !== 'undefined' && process.env?.VITE_API_URL) ||
   DEFAULT_API_URL
 ).replace(/\/$/, '');
 
@@ -13,6 +14,13 @@ export interface LojaEmpresa {
   logo_url: string | null;
   telefone?: string;
   email?: string;
+}
+
+export interface HorarioDia{
+  dia_semana: number;
+  horario_abertura: string;
+  horario_fechamento: string;
+  fechado: boolean;
 }
 
 export interface LojaStatus {
@@ -30,6 +38,8 @@ export interface LojaStatus {
     cidade?: string;
   } | null;
   mensagem: string;
+  hoje?: HorarioDia | null;
+  horarios?: HorarioDia[];
   horarioFuncionamento: string;
   tempoEntregaMin: number;
   tempoEntregaMax: number;
@@ -106,7 +116,7 @@ export function formatImageUrl(url?: string | null): string {
 
 export async function fetchEmpresas(): Promise<LojaEmpresa[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/loja/empresas`, {
+    const res = await fetch(`${API_BASE_URL}/api/loja/empresas`, {
       headers: { 'Accept': 'application/json' },
     });
     if (!res.ok) return [];
@@ -121,7 +131,7 @@ export async function fetchEmpresas(): Promise<LojaEmpresa[]> {
 export async function fetchLojaStatus(empresaId?: string): Promise<LojaStatus | null> {
   try {
     const query = empresaId ? `?empresaId=${encodeURIComponent(empresaId)}` : '';
-    const res = await fetch(`${API_BASE_URL}/loja/status${query}`, {
+    const res = await fetch(`${API_BASE_URL}/api/loja/status${query}`, {
       headers: { 'Accept': 'application/json' },
     });
     if (!res.ok) return null;
@@ -135,7 +145,7 @@ export async function fetchLojaStatus(empresaId?: string): Promise<LojaStatus | 
 export async function fetchCategorias(empresaId?: string): Promise<Categoria[]> {
   try {
     const query = empresaId ? `?empresaId=${encodeURIComponent(empresaId)}` : '';
-    const res = await fetch(`${API_BASE_URL}/produtos/categorias/lista${query}`, {
+    const res = await fetch(`${API_BASE_URL}/api/produtos/categorias/lista${query}`, {
       headers: { 'Accept': 'application/json' },
     });
     if (!res.ok) return [];
@@ -153,7 +163,7 @@ export async function fetchProdutos(empresaId?: string, categoriaId?: string): P
     if (empresaId) params.append('empresaId', empresaId);
     if (categoriaId && categoriaId !== 'all') params.append('categoriaId', categoriaId);
     const qs = params.toString() ? `?${params.toString()}` : '';
-    const res = await fetch(`${API_BASE_URL}/produtos${qs}`, {
+    const res = await fetch(`${API_BASE_URL}/api/produtos${qs}`, {
       headers: { 'Accept': 'application/json' },
     });
     if (!res.ok) return [];
@@ -168,7 +178,7 @@ export async function fetchProdutos(empresaId?: string, categoriaId?: string): P
 export async function fetchProdutoOpcoes(produtoId: string, empresaId?: string): Promise<OpcoesProduto | null> {
   try {
     const query = empresaId ? `?empresaId=${encodeURIComponent(empresaId)}` : '';
-    const res = await fetch(`${API_BASE_URL}/produtos/${produtoId}/opcoes${query}`, {
+    const res = await fetch(`${API_BASE_URL}/api/produtos/${produtoId}/opcoes${query}`, {
       headers: { 'Accept': 'application/json' },
     });
     if (!res.ok) return null;
@@ -181,7 +191,7 @@ export async function fetchProdutoOpcoes(produtoId: string, empresaId?: string):
 
 export async function createPedido(payload: Record<string, unknown>): Promise<{ sucesso: boolean; pedido?: any; erro?: string; respostaPix?: any }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/pedidos`, {
+    const res = await fetch(`${API_BASE_URL}/api/pedidos`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

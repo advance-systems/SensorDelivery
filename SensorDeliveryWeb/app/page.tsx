@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -35,8 +35,14 @@ import {
   User,
   UserRound,
   X,
-} from 'lucide-react';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+} from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   type Adicional,
   type Borda,
@@ -45,6 +51,7 @@ import {
   type OpcoesProduto,
   type Produto,
   type Sabor,
+  API_BASE_URL,
   createPedido,
   fetchCategorias,
   fetchEmpresas,
@@ -52,14 +59,27 @@ import {
   fetchProdutoOpcoes,
   fetchProdutos,
   formatImageUrl,
-} from '@/lib/api';
+} from "@/lib/api";
 
-const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const money = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+
+const DIAS_SEMANA = [
+  "Domingo",
+  "Segunda-Feira",
+  "Terça-Feira",
+  "Quarta-Feira",
+  "Quinta-Feira",
+  "Sexta-Feira",
+  "Sábado",
+];
 
 function formatarTelefone(valor: string): string {
-  const digits = valor.replace(/\D/g, '').slice(0, 11);
+  const digits = valor.replace(/\D/g, "").slice(0, 11);
   if (digits.length <= 2) {
-    return digits.length > 0 ? `(${digits}` : '';
+    return digits.length > 0 ? `(${digits}` : "";
   }
   if (digits.length <= 6) {
     return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
@@ -71,14 +91,17 @@ function formatarTelefone(valor: string): string {
 }
 
 function formatarMoedaInput(valor: string | number): string {
-  const digits = String(valor).replace(/\D/g, '');
-  if (!digits) return '';
+  const digits = String(valor).replace(/\D/g, "");
+  if (!digits) return "";
   const num = Number(digits) / 100;
-  return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return num.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 function desformatarMoedaInput(valorFormatado: string): number {
-  const digits = String(valorFormatado).replace(/\D/g, '');
+  const digits = String(valorFormatado).replace(/\D/g, "");
   if (!digits) return 0;
   return Number(digits) / 100;
 }
@@ -93,106 +116,146 @@ export interface ItemCarrinhoCustomizado {
   observacoes?: string;
   sabores?: Array<{ saborId: string; saborNome: string; fracao: string }>;
   borda?: { bordaId: string; bordaNome: string; preco: number };
-  adicionais?: Array<{ adicionalId: string; nome: string; quantidade: number; valor: number }>;
+  adicionais?: Array<{
+    adicionalId: string;
+    nome: string;
+    quantidade: number;
+    valor: number;
+  }>;
   valorTotal: number;
 }
 
-function ehPizzaProduto(prod?: Produto | null, categoriasLista: Categoria[] = []): boolean {
+function ehPizzaProduto(
+  prod?: Produto | null,
+  categoriasLista: Categoria[] = [],
+): boolean {
   if (!prod) return false;
-  const nomeLower = (prod.nome || '').toLowerCase();
+  const nomeLower = (prod.nome || "").toLowerCase();
   const cat = categoriasLista.find((c) => c.id === prod.categoria_id);
-  const catLower = (cat?.nome || prod.categoria_nome || '').toLowerCase();
+  const catLower = (cat?.nome || prod.categoria_nome || "").toLowerCase();
   return (
-    catLower.includes('pizza') ||
-    nomeLower.includes('pizza') ||
-    nomeLower.includes('25cm') ||
-    nomeLower.includes('30cm') ||
-    nomeLower.includes('35cm') ||
-    nomeLower.includes('40cm') ||
-    nomeLower.includes('45cm') ||
-    nomeLower.includes('50cm') ||
-    nomeLower.includes('pequena') ||
-    nomeLower.includes('méd') ||
-    nomeLower.includes('med') ||
-    nomeLower.includes('grande') ||
-    nomeLower.includes('fam') ||
-    nomeLower.includes('gigante') ||
-    nomeLower.includes('broto')
+    catLower.includes("pizza") ||
+    nomeLower.includes("pizza") ||
+    nomeLower.includes("25cm") ||
+    nomeLower.includes("30cm") ||
+    nomeLower.includes("35cm") ||
+    nomeLower.includes("40cm") ||
+    nomeLower.includes("45cm") ||
+    nomeLower.includes("50cm") ||
+    nomeLower.includes("pequena") ||
+    nomeLower.includes("méd") ||
+    nomeLower.includes("med") ||
+    nomeLower.includes("grande") ||
+    nomeLower.includes("fam") ||
+    nomeLower.includes("gigante") ||
+    nomeLower.includes("broto")
   );
 }
 
 function obterMaxSaboresPizza(prod?: Produto | null): number {
   if (!prod) return 1;
-  const nomeLower = (prod.nome || '').toLowerCase();
-  if (nomeLower.includes('pequena') || nomeLower.includes('25cm') || nomeLower.includes('broto')) {
+  const nomeLower = (prod.nome || "").toLowerCase();
+  if (
+    nomeLower.includes("pequena") ||
+    nomeLower.includes("25cm") ||
+    nomeLower.includes("broto")
+  ) {
     return 2;
   }
-  if (nomeLower.includes('média') || nomeLower.includes('media') || nomeLower.includes('30cm')) {
+  if (
+    nomeLower.includes("média") ||
+    nomeLower.includes("media") ||
+    nomeLower.includes("30cm")
+  ) {
     return 2;
   }
-  if (nomeLower.includes('grande') || nomeLower.includes('35cm')) {
+  if (nomeLower.includes("grande") || nomeLower.includes("35cm")) {
     return 3;
   }
   if (
-    nomeLower.includes('família') ||
-    nomeLower.includes('familia') ||
-    nomeLower.includes('famiia') ||
-    nomeLower.includes('40cm')
+    nomeLower.includes("família") ||
+    nomeLower.includes("familia") ||
+    nomeLower.includes("famiia") ||
+    nomeLower.includes("40cm")
   ) {
     return 4;
   }
-  if (nomeLower.includes('gigante') || nomeLower.includes('45cm') || nomeLower.includes('50cm')) {
+  if (
+    nomeLower.includes("gigante") ||
+    nomeLower.includes("45cm") ||
+    nomeLower.includes("50cm")
+  ) {
     return 4;
   }
   return 2;
 }
 
 export default function HomePage() {
-  const [empresaId, setEmpresaId] = useState<string>('');
+  const [empresaId, setEmpresaId] = useState<string>("");
   const [lojaStatus, setLojaStatus] = useState<LojaStatus | null>(null);
   const [categories, setCategories] = useState<Categoria[]>([]);
   const [products, setProducts] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [category, setCategory] = useState('Todos');
-  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState("Todos");
+  const [search, setSearch] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<ItemCarrinhoCustomizado[]>([]);
 
   // Estado da Tela/Modal de Montagem
-  const [produtoConfigurando, setProdutoConfigurando] = useState<Produto | null>(null);
+  const [produtoConfigurando, setProdutoConfigurando] =
+    useState<Produto | null>(null);
   const [carregandoOpcoes, setCarregandoOpcoes] = useState(false);
-  const [opcoesProduto, setOpcoesProduto] = useState<OpcoesProduto | null>(null);
+  const [opcoesProduto, setOpcoesProduto] = useState<OpcoesProduto | null>(
+    null,
+  );
   const [quantConfig, setQuantConfig] = useState(1);
-  const [obsConfig, setObsConfig] = useState('');
-  const [saboresEscolhidos, setSaboresEscolhidos] = useState<Array<{ saborId: string; saborNome: string; fracao: string }>>([]);
-  const [bordaEscolhida, setBordaEscolhida] = useState<{ bordaId: string; bordaNome: string; preco: number } | null>(null);
+  const [obsConfig, setObsConfig] = useState("");
+  const [saboresEscolhidos, setSaboresEscolhidos] = useState<
+    Array<{ saborId: string; saborNome: string; fracao: string }>
+  >([]);
+  const [bordaEscolhida, setBordaEscolhida] = useState<{
+    bordaId: string;
+    bordaNome: string;
+    preco: number;
+  } | null>(null);
   const [adicionaisEscolhidos, setAdicionaisEscolhidos] = useState<
-    Array<{ adicionalId: string; nome: string; quantidade: number; valor: number }>
+    Array<{
+      adicionalId: string;
+      nome: string;
+      quantidade: number;
+      valor: number;
+    }>
   >([]);
   const [numFracoesPizza, setNumFracoesPizza] = useState<number>(1);
-  const [buscaSaborModal, setBuscaSaborModal] = useState('');
+  const [buscaSaborModal, setBuscaSaborModal] = useState("");
 
   // ==========================================
   // ESTADO DO CHECKOUT (ENTREGA / RETIRADA)
   // ==========================================
   const [modalCheckoutAberto, setModalCheckoutAberto] = useState(false);
-  const [checkoutStep, setCheckoutStep] = useState<'TIPO' | 'DADOS' | 'PAGAMENTO' | 'CONFIRMACAO'>('TIPO');
-  const [tipoAtendimento, setTipoAtendimento] = useState<'ENTREGA' | 'BALCAO'>('ENTREGA');
+  const [checkoutStep, setCheckoutStep] = useState<
+    "TIPO" | "DADOS" | "PAGAMENTO" | "CONFIRMACAO"
+  >("TIPO");
+  const [tipoAtendimento, setTipoAtendimento] = useState<"ENTREGA" | "BALCAO">(
+    "ENTREGA",
+  );
 
   // Dados do Cliente & Endereço
-  const [clienteNome, setClienteNome] = useState('');
-  const [clienteTelefone, setClienteTelefone] = useState('');
-  const [enderecoLogradouro, setEnderecoLogradouro] = useState('');
-  const [enderecoNumero, setEnderecoNumero] = useState('');
-  const [enderecoBairro, setEnderecoBairro] = useState('');
-  const [enderecoComplemento, setEnderecoComplemento] = useState('');
-  const [observacaoPedido, setObservacaoPedido] = useState('');
+  const [clienteNome, setClienteNome] = useState("");
+  const [clienteTelefone, setClienteTelefone] = useState("");
+  const [enderecoLogradouro, setEnderecoLogradouro] = useState("");
+  const [enderecoNumero, setEnderecoNumero] = useState("");
+  const [enderecoBairro, setEnderecoBairro] = useState("");
+  const [enderecoComplemento, setEnderecoComplemento] = useState("");
+  const [observacaoPedido, setObservacaoPedido] = useState("");
 
   // Pagamento
-  const [formaPagamento, setFormaPagamento] = useState<'PIX' | 'CARTAO_CREDITO' | 'CARTAO_DEBITO' | 'DINHEIRO'>('PIX');
-  const [trocoPara, setTrocoPara] = useState('');
+  const [formaPagamento, setFormaPagamento] = useState<
+    "PIX" | "CARTAO_CREDITO" | "CARTAO_DEBITO" | "DINHEIRO"
+  >("PIX");
+  const [trocoPara, setTrocoPara] = useState("");
   const [enviandoPedido, setEnviandoPedido] = useState(false);
   const [pedidoRealizado, setPedidoRealizado] = useState<any>(null);
   const [pixDados, setPixDados] = useState<any>(null);
@@ -201,17 +264,21 @@ export default function HomePage() {
   // Modal de Notificação/Alerta Moderno
   const [alertaModal, setAlertaModal] = useState<{
     aberto: boolean;
-    tipo: 'erro' | 'aviso' | 'sucesso';
+    tipo: "erro" | "aviso" | "sucesso";
     titulo: string;
     mensagem: string;
   }>({
     aberto: false,
-    tipo: 'aviso',
-    titulo: '',
-    mensagem: '',
+    tipo: "aviso",
+    titulo: "",
+    mensagem: "",
   });
 
-  const mostrarAlerta = (titulo: string, mensagem: string, tipo: 'erro' | 'aviso' | 'sucesso' = 'aviso') => {
+  const mostrarAlerta = (
+    titulo: string,
+    mensagem: string,
+    tipo: "erro" | "aviso" | "sucesso" = "aviso",
+  ) => {
     setAlertaModal({ aberto: true, tipo, titulo, mensagem });
   };
 
@@ -226,13 +293,13 @@ export default function HomePage() {
     setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
   };
 
-  const scrollCategories = (direction: 'left' | 'right') => {
+  const scrollCategories = (direction: "left" | "right") => {
     const el = categoriesRef.current;
     if (!el) return;
     const scrollAmount = 280;
     el.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth',
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
     });
   };
 
@@ -240,11 +307,11 @@ export default function HomePage() {
     const el = categoriesRef.current;
     if (!el) return;
     checkCategoryScroll();
-    el.addEventListener('scroll', checkCategoryScroll);
-    window.addEventListener('resize', checkCategoryScroll);
+    el.addEventListener("scroll", checkCategoryScroll);
+    window.addEventListener("resize", checkCategoryScroll);
     return () => {
-      el.removeEventListener('scroll', checkCategoryScroll);
-      window.removeEventListener('resize', checkCategoryScroll);
+      el.removeEventListener("scroll", checkCategoryScroll);
+      window.removeEventListener("resize", checkCategoryScroll);
     };
   }, [categories]);
 
@@ -253,8 +320,11 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     try {
+      console.log("Buscando dados na API: ", API_BASE_URL);
       const empresas = await fetchEmpresas();
-      const currentEmpresaId = empresas.length > 0 ? empresas[0].id : '';
+      console.log("Empresas retornadas: ", empresas);
+
+      const currentEmpresaId = empresas.length > 0 ? empresas[0].id : "";
       setEmpresaId(currentEmpresaId);
 
       const [statusRes, catRes, prodRes] = await Promise.all([
@@ -263,12 +333,15 @@ export default function HomePage() {
         fetchProdutos(currentEmpresaId),
       ]);
 
+      console.log("Categorias retornadas: ", catRes);
+      console.log("Produtos retornados: ", prodRes);
+
       setLojaStatus(statusRes);
       setCategories(catRes);
       setProducts(prodRes);
     } catch (err) {
-      console.error('Erro ao carregar cardápio da API:', err);
-      setError('Não foi possível carregar os dados do cardápio.');
+      console.error("Erro ao carregar cardápio da API:", err);
+      setError("Não foi possível carregar os dados do cardápio.");
     } finally {
       setLoading(false);
     }
@@ -280,20 +353,20 @@ export default function HomePage() {
 
   // Lista de categorias com "Todos" na primeira posição
   const categoryNames = useMemo(() => {
-    return ['Todos', ...categories.map((c) => c.nome)];
+    return ["Todos", ...categories.map((c) => c.nome)];
   }, [categories]);
 
   // Produtos filtrados por categoria e busca
   const filtered = useMemo(() => {
-    const term = search.trim().toLocaleLowerCase('pt-BR');
+    const term = search.trim().toLocaleLowerCase("pt-BR");
     return products.filter((p) => {
       const matchCategory =
-        category === 'Todos' ||
+        category === "Todos" ||
         p.categoria_nome === category ||
         categories.find((c) => c.id === p.categoria_id)?.nome === category;
 
-      const pNome = (p.nome || '').toLocaleLowerCase('pt-BR');
-      const pDesc = (p.descricao || '').toLocaleLowerCase('pt-BR');
+      const pNome = (p.nome || "").toLocaleLowerCase("pt-BR");
+      const pDesc = (p.descricao || "").toLocaleLowerCase("pt-BR");
       const matchSearch = !term || pNome.includes(term) || pDesc.includes(term);
 
       return matchCategory && matchSearch;
@@ -302,27 +375,32 @@ export default function HomePage() {
 
   // Totais do carrinho e taxas
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantidade, 0);
-  const subtotalCart = cartItems.reduce((sum, item) => sum + item.valorTotal, 0);
-  const taxaEntregaValor = tipoAtendimento === 'ENTREGA' ? (lojaStatus?.taxaEntregaPadrao ?? 5) : 0;
+  const subtotalCart = cartItems.reduce(
+    (sum, item) => sum + item.valorTotal,
+    0,
+  );
+  const taxaEntregaValor =
+    tipoAtendimento === "ENTREGA" ? (lojaStatus?.taxaEntregaPadrao ?? 5) : 0;
   const totalPedidoFinal = subtotalCart + taxaEntregaValor;
 
   function alterarQuantidadeItemCarrinho(idTemp: string, diferenca: number) {
-    setCartItems((prev) =>
-      prev
-        .map((it) => {
-          if (it.idTemp === idTemp) {
-            const novaQuant = it.quantidade + diferenca;
-            if (novaQuant <= 0) return null;
-            const precoUnit = it.valorTotal / it.quantidade;
-            return {
-              ...it,
-              quantidade: novaQuant,
-              valorTotal: precoUnit * novaQuant,
-            };
-          }
-          return it;
-        })
-        .filter(Boolean) as ItemCarrinhoCustomizado[]
+    setCartItems(
+      (prev) =>
+        prev
+          .map((it) => {
+            if (it.idTemp === idTemp) {
+              const novaQuant = it.quantidade + diferenca;
+              if (novaQuant <= 0) return null;
+              const precoUnit = it.valorTotal / it.quantidade;
+              return {
+                ...it,
+                quantidade: novaQuant,
+                valorTotal: precoUnit * novaQuant,
+              };
+            }
+            return it;
+          })
+          .filter(Boolean) as ItemCarrinhoCustomizado[],
     );
   }
 
@@ -334,20 +412,25 @@ export default function HomePage() {
   const abrirMontagemProduto = async (product: Produto) => {
     setProdutoConfigurando(product);
     setQuantConfig(1);
-    setObsConfig('');
+    setObsConfig("");
     setSaboresEscolhidos([]);
     setBordaEscolhida(null);
     setAdicionaisEscolhidos([]);
     setNumFracoesPizza(1);
-    setBuscaSaborModal('');
+    setBuscaSaborModal("");
     setCarregandoOpcoes(true);
 
     try {
       const opcoes = await fetchProdutoOpcoes(product.id, empresaId);
       setOpcoesProduto(opcoes);
     } catch (err) {
-      console.error('Erro ao buscar opções de montagem do produto:', err);
-      setOpcoesProduto(null);
+      console.error("Erro ao buscar opções de montagem do produto:", err);
+      setOpcoesProduto({
+        variacoes: [],
+        sabores: [],
+        bordas: [],
+        adicionais: [],
+      });
     } finally {
       setCarregandoOpcoes(false);
     }
@@ -366,7 +449,9 @@ export default function HomePage() {
     const term = buscaSaborModal.trim().toLowerCase();
     if (!term) return opcoesProduto.sabores;
     return opcoesProduto.sabores.filter(
-      (s) => s.nome.toLowerCase().includes(term) || (s.descricao && s.descricao.toLowerCase().includes(term))
+      (s) =>
+        s.nome.toLowerCase().includes(term) ||
+        (s.descricao && s.descricao.toLowerCase().includes(term)),
     );
   }, [opcoesProduto, buscaSaborModal]);
 
@@ -375,12 +460,16 @@ export default function HomePage() {
     if (!produtoConfigurando) return 0;
     const base =
       Number(
-        produtoConfigurando.preco_promocional && Number(produtoConfigurando.preco_promocional) > 0
+        produtoConfigurando.preco_promocional &&
+          Number(produtoConfigurando.preco_promocional) > 0
           ? produtoConfigurando.preco_promocional
-          : produtoConfigurando.preco
+          : produtoConfigurando.preco,
       ) || 0;
     const extraBorda = bordaEscolhida?.preco || 0;
-    const extraAdicionais = adicionaisEscolhidos.reduce((acc, a) => acc + a.valor * a.quantidade, 0);
+    const extraAdicionais = adicionaisEscolhidos.reduce(
+      (acc, a) => acc + a.valor * a.quantidade,
+      0,
+    );
     return (base + extraBorda + extraAdicionais) * quantConfig;
   }, [produtoConfigurando, quantConfig, bordaEscolhida, adicionaisEscolhidos]);
 
@@ -390,9 +479,10 @@ export default function HomePage() {
 
     const baseUnit =
       Number(
-        produtoConfigurando.preco_promocional && Number(produtoConfigurando.preco_promocional) > 0
+        produtoConfigurando.preco_promocional &&
+          Number(produtoConfigurando.preco_promocional) > 0
           ? produtoConfigurando.preco_promocional
-          : produtoConfigurando.preco
+          : produtoConfigurando.preco,
       ) || 0;
 
     const novoItem: ItemCarrinhoCustomizado = {
@@ -405,7 +495,8 @@ export default function HomePage() {
       observacoes: obsConfig.trim() || undefined,
       sabores: saboresEscolhidos.length > 0 ? saboresEscolhidos : undefined,
       borda: bordaEscolhida || undefined,
-      adicionais: adicionaisEscolhidos.length > 0 ? adicionaisEscolhidos : undefined,
+      adicionais:
+        adicionaisEscolhidos.length > 0 ? adicionaisEscolhidos : undefined,
       valorTotal: precoCalculadoItem,
     };
 
@@ -417,34 +508,56 @@ export default function HomePage() {
   // Iniciar Checkout a partir do carrinho
   const iniciarCheckout = () => {
     setCartOpen(false);
-    setCheckoutStep('TIPO');
+    setCheckoutStep("TIPO");
     setModalCheckoutAberto(true);
   };
 
   // Avançar da etapa de Dados para Pagamento
   const avancarParaPagamento = () => {
     if (!clienteNome.trim() || !clienteTelefone.trim()) {
-      mostrarAlerta('Identificação Necessária', 'Por favor, informe seu nome e telefone para identificarmos seu pedido.', 'aviso');
+      mostrarAlerta(
+        "Identificação Necessária",
+        "Por favor, informe seu nome e telefone para identificarmos seu pedido.",
+        "aviso",
+      );
       return;
     }
-    if (tipoAtendimento === 'ENTREGA' && (!enderecoLogradouro.trim() || !enderecoBairro.trim())) {
-      mostrarAlerta('Endereço Incompleto', 'Por favor, informe ao menos a rua e o bairro de entrega.', 'aviso');
+    if (
+      tipoAtendimento === "ENTREGA" &&
+      (!enderecoLogradouro.trim() || !enderecoBairro.trim())
+    ) {
+      mostrarAlerta(
+        "Endereço Incompleto",
+        "Por favor, informe ao menos a rua e o bairro de entrega.",
+        "aviso",
+      );
       return;
     }
-    setCheckoutStep('PAGAMENTO');
+    setCheckoutStep("PAGAMENTO");
   };
 
   // Finalizar e Enviar Pedido
   const finalizarPedidoOnline = async () => {
     if (!clienteNome.trim() || !clienteTelefone.trim()) {
-      mostrarAlerta('Identificação Necessária', 'Por favor, informe seu nome e telefone antes de finalizar.', 'aviso');
-      setCheckoutStep('DADOS');
+      mostrarAlerta(
+        "Identificação Necessária",
+        "Por favor, informe seu nome e telefone antes de finalizar.",
+        "aviso",
+      );
+      setCheckoutStep("DADOS");
       return;
     }
 
-    if (tipoAtendimento === 'ENTREGA' && (!enderecoLogradouro.trim() || !enderecoBairro.trim())) {
-      mostrarAlerta('Endereço Incompleto', 'Por favor, preencha o endereço completo de entrega.', 'aviso');
-      setCheckoutStep('DADOS');
+    if (
+      tipoAtendimento === "ENTREGA" &&
+      (!enderecoLogradouro.trim() || !enderecoBairro.trim())
+    ) {
+      mostrarAlerta(
+        "Endereço Incompleto",
+        "Por favor, preencha o endereço completo de entrega.",
+        "aviso",
+      );
+      setCheckoutStep("DADOS");
       return;
     }
 
@@ -494,7 +607,10 @@ export default function HomePage() {
       },
       observacao: observacaoPedido.trim() || undefined,
       formaPagamento,
-      trocoPara: formaPagamento === 'DINHEIRO' && trocoPara ? desformatarMoedaInput(trocoPara) : undefined,
+      trocoPara:
+        formaPagamento === "DINHEIRO" && trocoPara
+          ? desformatarMoedaInput(trocoPara)
+          : undefined,
       subtotal: subtotalCart,
       taxaEntrega: taxaEntregaValor,
       total: totalPedidoFinal,
@@ -508,9 +624,14 @@ export default function HomePage() {
       setPedidoRealizado(res.pedido);
       setPixDados(res.respostaPix);
       setCartItems([]);
-      setCheckoutStep('CONFIRMACAO');
+      setCheckoutStep("CONFIRMACAO");
     } else {
-      mostrarAlerta('Atenção ao Gravar Pedido', res.erro || 'Não foi possível registrar o pedido no momento. Verifique as opções selecionadas e tente novamente.', 'erro');
+      mostrarAlerta(
+        "Atenção ao Gravar Pedido",
+        res.erro ||
+          "Não foi possível registrar o pedido no momento. Verifique as opções selecionadas e tente novamente.",
+        "erro",
+      );
     }
   };
 
@@ -521,15 +642,147 @@ export default function HomePage() {
     setTimeout(() => setCopiadoPix(false), 3000);
   };
 
-  const nomeLoja = lojaStatus?.empresa?.nome || 'Sensor Delivery';
-  const cidadeLoja = lojaStatus?.empresa?.cidade || 'Bombinhas · SC';
+  const nomeLoja = lojaStatus?.empresa?.nome || "Sensor Delivery";
+  const cidadeLoja = lojaStatus?.empresa?.cidade || "Bombinhas · SC";
   const isAberta = lojaStatus?.aberta ?? true;
   const tempoMin = lojaStatus?.tempoEntregaMin ?? 35;
   const tempoMax = lojaStatus?.tempoEntregaMax ?? 50;
 
+  // Se a loja estiver fechada (conforme horários ou configuração da API)
+  if (!loading && lojaStatus && !lojaStatus.aberta) {
+    const diaAtual = new Date().getDay();
+    const horarioHoje = lojaStatus.hoje;
+
+    return (
+      <main className="min-h-screen bg-[#0d121c] text-white flex flex-col justify-between p-4 sm:p-8">
+        <div className="mx-auto max-w-xl w-full flex-1 flex flex-col justify-center items-center text-center py-10">
+          {/* Logotipo */}
+          <div className="mb-8">
+            <img
+              src={
+                lojaStatus?.empresa?.logoUrl
+                  ? formatImageUrl(lojaStatus.empresa.logoUrl)
+                  : "/logo-sensor-delivery.png"
+              }
+              alt={nomeLoja}
+              className="h-16 w-auto max-w-[200px] object-contain mx-auto"
+            />
+          </div>
+
+          {/* Card Principal Fechado */}
+          <div className="w-full bg-[#151c28] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+            {/* Tag de Status */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-sm font-semibold mb-6">
+              <span className="size-2.5 rounded-full bg-red-500 animate-pulse" />
+              {lojaStatus.status === "INDISPONIVEL"
+                ? "Loja Indisponível"
+                : "Loja Fechada"}
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
+              No momento não estamos aceitando pedidos.
+            </h1>
+
+            <p className="text-white/60 text-sm sm:text-base max-w-md mx-auto mb-6">
+              {lojaStatus.mensagem ||
+                "Nosso delivery está fechado neste momento. Confira abaixo nossa programação de funcionamento."}
+            </p>
+
+            {/* Horário de hoje */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6 text-left">
+              <span className="text-xs uppercase font-semibold text-white/50 tracking-wider block mb-1">
+                Horário de Hoje ({DIAS_SEMANA[diaAtual]})
+              </span>
+              <p className="text-base font-medium text-white">
+                {horarioHoje?.fechado
+                  ? "Não abriremos hoje"
+                  : horarioHoje
+                    ? `${horarioHoje.horario_abertura?.slice(0, 5)} às ${horarioHoje.horario_fechamento?.slice(0, 5)}`
+                    : lojaStatus.horarioFuncionamento || "Consulte horários"}
+              </p>
+            </div>
+
+            {/* Tabela de Todos os Horários */}
+            {lojaStatus.horarios && lojaStatus.horarios.length > 0 && (
+              <div className="bg-black/20 rounded-2xl p-4 border border-white/5 text-left">
+                <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-3">
+                  Quadro de Horários
+                </h3>
+
+                <div className="space-y-2 text-xs sm:text-sm">
+                  {lojaStatus.horarios.map((h) => {
+                    const isHoje = h.dia_semana === diaAtual;
+                    return (
+                      <div
+                        key={h.dia_semana}
+                        className={`flex justify-between items-center py-1.5 px-2 rounded-lg ${
+                          isHoje
+                            ? "bg-white/10 font-semibold text-white"
+                            : "text-white/70"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{DIAS_SEMANA[h.dia_semana]}</span>
+                          {isHoje && (
+                            <span className="text-[10px] bg-[#ff4b0a] text-white px-1.5 py-0.5 rounded font-bold uppercase">
+                              Hoje
+                            </span>
+                          )}
+                        </div>
+
+                        <span
+                          className={`${h.fechado ? "text-red-400 font-medium" : "text-white/90"}`}
+                        >
+                          {h.fechado
+                            ? "Fechado"
+                            : `${h.horario_abertura?.slice(0, 5)} às ${h.horario_fechamento?.slice(0, 5)}`}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Botão de Atualizar / Contato */}
+            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={carregarDados}
+                className="flex-1 inline-flex items-center justify-center gap-2 bg-[#ff4b0a] hover:bg-[#e03f04] text-white font-bold py-3.5 px-6 rounded-xl 
+                           transition shadow-lg shadow-[#ff4b0a]/20 cursor-pointer"
+              >
+                <RefreshCw className="size-4" />
+                Verificar se já abriu
+              </button>
+
+              {lojaStatus?.empresa?.telefone && (
+                <a
+                  href={`https://wa.me/55${lojaStatus.empresa.telefone.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white font-semibold py-3.5 px-5 rounded-xl 
+                              border border-white/10 transition"
+                >
+                  <Phone className="size-4 text-green-400" />
+                  Contato Whatsapp
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Rodapé */}
+        <footer className="text-center text-xs text-white/40 pb-4">
+          <p>
+            © {new Date().getFullYear()} {nomeLoja}. Plataforma Sensor Delivery
+          </p>
+        </footer>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen pb-24 text-[#202332]">
-      {/* Header */}
       <header className="sticky top-0 z-40 border-b border-black/5 bg-white/92 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-6xl items-center gap-4 px-4 sm:px-6">
           <button
@@ -540,7 +793,11 @@ export default function HomePage() {
           </button>
           <div className="flex items-center gap-3">
             <img
-              src={lojaStatus?.empresa?.logoUrl ? formatImageUrl(lojaStatus.empresa.logoUrl) : '/logo-sensor-delivery.png'}
+              src={
+                lojaStatus?.empresa?.logoUrl
+                  ? formatImageUrl(lojaStatus.empresa.logoUrl)
+                  : "/logo-sensor-delivery.png"
+              }
               alt={nomeLoja}
               className="h-12 w-auto max-w-[160px] object-contain"
             />
@@ -568,15 +825,18 @@ export default function HomePage() {
           <div className="relative z-10 flex flex-col justify-between gap-7 sm:flex-row sm:items-end">
             <div>
               <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/16 px-3 py-1.5 text-sm font-semibold backdrop-blur">
-                <span className={`size-2 rounded-full ${isAberta ? 'bg-[#57e38e]' : 'bg-[#ff6b6b]'}`} />
-                {isAberta ? 'Aberto agora' : 'Fechado no momento'}
+                <span
+                  className={`size-2 rounded-full ${isAberta ? "bg-[#57e38e]" : "bg-[#ff6b6b]"}`}
+                />
+                {isAberta ? "Aberto agora" : "Fechado no momento"}
               </div>
               <p className="text-sm font-medium text-white/75">{cidadeLoja}</p>
               <h1 className="mt-1 text-3xl font-extrabold tracking-[-0.03em] sm:text-4xl">
                 O que você quer pedir hoje?
               </h1>
               <p className="mt-2 max-w-xl text-[15px] leading-6 text-white/80">
-                {lojaStatus?.mensagem || 'Escolha seus favoritos e receba tudo quentinho onde estiver.'}
+                {lojaStatus?.mensagem ||
+                  "Escolha seus favoritos e receba tudo quentinho onde estiver."}
               </p>
             </div>
             <div className="flex items-center gap-3 rounded-2xl bg-white/12 px-4 py-3 backdrop-blur">
@@ -598,12 +858,12 @@ export default function HomePage() {
         <div className="mt-7 flex items-center gap-2">
           <button
             type="button"
-            onClick={() => scrollCategories('left')}
+            onClick={() => scrollCategories("left")}
             disabled={!canScrollLeft}
             className={`grid size-10 shrink-0 place-items-center rounded-full border border-[#ebe7e4] bg-white text-[#202332] shadow-sm transition active:scale-95 ${
               canScrollLeft
-                ? 'cursor-pointer text-[#ff4b0a] hover:border-[#ff4b0a]/40 hover:bg-[#fff5f0]'
-                : 'cursor-not-allowed opacity-30 text-[#9a9ca5]'
+                ? "cursor-pointer text-[#ff4b0a] hover:border-[#ff4b0a]/40 hover:bg-[#fff5f0]"
+                : "cursor-not-allowed opacity-30 text-[#9a9ca5]"
             }`}
             aria-label="Rolar categorias para a esquerda"
           >
@@ -621,8 +881,8 @@ export default function HomePage() {
                 onClick={() => setCategory(item)}
                 className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-bold transition ${
                   category === item
-                    ? 'bg-[#ff4b0a] text-white shadow-[0_7px_16px_rgba(255,75,10,.2)]'
-                    : 'border border-[#ebe7e4] bg-white text-[#666a76] hover:border-[#ff4b0a]/35 hover:text-[#ff4b0a]'
+                    ? "bg-[#ff4b0a] text-white shadow-[0_7px_16px_rgba(255,75,10,.2)]"
+                    : "border border-[#ebe7e4] bg-white text-[#666a76] hover:border-[#ff4b0a]/35 hover:text-[#ff4b0a]"
                 }`}
               >
                 {item}
@@ -632,12 +892,12 @@ export default function HomePage() {
 
           <button
             type="button"
-            onClick={() => scrollCategories('right')}
+            onClick={() => scrollCategories("right")}
             disabled={!canScrollRight}
             className={`grid size-10 shrink-0 place-items-center rounded-full border border-[#ebe7e4] bg-white text-[#202332] shadow-sm transition active:scale-95 ${
               canScrollRight
-                ? 'cursor-pointer text-[#ff4b0a] hover:border-[#ff4b0a]/40 hover:bg-[#fff5f0]'
-                : 'cursor-not-allowed opacity-30 text-[#9a9ca5]'
+                ? "cursor-pointer text-[#ff4b0a] hover:border-[#ff4b0a]/40 hover:bg-[#fff5f0]"
+                : "cursor-not-allowed opacity-30 text-[#9a9ca5]"
             }`}
             aria-label="Rolar categorias para a direita"
           >
@@ -650,11 +910,11 @@ export default function HomePage() {
           <div>
             <p className="text-sm font-semibold text-[#ff4b0a]">Cardápio</p>
             <h2 className="text-2xl font-extrabold tracking-[-0.02em]">
-              {category === 'Todos' ? 'Peça do seu jeito' : category}
+              {category === "Todos" ? "Peça do seu jeito" : category}
             </h2>
           </div>
           <span className="text-sm text-[#858894]">
-            {filtered.length} {filtered.length === 1 ? 'item' : 'itens'}
+            {filtered.length} {filtered.length === 1 ? "item" : "itens"}
           </span>
         </div>
 
@@ -662,7 +922,9 @@ export default function HomePage() {
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Loader2 className="size-9 animate-spin text-[#ff4b0a]" />
-            <p className="mt-3 text-sm font-semibold text-[#747783]">Carregando cardápio...</p>
+            <p className="mt-3 text-sm font-semibold text-[#747783]">
+              Carregando cardápio...
+            </p>
           </div>
         )}
 
@@ -685,9 +947,10 @@ export default function HomePage() {
             {filtered.map((product) => {
               const precoFinal =
                 Number(
-                  product.preco_promocional && Number(product.preco_promocional) > 0
+                  product.preco_promocional &&
+                    Number(product.preco_promocional) > 0
                     ? product.preco_promocional
-                    : product.preco
+                    : product.preco,
                 ) || 0;
 
               return (
@@ -706,7 +969,8 @@ export default function HomePage() {
                         alt={product.nome}
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/pizza-media.jpg';
+                          (e.target as HTMLImageElement).src =
+                            "/pizza-media.jpg";
                         }}
                       />
                       {product.destaque && (
@@ -714,23 +978,31 @@ export default function HomePage() {
                           Destaque
                         </span>
                       )}
-                      {product.preco_promocional && Number(product.preco_promocional) > 0 && (
-                        <span className="absolute right-3 top-3 rounded-full bg-[#22c55e] px-3 py-1 text-xs font-bold text-white shadow-sm">
-                          Promoção
-                        </span>
-                      )}
+                      {product.preco_promocional &&
+                        Number(product.preco_promocional) > 0 && (
+                          <span className="absolute right-3 top-3 rounded-full bg-[#22c55e] px-3 py-1 text-xs font-bold text-white shadow-sm">
+                            Promoção
+                          </span>
+                        )}
                     </div>
                     <div className="p-5 pb-3">
-                      <h3 className="text-[17px] font-extrabold leading-6">{product.nome}</h3>
+                      <h3 className="text-[17px] font-extrabold leading-6">
+                        {product.nome}
+                      </h3>
                       <p className="mt-2 min-h-11 line-clamp-2 text-sm leading-[1.55] text-[#747783]">
-                        {product.descricao || 'Delicioso item preparado com ingredientes frescos e selecionados.'}
+                        {product.descricao ||
+                          "Delicioso item preparado com ingredientes frescos e selecionados."}
                       </p>
                     </div>
                   </button>
                   <div className="flex items-center justify-between px-5 pb-5">
                     <div>
-                      <span className="block text-xs text-[#9a9ca5]">A partir de</span>
-                      <strong className="text-lg text-[#ff4b0a]">{money.format(precoFinal)}</strong>
+                      <span className="block text-xs text-[#9a9ca5]">
+                        A partir de
+                      </span>
+                      <strong className="text-lg text-[#ff4b0a]">
+                        {money.format(precoFinal)}
+                      </strong>
                     </div>
                     <button
                       onClick={() => abrirMontagemProduto(product)}
@@ -750,7 +1022,9 @@ export default function HomePage() {
           <div className="rounded-[24px] border border-dashed border-[#ddd6d2] bg-white px-6 py-14 text-center">
             <Search className="mx-auto mb-3 size-7 text-[#bbb4b0]" />
             <h3 className="font-bold">Nenhum item encontrado</h3>
-            <p className="mt-1 text-sm text-[#747783]">Tente buscar por outro termo ou selecione outra categoria.</p>
+            <p className="mt-1 text-sm text-[#747783]">
+              Tente buscar por outro termo ou selecione outra categoria.
+            </p>
           </div>
         )}
       </section>
@@ -762,15 +1036,15 @@ export default function HomePage() {
       >
         <div className="mx-auto grid max-w-md grid-cols-4">
           {[
-            { label: 'Início', icon: Home, active: true },
-            { label: 'Cardápio', icon: Store },
-            { label: 'Pedidos', icon: PackageCheck },
-            { label: 'Conta', icon: UserRound },
+            { label: "Início", icon: Home, active: true },
+            { label: "Cardápio", icon: Store },
+            { label: "Pedidos", icon: PackageCheck },
+            { label: "Conta", icon: UserRound },
           ].map(({ label, icon: Icon, active }) => (
             <button
               key={label}
               className={`flex flex-col items-center gap-1 py-1 text-[11px] font-semibold ${
-                active ? 'text-[#ff4b0a]' : 'text-[#777a86]'
+                active ? "text-[#ff4b0a]" : "text-[#777a86]"
               }`}
             >
               <Icon className="size-5" />
@@ -793,13 +1067,13 @@ export default function HomePage() {
                 alt={produtoConfigurando.nome}
                 className="h-full w-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/pizza-media.jpg';
+                  (e.target as HTMLImageElement).src = "/pizza-media.jpg";
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent flex items-end p-5">
                 <div className="text-white">
                   <span className="inline-flex items-center gap-1 rounded-full bg-[#ff4b0a] px-2.5 py-0.5 text-xs font-bold text-white mb-1 shadow">
-                    {isPizzaAtual ? 'Montagem de Pizza' : 'Personalizar Item'}
+                    {isPizzaAtual ? "Montagem de Pizza" : "Personalizar Item"}
                   </span>
                   <h2 className="text-xl font-extrabold leading-tight text-white drop-shadow-sm">
                     {produtoConfigurando.nome}
@@ -828,8 +1102,12 @@ export default function HomePage() {
               {/* Quantidade */}
               <div className="flex items-center justify-between rounded-2xl border border-[#eee9e6] bg-[#fdfcfb] p-3.5">
                 <div>
-                  <span className="block text-sm font-extrabold text-[#202332]">Quantidade</span>
-                  <span className="text-xs text-[#9a9ca5]">Selecione quantas unidades</span>
+                  <span className="block text-sm font-extrabold text-[#202332]">
+                    Quantidade
+                  </span>
+                  <span className="text-xs text-[#9a9ca5]">
+                    Selecione quantas unidades
+                  </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <button
@@ -855,243 +1133,307 @@ export default function HomePage() {
               {/* Indicador de carregamento das opções */}
               {carregandoOpcoes && (
                 <div className="flex items-center justify-center gap-2 py-6 text-sm font-semibold text-[#ff4b0a]">
-                  <Loader2 className="size-5 animate-spin" /> Carregando opções de montagem...
+                  <Loader2 className="size-5 animate-spin" /> Carregando opções
+                  de montagem...
                 </div>
               )}
 
               {/* SE FOR PIZZA: Escolha de Sabores e Frações */}
-              {!carregandoOpcoes && isPizzaAtual && (opcoesProduto?.sabores?.length ?? 0) > 0 && (
-                <div className="rounded-2xl border border-[#eee9e6] bg-white p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-extrabold uppercase tracking-wider text-[#ff4b0a] flex items-center gap-1.5">
-                      <Sparkles className="size-4 text-[#ff4b0a]" />
-                      Escolher Sabores (Máx {maxSaboresPizzaAtual})
-                    </label>
+              {!carregandoOpcoes &&
+                isPizzaAtual &&
+                (opcoesProduto?.sabores?.length ?? 0) > 0 && (
+                  <div className="rounded-2xl border border-[#eee9e6] bg-white p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-extrabold uppercase tracking-wider text-[#ff4b0a] flex items-center gap-1.5">
+                        <Sparkles className="size-4 text-[#ff4b0a]" />
+                        Escolher Sabores (Máx {maxSaboresPizzaAtual})
+                      </label>
 
-                    {/* Botões de Fração */}
-                    <div className="flex gap-1">
-                      {Array.from({ length: maxSaboresPizzaAtual }, (_, i) => i + 1).map((n) => (
-                        <button
-                          key={n}
-                          type="button"
-                          onClick={() => {
-                            setNumFracoesPizza(n);
-                            setSaboresEscolhidos([]);
-                          }}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${
-                            numFracoesPizza === n
-                              ? 'bg-[#ff4b0a] text-white border-[#ff4b0a] shadow-sm'
-                              : 'bg-white border-[#eee9e6] text-[#747783] hover:text-[#202332]'
-                          }`}
-                        >
-                          {n} Sabor{n > 1 ? 'es' : ''}
-                        </button>
-                      ))}
+                      {/* Botões de Fração */}
+                      <div className="flex gap-1">
+                        {Array.from(
+                          { length: maxSaboresPizzaAtual },
+                          (_, i) => i + 1,
+                        ).map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => {
+                              setNumFracoesPizza(n);
+                              setSaboresEscolhidos([]);
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                              numFracoesPizza === n
+                                ? "bg-[#ff4b0a] text-white border-[#ff4b0a] shadow-sm"
+                                : "bg-white border-[#eee9e6] text-[#747783] hover:text-[#202332]"
+                            }`}
+                          >
+                            {n} Sabor{n > 1 ? "es" : ""}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <p className="text-xs text-[#9a9ca5]">
-                    {saboresEscolhidos.length} de {numFracoesPizza} sabor(es) selecionado(s)
-                  </p>
+                    <p className="text-xs text-[#9a9ca5]">
+                      {saboresEscolhidos.length} de {numFracoesPizza} sabor(es)
+                      selecionado(s)
+                    </p>
 
-                  {/* Busca de Sabores */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#9a9ca5]" />
-                    <input
-                      type="text"
-                      value={buscaSaborModal}
-                      onChange={(e) => setBuscaSaborModal(e.target.value)}
-                      placeholder="Buscar sabor de pizza..."
-                      className="w-full rounded-xl border border-[#eee9e6] bg-[#faf8f6] py-2 pl-9 pr-3 text-xs outline-none focus:border-[#ff4b0a] focus:bg-white"
-                    />
-                  </div>
+                    {/* Busca de Sabores */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#9a9ca5]" />
+                      <input
+                        type="text"
+                        value={buscaSaborModal}
+                        onChange={(e) => setBuscaSaborModal(e.target.value)}
+                        placeholder="Buscar sabor de pizza..."
+                        className="w-full rounded-xl border border-[#eee9e6] bg-[#faf8f6] py-2 pl-9 pr-3 text-xs outline-none focus:border-[#ff4b0a] focus:bg-white"
+                      />
+                    </div>
 
-                  {/* Grid de Sabores */}
-                  <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
-                    {saboresFiltrados.map((sab) => {
-                      const selecionado = saboresEscolhidos.some((s) => s.saborId === sab.id);
-                      return (
-                        <button
-                          key={sab.id}
-                          type="button"
-                          onClick={() => {
-                            if (selecionado) {
-                              setSaboresEscolhidos((prev) => prev.filter((s) => s.saborId !== sab.id));
-                            } else {
-                              if (saboresEscolhidos.length >= numFracoesPizza) {
-                                setSaboresEscolhidos((prev) => {
-                                  const fracao = numFracoesPizza === 1 ? '1/1' : `1/${numFracoesPizza}`;
-                                  return [...prev.slice(0, numFracoesPizza - 1), { saborId: sab.id, saborNome: sab.nome, fracao }];
-                                });
-                                return;
+                    {/* Grid de Sabores */}
+                    <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
+                      {saboresFiltrados.map((sab) => {
+                        const selecionado = saboresEscolhidos.some(
+                          (s) => s.saborId === sab.id,
+                        );
+                        return (
+                          <button
+                            key={sab.id}
+                            type="button"
+                            onClick={() => {
+                              if (selecionado) {
+                                setSaboresEscolhidos((prev) =>
+                                  prev.filter((s) => s.saborId !== sab.id),
+                                );
+                              } else {
+                                if (
+                                  saboresEscolhidos.length >= numFracoesPizza
+                                ) {
+                                  setSaboresEscolhidos((prev) => {
+                                    const fracao =
+                                      numFracoesPizza === 1
+                                        ? "1/1"
+                                        : `1/${numFracoesPizza}`;
+                                    return [
+                                      ...prev.slice(0, numFracoesPizza - 1),
+                                      {
+                                        saborId: sab.id,
+                                        saborNome: sab.nome,
+                                        fracao,
+                                      },
+                                    ];
+                                  });
+                                  return;
+                                }
+                                const fracao =
+                                  numFracoesPizza === 1
+                                    ? "1/1"
+                                    : `1/${numFracoesPizza}`;
+                                setSaboresEscolhidos((prev) => [
+                                  ...prev,
+                                  {
+                                    saborId: sab.id,
+                                    saborNome: sab.nome,
+                                    fracao,
+                                  },
+                                ]);
                               }
-                              const fracao = numFracoesPizza === 1 ? '1/1' : `1/${numFracoesPizza}`;
-                              setSaboresEscolhidos((prev) => [
-                                ...prev,
-                                { saborId: sab.id, saborNome: sab.nome, fracao },
-                              ]);
-                            }
-                          }}
-                          className={`w-full p-2.5 rounded-xl text-left text-xs font-semibold border transition flex items-center justify-between cursor-pointer ${
-                            selecionado
-                              ? 'bg-[#fff0e9] border-[#ff4b0a] text-[#ff4b0a] font-bold shadow-xs'
-                              : 'bg-white border-[#eee9e6] text-[#202332] hover:border-[#ff4b0a]/30'
-                          }`}
-                        >
-                          <div className="min-w-0 flex-1 pr-2">
-                            <span className="block truncate font-bold">{sab.nome}</span>
-                            {sab.descricao && (
-                              <span className="block truncate text-[11px] text-[#858894] font-normal">
-                                {sab.descricao}
+                            }}
+                            className={`w-full p-2.5 rounded-xl text-left text-xs font-semibold border transition flex items-center justify-between cursor-pointer ${
+                              selecionado
+                                ? "bg-[#fff0e9] border-[#ff4b0a] text-[#ff4b0a] font-bold shadow-xs"
+                                : "bg-white border-[#eee9e6] text-[#202332] hover:border-[#ff4b0a]/30"
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1 pr-2">
+                              <span className="block truncate font-bold">
+                                {sab.nome}
                               </span>
-                            )}
-                          </div>
-                          {selecionado ? (
-                            <div className="grid size-5 shrink-0 place-items-center rounded-full bg-[#ff4b0a] text-white">
-                              <Check className="size-3.5" />
+                              {sab.descricao && (
+                                <span className="block truncate text-[11px] text-[#858894] font-normal">
+                                  {sab.descricao}
+                                </span>
+                              )}
                             </div>
-                          ) : (
-                            <div className="size-5 shrink-0 rounded-full border border-[#ddd6d2]" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* SE FOR PIZZA: Escolha de Bordas */}
-              {!carregandoOpcoes && isPizzaAtual && (opcoesProduto?.bordas?.length ?? 0) > 0 && (
-                <div className="rounded-2xl border border-[#eee9e6] bg-white p-4 space-y-2.5">
-                  <label className="text-xs font-extrabold uppercase tracking-wider text-[#202332] flex items-center gap-1.5">
-                    <Tag className="size-4 text-[#ff4b0a]" />
-                    Borda Recheada
-                  </label>
-                  <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
-                    <button
-                      type="button"
-                      onClick={() => setBordaEscolhida(null)}
-                      className={`w-full p-3 rounded-xl text-left text-xs font-semibold border transition flex items-center justify-between cursor-pointer ${
-                        !bordaEscolhida
-                          ? 'bg-[#fff0e9] border-[#ff4b0a] text-[#ff4b0a] font-bold shadow-xs'
-                          : 'bg-white border-[#eee9e6] text-[#666a76] hover:border-[#ff4b0a]/30'
-                      }`}
-                    >
-                      <span>Sem Borda</span>
-                      {!bordaEscolhida && (
-                        <div className="grid size-5 shrink-0 place-items-center rounded-full bg-[#ff4b0a] text-white">
-                          <Check className="size-3.5" />
-                        </div>
-                      )}
-                    </button>
-                    {opcoesProduto?.bordas.map((b) => {
-                      const precoBorda = Number(b.valor) || 0;
-                      const selecionada = bordaEscolhida?.bordaId === b.id;
-                      return (
-                        <button
-                          key={b.id}
-                          type="button"
-                          onClick={() =>
-                            setBordaEscolhida({ bordaId: b.id, bordaNome: b.nome, preco: precoBorda })
-                          }
-                          className={`w-full p-3 rounded-xl text-left text-xs font-semibold border transition flex items-center justify-between gap-2 cursor-pointer ${
-                            selecionada
-                              ? 'bg-[#fff0e9] border-[#ff4b0a] text-[#ff4b0a] font-bold shadow-xs'
-                              : 'bg-white border-[#eee9e6] text-[#202332] hover:border-[#ff4b0a]/30'
-                          }`}
-                        >
-                          <span className="font-bold flex-1 leading-snug break-words">{b.nome}</span>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-xs text-[#22c55e] font-extrabold">
-                              +{money.format(precoBorda)}
-                            </span>
-                            {selecionada ? (
-                              <div className="grid size-5 place-items-center rounded-full bg-[#ff4b0a] text-white">
+                            {selecionado ? (
+                              <div className="grid size-5 shrink-0 place-items-center rounded-full bg-[#ff4b0a] text-white">
                                 <Check className="size-3.5" />
                               </div>
                             ) : (
-                              <div className="size-5 rounded-full border border-[#ddd6d2]" />
+                              <div className="size-5 shrink-0 rounded-full border border-[#ddd6d2]" />
                             )}
-                          </div>
-                        </button>
-                      );
-                    })}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+
+              {/* SE FOR PIZZA: Escolha de Bordas */}
+              {!carregandoOpcoes &&
+                isPizzaAtual &&
+                (opcoesProduto?.bordas?.length ?? 0) > 0 && (
+                  <div className="rounded-2xl border border-[#eee9e6] bg-white p-4 space-y-2.5">
+                    <label className="text-xs font-extrabold uppercase tracking-wider text-[#202332] flex items-center gap-1.5">
+                      <Tag className="size-4 text-[#ff4b0a]" />
+                      Borda Recheada
+                    </label>
+                    <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
+                      <button
+                        type="button"
+                        onClick={() => setBordaEscolhida(null)}
+                        className={`w-full p-3 rounded-xl text-left text-xs font-semibold border transition flex items-center justify-between cursor-pointer ${
+                          !bordaEscolhida
+                            ? "bg-[#fff0e9] border-[#ff4b0a] text-[#ff4b0a] font-bold shadow-xs"
+                            : "bg-white border-[#eee9e6] text-[#666a76] hover:border-[#ff4b0a]/30"
+                        }`}
+                      >
+                        <span>Sem Borda</span>
+                        {!bordaEscolhida && (
+                          <div className="grid size-5 shrink-0 place-items-center rounded-full bg-[#ff4b0a] text-white">
+                            <Check className="size-3.5" />
+                          </div>
+                        )}
+                      </button>
+                      {opcoesProduto?.bordas.map((b) => {
+                        const precoBorda = Number(b.valor) || 0;
+                        const selecionada = bordaEscolhida?.bordaId === b.id;
+                        return (
+                          <button
+                            key={b.id}
+                            type="button"
+                            onClick={() =>
+                              setBordaEscolhida({
+                                bordaId: b.id,
+                                bordaNome: b.nome,
+                                preco: precoBorda,
+                              })
+                            }
+                            className={`w-full p-3 rounded-xl text-left text-xs font-semibold border transition flex items-center justify-between gap-2 cursor-pointer ${
+                              selecionada
+                                ? "bg-[#fff0e9] border-[#ff4b0a] text-[#ff4b0a] font-bold shadow-xs"
+                                : "bg-white border-[#eee9e6] text-[#202332] hover:border-[#ff4b0a]/30"
+                            }`}
+                          >
+                            <span className="font-bold flex-1 leading-snug break-words">
+                              {b.nome}
+                            </span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-xs text-[#22c55e] font-extrabold">
+                                +{money.format(precoBorda)}
+                              </span>
+                              {selecionada ? (
+                                <div className="grid size-5 place-items-center rounded-full bg-[#ff4b0a] text-white">
+                                  <Check className="size-3.5" />
+                                </div>
+                              ) : (
+                                <div className="size-5 rounded-full border border-[#ddd6d2]" />
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
               {/* ADICIONAIS E OPCIONAIS */}
-              {!carregandoOpcoes && (opcoesProduto?.adicionais?.length ?? 0) > 0 && (
-                <div className="rounded-2xl border border-[#eee9e6] bg-white p-4 space-y-2.5">
-                  <label className="text-xs font-extrabold uppercase tracking-wider text-[#202332] flex items-center gap-1.5">
-                    <Layers className="size-4 text-[#ff4b0a]" />
-                    Adicionais e Opcionais
-                  </label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {opcoesProduto?.adicionais.map((ad) => {
-                      const valorAdic = Number(ad.preco) || 0;
-                      const existente = adicionaisEscolhidos.find((a) => a.adicionalId === ad.id);
-                      const quant = existente ? existente.quantidade : 0;
+              {!carregandoOpcoes &&
+                (opcoesProduto?.adicionais?.length ?? 0) > 0 && (
+                  <div className="rounded-2xl border border-[#eee9e6] bg-white p-4 space-y-2.5">
+                    <label className="text-xs font-extrabold uppercase tracking-wider text-[#202332] flex items-center gap-1.5">
+                      <Layers className="size-4 text-[#ff4b0a]" />
+                      Adicionais e Opcionais
+                    </label>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {opcoesProduto?.adicionais.map((ad) => {
+                        const valorAdic = Number(ad.preco) || 0;
+                        const existente = adicionaisEscolhidos.find(
+                          (a) => a.adicionalId === ad.id,
+                        );
+                        const quant = existente ? existente.quantidade : 0;
 
-                      return (
-                        <div
-                          key={ad.id}
-                          className="flex items-center justify-between rounded-xl border border-[#eee9e6] p-2.5 bg-[#fdfcfb]"
-                        >
-                          <div>
-                            <span className="block text-xs font-bold text-[#202332]">{ad.nome}</span>
-                            <span className="text-[11px] font-bold text-[#22c55e]">
-                              +{money.format(valorAdic)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {quant > 0 && (
+                        return (
+                          <div
+                            key={ad.id}
+                            className="flex items-center justify-between rounded-xl border border-[#eee9e6] p-2.5 bg-[#fdfcfb]"
+                          >
+                            <div>
+                              <span className="block text-xs font-bold text-[#202332]">
+                                {ad.nome}
+                              </span>
+                              <span className="text-[11px] font-bold text-[#22c55e]">
+                                +{money.format(valorAdic)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {quant > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setAdicionaisEscolhidos((prev) =>
+                                      prev
+                                        .map((a) =>
+                                          a.adicionalId === ad.id
+                                            ? {
+                                                ...a,
+                                                quantidade: a.quantidade - 1,
+                                              }
+                                            : a,
+                                        )
+                                        .filter((a) => a.quantidade > 0),
+                                    );
+                                  }}
+                                  className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6] cursor-pointer"
+                                >
+                                  <Minus className="size-3.5" />
+                                </button>
+                              )}
+                              {quant > 0 && (
+                                <span className="w-5 text-center text-xs font-bold">
+                                  {quant}
+                                </span>
+                              )}
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setAdicionaisEscolhidos((prev) =>
-                                    prev
-                                      .map((a) =>
-                                        a.adicionalId === ad.id ? { ...a, quantidade: a.quantidade - 1 } : a
-                                      )
-                                      .filter((a) => a.quantidade > 0)
-                                  );
-                                }}
-                                className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6] cursor-pointer"
-                              >
-                                <Minus className="size-3.5" />
-                              </button>
-                            )}
-                            {quant > 0 && (
-                              <span className="w-5 text-center text-xs font-bold">{quant}</span>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setAdicionaisEscolhidos((prev) => {
-                                  const item = prev.find((a) => a.adicionalId === ad.id);
-                                  if (item) {
-                                    return prev.map((a) =>
-                                      a.adicionalId === ad.id ? { ...a, quantidade: a.quantidade + 1 } : a
+                                  setAdicionaisEscolhidos((prev) => {
+                                    const item = prev.find(
+                                      (a) => a.adicionalId === ad.id,
                                     );
-                                  }
-                                  return [
-                                    ...prev,
-                                    { adicionalId: ad.id, nome: ad.nome, quantidade: 1, valor: valorAdic },
-                                  ];
-                                });
-                              }}
-                              className="grid size-7 place-items-center rounded-lg bg-[#ff4b0a] text-white transition hover:bg-[#e03f04] cursor-pointer"
-                            >
-                              <Plus className="size-3.5" />
-                            </button>
+                                    if (item) {
+                                      return prev.map((a) =>
+                                        a.adicionalId === ad.id
+                                          ? {
+                                              ...a,
+                                              quantidade: a.quantidade + 1,
+                                            }
+                                          : a,
+                                      );
+                                    }
+                                    return [
+                                      ...prev,
+                                      {
+                                        adicionalId: ad.id,
+                                        nome: ad.nome,
+                                        quantidade: 1,
+                                        valor: valorAdic,
+                                      },
+                                    ];
+                                  });
+                                }}
+                                className="grid size-7 place-items-center rounded-lg bg-[#ff4b0a] text-white transition hover:bg-[#e03f04] cursor-pointer"
+                              >
+                                <Plus className="size-3.5" />
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Observações do Item */}
               <div className="rounded-2xl border border-[#eee9e6] bg-white p-4 space-y-2">
@@ -1116,7 +1458,9 @@ export default function HomePage() {
                 className="flex h-13 w-full items-center justify-between rounded-2xl bg-[#ff4b0a] px-5 font-extrabold text-white shadow-[0_8px_20px_rgba(255,75,10,.25)] transition hover:bg-[#e03f04] cursor-pointer active:scale-98"
               >
                 <span>Adicionar ao carrinho</span>
-                <span className="text-base">{money.format(precoCalculadoItem)}</span>
+                <span className="text-base">
+                  {money.format(precoCalculadoItem)}
+                </span>
               </button>
             </div>
           </div>
@@ -1135,9 +1479,13 @@ export default function HomePage() {
             {/* Header Carrinho */}
             <div className="flex items-center justify-between border-b border-[#eee9e6] p-5">
               <div>
-                <h3 className="text-2xl font-extrabold text-[#202332]">Meu carrinho</h3>
+                <h3 className="text-2xl font-extrabold text-[#202332]">
+                  Meu carrinho
+                </h3>
                 <p className="text-xs text-[#747783] mt-0.5">
-                  {cartCount ? `${cartCount} ${cartCount === 1 ? 'item' : 'itens'} no pedido` : 'Seu carrinho está vazio'}
+                  {cartCount
+                    ? `${cartCount} ${cartCount === 1 ? "item" : "itens"} no pedido`
+                    : "Seu carrinho está vazio"}
                 </p>
               </div>
               <button
@@ -1155,24 +1503,34 @@ export default function HomePage() {
               {cartItems.length === 0 ? (
                 <div className="py-20 text-center text-[#9a9ca5]">
                   <ShoppingBag className="mx-auto size-12 opacity-30 mb-3" />
-                  <p className="font-bold text-base text-[#202332]">Seu carrinho está vazio</p>
-                  <p className="text-xs mt-1">Adicione itens deliciosos para começar seu pedido.</p>
+                  <p className="font-bold text-base text-[#202332]">
+                    Seu carrinho está vazio
+                  </p>
+                  <p className="text-xs mt-1">
+                    Adicione itens deliciosos para começar seu pedido.
+                  </p>
                 </div>
               ) : (
                 cartItems.map((item) => (
-                  <div key={item.idTemp} className="mb-3 rounded-2xl border border-[#eee9e6] p-3.5 bg-white shadow-xs">
+                  <div
+                    key={item.idTemp}
+                    className="mb-3 rounded-2xl border border-[#eee9e6] p-3.5 bg-white shadow-xs"
+                  >
                     <div className="flex gap-3">
                       <img
                         src={formatImageUrl(item.imagemUrl)}
                         alt={item.produtoNome}
                         className="size-16 rounded-xl object-cover shrink-0"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/pizza-media.jpg';
+                          (e.target as HTMLImageElement).src =
+                            "/pizza-media.jpg";
                         }}
                       />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-1">
-                          <p className="font-bold text-sm leading-tight text-[#202332]">{item.produtoNome}</p>
+                          <p className="font-bold text-sm leading-tight text-[#202332]">
+                            {item.produtoNome}
+                          </p>
                           <button
                             onClick={() => removerItemCarrinho(item.idTemp)}
                             className="text-[#9a9ca5] hover:text-[#ef4444] p-0.5 cursor-pointer"
@@ -1185,21 +1543,28 @@ export default function HomePage() {
                         {/* Sabores */}
                         {item.sabores && item.sabores.length > 0 && (
                           <p className="text-[11px] text-[#ff4b0a] font-semibold mt-1 leading-snug">
-                            Sabores: {item.sabores.map((s) => `${s.saborNome} (${s.fracao})`).join(', ')}
+                            Sabores:{" "}
+                            {item.sabores
+                              .map((s) => `${s.saborNome} (${s.fracao})`)
+                              .join(", ")}
                           </p>
                         )}
 
                         {/* Borda */}
                         {item.borda && (
                           <p className="text-[11px] text-[#747783] mt-0.5">
-                            Borda: {item.borda.bordaNome} (+{money.format(item.borda.preco)})
+                            Borda: {item.borda.bordaNome} (+
+                            {money.format(item.borda.preco)})
                           </p>
                         )}
 
                         {/* Adicionais */}
                         {item.adicionais && item.adicionais.length > 0 && (
                           <p className="text-[11px] text-[#747783] mt-0.5">
-                            Adicionais: {item.adicionais.map((a) => `${a.quantidade}x ${a.nome}`).join(', ')}
+                            Adicionais:{" "}
+                            {item.adicionais
+                              .map((a) => `${a.quantidade}x ${a.nome}`)
+                              .join(", ")}
                           </p>
                         )}
 
@@ -1216,15 +1581,21 @@ export default function HomePage() {
                           </p>
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => alterarQuantidadeItemCarrinho(item.idTemp, -1)}
+                              onClick={() =>
+                                alterarQuantidadeItemCarrinho(item.idTemp, -1)
+                              }
                               className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6] cursor-pointer"
                               aria-label="Diminuir"
                             >
                               <Minus className="size-4" />
                             </button>
-                            <span className="w-5 text-center text-xs font-bold text-[#202332]">{item.quantidade}</span>
+                            <span className="w-5 text-center text-xs font-bold text-[#202332]">
+                              {item.quantidade}
+                            </span>
                             <button
-                              onClick={() => alterarQuantidadeItemCarrinho(item.idTemp, 1)}
+                              onClick={() =>
+                                alterarQuantidadeItemCarrinho(item.idTemp, 1)
+                              }
                               className="grid size-7 place-items-center rounded-lg bg-[#fff0e9] text-[#ff4b0a] transition hover:bg-[#ffe3d6] cursor-pointer"
                               aria-label="Aumentar"
                             >
@@ -1243,7 +1614,9 @@ export default function HomePage() {
             <div className="border-t border-[#eee9e6] bg-white p-5 pb-7 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[#777a86] font-medium">Subtotal</span>
-                <strong className="text-xl text-[#202332]">{money.format(subtotalCart)}</strong>
+                <strong className="text-xl text-[#202332]">
+                  {money.format(subtotalCart)}
+                </strong>
               </div>
 
               <div className="flex flex-col gap-2.5">
@@ -1280,12 +1653,13 @@ export default function HomePage() {
             {/* Header do Checkout */}
             <div className="p-5 border-b border-[#eee9e6] flex items-center justify-between bg-[#faf8f6]">
               <div className="flex items-center gap-3">
-                {checkoutStep !== 'TIPO' && checkoutStep !== 'CONFIRMACAO' && (
+                {checkoutStep !== "TIPO" && checkoutStep !== "CONFIRMACAO" && (
                   <button
                     type="button"
                     onClick={() => {
-                      if (checkoutStep === 'DADOS') setCheckoutStep('TIPO');
-                      if (checkoutStep === 'PAGAMENTO') setCheckoutStep('DADOS');
+                      if (checkoutStep === "DADOS") setCheckoutStep("TIPO");
+                      if (checkoutStep === "PAGAMENTO")
+                        setCheckoutStep("DADOS");
                     }}
                     className="grid size-9 place-items-center rounded-xl bg-white border border-[#eee9e6] text-[#202332] hover:bg-[#fff0e9] hover:text-[#ff4b0a] cursor-pointer"
                   >
@@ -1294,16 +1668,23 @@ export default function HomePage() {
                 )}
                 <div>
                   <h3 className="text-lg font-extrabold text-[#202332]">
-                    {checkoutStep === 'TIPO' && 'Como deseja receber?'}
-                    {checkoutStep === 'DADOS' && (tipoAtendimento === 'ENTREGA' ? 'Endereço e Contato' : 'Seus Dados')}
-                    {checkoutStep === 'PAGAMENTO' && 'Forma de Pagamento'}
-                    {checkoutStep === 'CONFIRMACAO' && 'Pedido Confirmado! 🎉'}
+                    {checkoutStep === "TIPO" && "Como deseja receber?"}
+                    {checkoutStep === "DADOS" &&
+                      (tipoAtendimento === "ENTREGA"
+                        ? "Endereço e Contato"
+                        : "Seus Dados")}
+                    {checkoutStep === "PAGAMENTO" && "Forma de Pagamento"}
+                    {checkoutStep === "CONFIRMACAO" && "Pedido Confirmado! 🎉"}
                   </h3>
                   <p className="text-xs text-[#747783] mt-0.5">
-                    {checkoutStep === 'TIPO' && 'Selecione se prefere entrega ou retirar na loja'}
-                    {checkoutStep === 'DADOS' && 'Preencha para identificarmos seu pedido'}
-                    {checkoutStep === 'PAGAMENTO' && 'Escolha como deseja pagar seu pedido'}
-                    {checkoutStep === 'CONFIRMACAO' && `Pedido #${pedidoRealizado?.numero || 'recebido'}`}
+                    {checkoutStep === "TIPO" &&
+                      "Selecione se prefere entrega ou retirar na loja"}
+                    {checkoutStep === "DADOS" &&
+                      "Preencha para identificarmos seu pedido"}
+                    {checkoutStep === "PAGAMENTO" &&
+                      "Escolha como deseja pagar seu pedido"}
+                    {checkoutStep === "CONFIRMACAO" &&
+                      `Pedido #${pedidoRealizado?.numero || "recebido"}`}
                   </p>
                 </div>
               </div>
@@ -1319,57 +1700,66 @@ export default function HomePage() {
             {/* Conteúdo com Scroll das Etapas */}
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {/* ETAPA 1: SELEÇÃO DE TIPO (ENTREGA OU RETIRADA) */}
-              {checkoutStep === 'TIPO' && (
+              {checkoutStep === "TIPO" && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => setTipoAtendimento('ENTREGA')}
+                      onClick={() => setTipoAtendimento("ENTREGA")}
                       className={`p-5 rounded-2xl border-2 text-left transition flex flex-col justify-between gap-3 cursor-pointer ${
-                        tipoAtendimento === 'ENTREGA'
-                          ? 'border-[#ff4b0a] bg-[#fff0e9] shadow-sm'
-                          : 'border-[#eee9e6] bg-white hover:border-[#ff4b0a]/30'
+                        tipoAtendimento === "ENTREGA"
+                          ? "border-[#ff4b0a] bg-[#fff0e9] shadow-sm"
+                          : "border-[#eee9e6] bg-white hover:border-[#ff4b0a]/30"
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <div className={`grid size-11 place-items-center rounded-2xl ${tipoAtendimento === 'ENTREGA' ? 'bg-[#ff4b0a] text-white' : 'bg-[#faf8f6] text-[#ff4b0a]'}`}>
+                        <div
+                          className={`grid size-11 place-items-center rounded-2xl ${tipoAtendimento === "ENTREGA" ? "bg-[#ff4b0a] text-white" : "bg-[#faf8f6] text-[#ff4b0a]"}`}
+                        >
                           <Bike className="size-6" />
                         </div>
-                        {tipoAtendimento === 'ENTREGA' && (
+                        {tipoAtendimento === "ENTREGA" && (
                           <div className="grid size-5 place-items-center rounded-full bg-[#ff4b0a] text-white">
                             <Check className="size-3.5" />
                           </div>
                         )}
                       </div>
                       <div>
-                        <span className="block font-extrabold text-base text-[#202332]">Entrega</span>
+                        <span className="block font-extrabold text-base text-[#202332]">
+                          Entrega
+                        </span>
                         <span className="text-xs text-[#747783] mt-0.5 block">
-                          Receba no seu endereço (+{money.format(lojaStatus?.taxaEntregaPadrao ?? 5)})
+                          Receba no seu endereço (+
+                          {money.format(lojaStatus?.taxaEntregaPadrao ?? 5)})
                         </span>
                       </div>
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => setTipoAtendimento('BALCAO')}
+                      onClick={() => setTipoAtendimento("BALCAO")}
                       className={`p-5 rounded-2xl border-2 text-left transition flex flex-col justify-between gap-3 cursor-pointer ${
-                        tipoAtendimento === 'BALCAO'
-                          ? 'border-[#ff4b0a] bg-[#fff0e9] shadow-sm'
-                          : 'border-[#eee9e6] bg-white hover:border-[#ff4b0a]/30'
+                        tipoAtendimento === "BALCAO"
+                          ? "border-[#ff4b0a] bg-[#fff0e9] shadow-sm"
+                          : "border-[#eee9e6] bg-white hover:border-[#ff4b0a]/30"
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <div className={`grid size-11 place-items-center rounded-2xl ${tipoAtendimento === 'BALCAO' ? 'bg-[#ff4b0a] text-white' : 'bg-[#faf8f6] text-[#ff4b0a]'}`}>
+                        <div
+                          className={`grid size-11 place-items-center rounded-2xl ${tipoAtendimento === "BALCAO" ? "bg-[#ff4b0a] text-white" : "bg-[#faf8f6] text-[#ff4b0a]"}`}
+                        >
                           <Store className="size-6" />
                         </div>
-                        {tipoAtendimento === 'BALCAO' && (
+                        {tipoAtendimento === "BALCAO" && (
                           <div className="grid size-5 place-items-center rounded-full bg-[#ff4b0a] text-white">
                             <Check className="size-3.5" />
                           </div>
                         )}
                       </div>
                       <div>
-                        <span className="block font-extrabold text-base text-[#202332]">Retirada</span>
+                        <span className="block font-extrabold text-base text-[#202332]">
+                          Retirada
+                        </span>
                         <span className="text-xs text-[#747783] mt-0.5 block">
                           Buscar na loja (Sem taxa)
                         </span>
@@ -1385,7 +1775,9 @@ export default function HomePage() {
                         Tempo estimado: {tempoMin} a {tempoMax} minutos
                       </p>
                       <p className="text-[#747783]">
-                        {tipoAtendimento === 'ENTREGA' ? 'Preparado e entregue quentinho.' : 'Retire no balcão da loja.'}
+                        {tipoAtendimento === "ENTREGA"
+                          ? "Preparado e entregue quentinho."
+                          : "Retire no balcão da loja."}
                       </p>
                     </div>
                   </div>
@@ -1393,7 +1785,7 @@ export default function HomePage() {
               )}
 
               {/* ETAPA 2: DADOS DO CLIENTE & ENDEREÇO */}
-              {checkoutStep === 'DADOS' && (
+              {checkoutStep === "DADOS" && (
                 <div className="space-y-3.5">
                   {/* Nome e Telefone */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1407,9 +1799,11 @@ export default function HomePage() {
                         value={clienteNome}
                         onChange={(e) => setClienteNome(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
+                          if (e.key === "Enter") {
                             e.preventDefault();
-                            document.getElementById('input-cliente-telefone')?.focus();
+                            document
+                              .getElementById("input-cliente-telefone")
+                              ?.focus();
                           }
                         }}
                         placeholder="Ex: João da Silva"
@@ -1418,21 +1812,28 @@ export default function HomePage() {
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-[#202332] mb-1.5 flex items-center gap-1.5">
-                        <Phone className="size-3.5 text-[#ff4b0a]" /> WhatsApp / Telefone *
+                        <Phone className="size-3.5 text-[#ff4b0a]" /> WhatsApp /
+                        Telefone *
                       </label>
                       <input
                         id="input-cliente-telefone"
                         type="tel"
                         value={clienteTelefone}
-                        onChange={(e) => setClienteTelefone(formatarTelefone(e.target.value))}
+                        onChange={(e) =>
+                          setClienteTelefone(formatarTelefone(e.target.value))
+                        }
                         maxLength={15}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
+                          if (e.key === "Enter") {
                             e.preventDefault();
-                            if (tipoAtendimento === 'ENTREGA') {
-                              document.getElementById('input-endereco-logradouro')?.focus();
+                            if (tipoAtendimento === "ENTREGA") {
+                              document
+                                .getElementById("input-endereco-logradouro")
+                                ?.focus();
                             } else {
-                              document.getElementById('input-observacao-pedido')?.focus();
+                              document
+                                .getElementById("input-observacao-pedido")
+                                ?.focus();
                             }
                           }
                         }}
@@ -1443,23 +1844,29 @@ export default function HomePage() {
                   </div>
 
                   {/* Se for Entrega: Endereço completo */}
-                  {tipoAtendimento === 'ENTREGA' && (
+                  {tipoAtendimento === "ENTREGA" && (
                     <div className="space-y-3 pt-2 border-t border-[#eee9e6]">
                       <span className="block text-xs font-extrabold uppercase tracking-wider text-[#ff4b0a] flex items-center gap-1.5">
                         <MapPin className="size-4" /> Endereço de Entrega
                       </span>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="col-span-2">
-                          <label className="block text-[11px] font-bold text-[#747783] mb-1">Rua / Logradouro *</label>
+                          <label className="block text-[11px] font-bold text-[#747783] mb-1">
+                            Rua / Logradouro *
+                          </label>
                           <input
                             id="input-endereco-logradouro"
                             type="text"
                             value={enderecoLogradouro}
-                            onChange={(e) => setEnderecoLogradouro(e.target.value)}
+                            onChange={(e) =>
+                              setEnderecoLogradouro(e.target.value)
+                            }
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
+                              if (e.key === "Enter") {
                                 e.preventDefault();
-                                document.getElementById('input-endereco-numero')?.focus();
+                                document
+                                  .getElementById("input-endereco-numero")
+                                  ?.focus();
                               }
                             }}
                             placeholder="Nome da rua ou avenida"
@@ -1467,16 +1874,20 @@ export default function HomePage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] font-bold text-[#747783] mb-1">Número *</label>
+                          <label className="block text-[11px] font-bold text-[#747783] mb-1">
+                            Número *
+                          </label>
                           <input
                             id="input-endereco-numero"
                             type="text"
                             value={enderecoNumero}
                             onChange={(e) => setEnderecoNumero(e.target.value)}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
+                              if (e.key === "Enter") {
                                 e.preventDefault();
-                                document.getElementById('input-endereco-bairro')?.focus();
+                                document
+                                  .getElementById("input-endereco-bairro")
+                                  ?.focus();
                               }
                             }}
                             placeholder="123"
@@ -1487,16 +1898,20 @@ export default function HomePage() {
 
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-[11px] font-bold text-[#747783] mb-1">Bairro *</label>
+                          <label className="block text-[11px] font-bold text-[#747783] mb-1">
+                            Bairro *
+                          </label>
                           <input
                             id="input-endereco-bairro"
                             type="text"
                             value={enderecoBairro}
                             onChange={(e) => setEnderecoBairro(e.target.value)}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
+                              if (e.key === "Enter") {
                                 e.preventDefault();
-                                document.getElementById('input-endereco-complemento')?.focus();
+                                document
+                                  .getElementById("input-endereco-complemento")
+                                  ?.focus();
                               }
                             }}
                             placeholder="Ex: Centro"
@@ -1504,16 +1919,22 @@ export default function HomePage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] font-bold text-[#747783] mb-1">Complemento / Ref.</label>
+                          <label className="block text-[11px] font-bold text-[#747783] mb-1">
+                            Complemento / Ref.
+                          </label>
                           <input
                             id="input-endereco-complemento"
                             type="text"
                             value={enderecoComplemento}
-                            onChange={(e) => setEnderecoComplemento(e.target.value)}
+                            onChange={(e) =>
+                              setEnderecoComplemento(e.target.value)
+                            }
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
+                              if (e.key === "Enter") {
                                 e.preventDefault();
-                                document.getElementById('input-observacao-pedido')?.focus();
+                                document
+                                  .getElementById("input-observacao-pedido")
+                                  ?.focus();
                               }
                             }}
                             placeholder="Apto 101, casa azul"
@@ -1526,13 +1947,15 @@ export default function HomePage() {
 
                   {/* Observação Geral */}
                   <div className="pt-2 border-t border-[#eee9e6]">
-                    <label className="block text-xs font-bold text-[#202332] mb-1">Observações do Pedido</label>
+                    <label className="block text-xs font-bold text-[#202332] mb-1">
+                      Observações do Pedido
+                    </label>
                     <textarea
                       id="input-observacao-pedido"
                       value={observacaoPedido}
                       onChange={(e) => setObservacaoPedido(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
+                        if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
                           avancarParaPagamento();
                         }
@@ -1546,7 +1969,7 @@ export default function HomePage() {
               )}
 
               {/* ETAPA 3: FORMA DE PAGAMENTO */}
-              {checkoutStep === 'PAGAMENTO' && (
+              {checkoutStep === "PAGAMENTO" && (
                 <div className="space-y-3">
                   <span className="block text-xs font-extrabold uppercase tracking-wider text-[#ff4b0a]">
                     Como prefere pagar?
@@ -1554,10 +1977,18 @@ export default function HomePage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {[
-                      { id: 'PIX', label: 'PIX (Instantâneo)', icon: QrCode },
-                      { id: 'CARTAO_CREDITO', label: 'Cartão de Crédito', icon: CreditCard },
-                      { id: 'CARTAO_DEBITO', label: 'Cartão de Débito', icon: CreditCard },
-                      { id: 'DINHEIRO', label: 'Dinheiro', icon: DollarSign },
+                      { id: "PIX", label: "PIX (Instantâneo)", icon: QrCode },
+                      {
+                        id: "CARTAO_CREDITO",
+                        label: "Cartão de Crédito",
+                        icon: CreditCard,
+                      },
+                      {
+                        id: "CARTAO_DEBITO",
+                        label: "Cartão de Débito",
+                        icon: CreditCard,
+                      },
+                      { id: "DINHEIRO", label: "Dinheiro", icon: DollarSign },
                     ].map(({ id, label, icon: Icon }) => (
                       <button
                         key={id}
@@ -1565,8 +1996,8 @@ export default function HomePage() {
                         onClick={() => setFormaPagamento(id as any)}
                         className={`p-3.5 rounded-2xl border-2 text-left transition flex items-center justify-between cursor-pointer ${
                           formaPagamento === id
-                            ? 'border-[#ff4b0a] bg-[#fff0e9] font-bold text-[#ff4b0a] shadow-xs'
-                            : 'border-[#eee9e6] bg-white text-[#202332] hover:border-[#ff4b0a]/30'
+                            ? "border-[#ff4b0a] bg-[#fff0e9] font-bold text-[#ff4b0a] shadow-xs"
+                            : "border-[#eee9e6] bg-white text-[#202332] hover:border-[#ff4b0a]/30"
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
@@ -1582,16 +2013,22 @@ export default function HomePage() {
                     ))}
                   </div>
 
-                  {formaPagamento === 'DINHEIRO' && (
+                  {formaPagamento === "DINHEIRO" && (
                     <div className="rounded-2xl bg-[#faf8f6] border border-[#eee9e6] p-3.5 space-y-1.5">
-                      <label className="block text-xs font-bold text-[#202332]">Precisa de troco para quanto?</label>
+                      <label className="block text-xs font-bold text-[#202332]">
+                        Precisa de troco para quanto?
+                      </label>
                       <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#8a8d98]">R$</span>
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#8a8d98]">
+                          R$
+                        </span>
                         <input
                           type="text"
                           inputMode="numeric"
                           value={trocoPara}
-                          onChange={(e) => setTrocoPara(formatarMoedaInput(e.target.value))}
+                          onChange={(e) =>
+                            setTrocoPara(formatarMoedaInput(e.target.value))
+                          }
                           placeholder="0,00"
                           className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-[#eee9e6] bg-white text-xs font-bold text-[#202332] outline-none focus:border-[#ff4b0a]"
                         />
@@ -1605,7 +2042,7 @@ export default function HomePage() {
                       <span>Subtotal ({cartCount} itens)</span>
                       <span>{money.format(subtotalCart)}</span>
                     </div>
-                    {tipoAtendimento === 'ENTREGA' && (
+                    {tipoAtendimento === "ENTREGA" && (
                       <div className="flex justify-between text-xs text-[#747783]">
                         <span>Taxa de Entrega</span>
                         <span>{money.format(taxaEntregaValor)}</span>
@@ -1613,30 +2050,37 @@ export default function HomePage() {
                     )}
                     <div className="flex justify-between text-sm font-extrabold text-[#202332] pt-2 border-t border-[#eee9e6]">
                       <span>Total a Pagar</span>
-                      <span className="text-base text-[#ff4b0a]">{money.format(totalPedidoFinal)}</span>
+                      <span className="text-base text-[#ff4b0a]">
+                        {money.format(totalPedidoFinal)}
+                      </span>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* ETAPA 4: CONFIRMAÇÃO & QR CODE PIX */}
-              {checkoutStep === 'CONFIRMACAO' && (
+              {checkoutStep === "CONFIRMACAO" && (
                 <div className="text-center py-4 space-y-4">
                   <div className="grid size-16 place-items-center rounded-full bg-[#dcfce7] text-[#16a34a] mx-auto shadow-sm">
                     <Check className="size-8" />
                   </div>
 
                   <div>
-                    <h4 className="text-xl font-extrabold text-[#202332]">Pedido Enviado com Sucesso!</h4>
+                    <h4 className="text-xl font-extrabold text-[#202332]">
+                      Pedido Enviado com Sucesso!
+                    </h4>
                     <p className="text-xs text-[#747783] mt-1">
-                      A loja já recebeu seu pedido e iniciará o preparo em instantes.
+                      A loja já recebeu seu pedido e iniciará o preparo em
+                      instantes.
                     </p>
                   </div>
 
                   {/* PIX QR CODE SE FOR PIX */}
-                  {formaPagamento === 'PIX' && pixDados?.qrCodeBase64 && (
+                  {formaPagamento === "PIX" && pixDados?.qrCodeBase64 && (
                     <div className="rounded-2xl border border-[#eee9e6] bg-[#faf8f6] p-4 space-y-3">
-                      <p className="text-xs font-bold text-[#ff4b0a]">Pague com o PIX Copia e Cola / QR Code:</p>
+                      <p className="text-xs font-bold text-[#ff4b0a]">
+                        Pague com o PIX Copia e Cola / QR Code:
+                      </p>
                       <img
                         src={`data:image/png;base64,${pixDados.qrCodeBase64}`}
                         alt="QR Code PIX"
@@ -1649,17 +2093,31 @@ export default function HomePage() {
                           className="inline-flex items-center gap-2 rounded-xl bg-[#ff4b0a] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#e03f04] cursor-pointer"
                         >
                           <Copy className="size-4" />
-                          {copiadoPix ? 'Código PIX Copiado!' : 'Copiar Código PIX'}
+                          {copiadoPix
+                            ? "Código PIX Copiado!"
+                            : "Copiar Código PIX"}
                         </button>
                       )}
                     </div>
                   )}
 
                   <div className="rounded-2xl border border-[#eee9e6] bg-[#fdfcfb] p-3.5 text-xs text-left space-y-1">
-                    <p><strong>Número:</strong> #{pedidoRealizado?.numero}</p>
-                    <p><strong>Cliente:</strong> {clienteNome}</p>
-                    <p><strong>Tipo:</strong> {tipoAtendimento === 'ENTREGA' ? 'Entrega em domicílio' : 'Retirada na loja'}</p>
-                    <p><strong>Total:</strong> {money.format(totalPedidoFinal)} ({formaPagamento})</p>
+                    <p>
+                      <strong>Número:</strong> #{pedidoRealizado?.numero}
+                    </p>
+                    <p>
+                      <strong>Cliente:</strong> {clienteNome}
+                    </p>
+                    <p>
+                      <strong>Tipo:</strong>{" "}
+                      {tipoAtendimento === "ENTREGA"
+                        ? "Entrega em domicílio"
+                        : "Retirada na loja"}
+                    </p>
+                    <p>
+                      <strong>Total:</strong> {money.format(totalPedidoFinal)} (
+                      {formaPagamento})
+                    </p>
                   </div>
                 </div>
               )}
@@ -1667,10 +2125,10 @@ export default function HomePage() {
 
             {/* Rodapé com Ações do Checkout */}
             <div className="p-4 border-t border-[#eee9e6] bg-white">
-              {checkoutStep === 'TIPO' && (
+              {checkoutStep === "TIPO" && (
                 <button
                   type="button"
-                  onClick={() => setCheckoutStep('DADOS')}
+                  onClick={() => setCheckoutStep("DADOS")}
                   className="flex h-13 w-full items-center justify-between rounded-2xl bg-[#ff4b0a] px-5 font-bold text-white shadow-[0_8px_20px_rgba(255,75,10,.25)] transition hover:bg-[#e03f04] cursor-pointer"
                 >
                   <span>Continuar para Dados</span>
@@ -1678,7 +2136,7 @@ export default function HomePage() {
                 </button>
               )}
 
-              {checkoutStep === 'DADOS' && (
+              {checkoutStep === "DADOS" && (
                 <button
                   type="button"
                   onClick={avancarParaPagamento}
@@ -1689,7 +2147,7 @@ export default function HomePage() {
                 </button>
               )}
 
-              {checkoutStep === 'PAGAMENTO' && (
+              {checkoutStep === "PAGAMENTO" && (
                 <button
                   type="button"
                   disabled={enviandoPedido}
@@ -1698,7 +2156,8 @@ export default function HomePage() {
                 >
                   {enviandoPedido ? (
                     <span className="flex items-center gap-2 mx-auto">
-                      <Loader2 className="size-5 animate-spin" /> Processando pedido...
+                      <Loader2 className="size-5 animate-spin" /> Processando
+                      pedido...
                     </span>
                   ) : (
                     <>
@@ -1709,7 +2168,7 @@ export default function HomePage() {
                 </button>
               )}
 
-              {checkoutStep === 'CONFIRMACAO' && (
+              {checkoutStep === "CONFIRMACAO" && (
                 <button
                   type="button"
                   onClick={() => setModalCheckoutAberto(false)}
@@ -1730,32 +2189,46 @@ export default function HomePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-150">
           <div className="relative w-full max-w-sm rounded-[24px] bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200 text-center">
             {/* Ícone */}
-            <div className={`mx-auto mb-4 grid size-14 place-items-center rounded-2xl shadow-xs ${
-              alertaModal.tipo === 'erro'
-                ? 'bg-[#fef2f2] text-[#ef4444]'
-                : alertaModal.tipo === 'sucesso'
-                ? 'bg-[#f0fdf4] text-[#22c55e]'
-                : 'bg-[#fffbeb] text-[#f59e0b]'
-            }`}>
-              {alertaModal.tipo === 'erro' && <AlertTriangle className="size-7" />}
-              {alertaModal.tipo === 'sucesso' && <CheckCircle2 className="size-7" />}
-              {alertaModal.tipo === 'aviso' && <AlertTriangle className="size-7" />}
+            <div
+              className={`mx-auto mb-4 grid size-14 place-items-center rounded-2xl shadow-xs ${
+                alertaModal.tipo === "erro"
+                  ? "bg-[#fef2f2] text-[#ef4444]"
+                  : alertaModal.tipo === "sucesso"
+                    ? "bg-[#f0fdf4] text-[#22c55e]"
+                    : "bg-[#fffbeb] text-[#f59e0b]"
+              }`}
+            >
+              {alertaModal.tipo === "erro" && (
+                <AlertTriangle className="size-7" />
+              )}
+              {alertaModal.tipo === "sucesso" && (
+                <CheckCircle2 className="size-7" />
+              )}
+              {alertaModal.tipo === "aviso" && (
+                <AlertTriangle className="size-7" />
+              )}
             </div>
 
             {/* Título & Mensagem */}
-            <h4 className="text-lg font-extrabold text-[#202332] mb-1.5">{alertaModal.titulo}</h4>
-            <p className="text-xs leading-relaxed text-[#747783] mb-6 whitespace-pre-line">{alertaModal.mensagem}</p>
+            <h4 className="text-lg font-extrabold text-[#202332] mb-1.5">
+              {alertaModal.titulo}
+            </h4>
+            <p className="text-xs leading-relaxed text-[#747783] mb-6 whitespace-pre-line">
+              {alertaModal.mensagem}
+            </p>
 
             {/* Botão de Fechar */}
             <button
               type="button"
-              onClick={() => setAlertaModal((prev) => ({ ...prev, aberto: false }))}
+              onClick={() =>
+                setAlertaModal((prev) => ({ ...prev, aberto: false }))
+              }
               className={`w-full h-11 rounded-xl font-bold text-xs text-white transition active:scale-98 cursor-pointer shadow-sm ${
-                alertaModal.tipo === 'erro'
-                  ? 'bg-[#ef4444] hover:bg-[#dc2626]'
-                  : alertaModal.tipo === 'sucesso'
-                  ? 'bg-[#22c55e] hover:bg-[#16a34a]'
-                  : 'bg-[#ff4b0a] hover:bg-[#e03f04]'
+                alertaModal.tipo === "erro"
+                  ? "bg-[#ef4444] hover:bg-[#dc2626]"
+                  : alertaModal.tipo === "sucesso"
+                    ? "bg-[#22c55e] hover:bg-[#16a34a]"
+                    : "bg-[#ff4b0a] hover:bg-[#e03f04]"
               }`}
             >
               Entendido
@@ -1777,7 +2250,9 @@ function SearchBox({
   desktop?: boolean;
 }) {
   return (
-    <div className={`relative ${desktop ? 'ml-auto hidden w-full max-w-md sm:block' : 'mt-5 sm:hidden'}`}>
+    <div
+      className={`relative ${desktop ? "ml-auto hidden w-full max-w-md sm:block" : "mt-5 sm:hidden"}`}
+    >
       <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#8a8d98]" />
       <input
         value={value}
