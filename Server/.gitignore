@@ -4,3 +4,7 @@ dist/
 .env
 .wwebjs_auth/
 .wwebjs_cache/
+
+# Configurações locais com credenciais
+.env.*
+!.env.example

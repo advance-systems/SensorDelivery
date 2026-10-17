@@ -1,4 +1,6 @@
 import jwt from 'jsonwebtoken';
+import { timingSafeEqual } from 'node:crypto';
+import { masterCredentials } from '../../config/env.js';
 import { AuthRepository } from './auth.repository.js';
 import type { LoginInput, TokenPayload, UsuarioLogin } from './auth.types.js';
 
@@ -41,18 +43,22 @@ export class AuthService {
         };
     }
 
-    private isMasterAdmin(email: string, senha?: string): boolean {
-        const adminEmail = (process.env.ADMIN_MASTER_EMAIL || 'admin@sensordelivery.local').trim().toLowerCase();
-        const adminSenha = process.env.ADMIN_MASTER_SENHA || 'Sensor@123';
-        const emailMatch = email?.trim().toLowerCase() === adminEmail;
-        if (senha !== undefined) {
-            return emailMatch && senha === adminSenha;
-        }
-        return emailMatch;
+    private isMasterAdmin(email: string, senha: string): boolean {
+        const configured = masterCredentials(process.env);
+        if (!configured || email.trim().toLowerCase() !== configured.email) return false;
+        const received = Buffer.from(senha);
+        const expected = Buffer.from(configured.password);
+        return received.length === expected.length && timingSafeEqual(received, expected);
     }
 
     private async montarSessaoMasterAdmin(empresaIdDesejada?: string) {
+        const master = masterCredentials(process.env);
+        if (!master) throw new AuthError('Acesso mestre desabilitado.', 403);
         const empresasAtivas = await authRepository.listarTodasEmpresasAtivas();
+        if (empresaIdDesejada && !empresasAtivas.some(e => e.id === empresaIdDesejada)) {
+            throw new AuthError('Empresa não disponível.', 403);
+        }
+        if (empresasAtivas.length === 0) throw new AuthError('Nenhuma empresa ativa.', 403);
         const empresaAtual = (empresaIdDesejada && empresasAtivas.find(e => e.id === empresaIdDesejada))
             || empresasAtivas[0]
             || { id: '00000000-0000-0000-0000-000000000000', nome_fantasia: 'Sensor Delivery Master', principal: true };
@@ -62,7 +68,7 @@ export class AuthService {
         const usuarioMaster: UsuarioLogin = {
             id: '00000000-0000-0000-0000-000000000001',
             nome: 'Administrador Master',
-            email: (process.env.ADMIN_MASTER_EMAIL || 'admin@sensordelivery.local').trim().toLowerCase(),
+            email: master.email,
             tipo: 'ADMIN',
             empresa_id: empresaAtual.id,
             nome_fantasia: empresaAtual.nome_fantasia,

@@ -28,10 +28,17 @@ import {
 
 import { importarCardapioAnotaAi } from '../scripts/importar-cardapio-anota-ai.js';
 import { database } from '../database/connection.js';
+import { booleanEnv } from '../config/env.js';
 
 export const routes = Router();
 
-routes.get('/importar-anota-ai', async (req, res) => {
+routes.post('/importar-anota-ai', autenticarToken, exigirUmaPermissao(['cardapio.incluir']), async (req, res) => {
+    if (!booleanEnv(process.env, 'ALLOW_MENU_IMPORT')) {
+        return res.status(404).json({ erro: 'Importação desabilitada.' });
+    }
+    if ((req as import('../middleware/auth.middleware.js').AuthenticatedRequest).usuario?.tipo !== 'ADMIN') {
+        return res.status(403).json({ erro: 'Importação exige administrador do banco.' });
+    }
     try {
         await importarCardapioAnotaAi();
         const totalCategorias = await database.query('SELECT COUNT(*)::int AS total FROM categorias');

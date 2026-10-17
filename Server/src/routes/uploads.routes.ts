@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { storageDirectories } from '../config/env.js';
 import express, { Router } from 'express';
 
 const router = Router();
@@ -21,7 +22,7 @@ router.post('/imagens', express.raw({
         return res.status(400).json({ erro: 'Selecione uma imagem JPG, PNG, WEBP ou GIF.' });
     }
     try {
-        const pasta = path.resolve(process.cwd(), 'uploads');
+        const pasta = storageDirectories(process.env).uploads;
         await mkdir(pasta, { recursive: true });
         const nome = `${randomUUID()}${extensao}`;
         await writeFile(path.join(pasta, nome), req.body);

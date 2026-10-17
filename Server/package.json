@@ -11,7 +11,13 @@
     "db:seed": "tsx src/database/seed.ts",
     "db:import-anota": "tsx src/scripts/importar-cardapio-anota-ai.ts",
     "db:test": "tsx src/database/test-connection.ts",
-    "sicredi:webhook": "tsx src/scripts/configurar-webhook-sicredi.ts"
+    "sicredi:webhook": "tsx src/scripts/configurar-webhook-sicredi.ts",
+    "check": "tsc --noEmit",
+    "test:railway": "node --import tsx --test tests/railway-config.test.mjs",
+    "db:migrate:deploy": "node dist/src/database/migrate.js",
+    "db:prepare:local": "node --import tsx src/scripts/preparar-banco-teste.ts",
+    "dev:test": "node --env-file=.env.test --import tsx src/server.ts",
+    "db:check:local": "node --env-file=.env.test --import tsx src/database/test-connection.ts"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",

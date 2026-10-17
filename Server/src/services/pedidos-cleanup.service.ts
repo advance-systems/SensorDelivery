@@ -1,4 +1,5 @@
 import { database } from '../database/connection.js';
+import { booleanEnv } from '../config/env.js';
 
 /**
  * Verifica se é a primeira execução do dia para as empresas configuradas.
@@ -8,6 +9,7 @@ import { database } from '../database/connection.js';
  * e marca a data atual em `data_ultimo_cleanup_rascunhos`.
  */
 export async function verificarEExcluirRascunhosPrimeiraExecucaoDoDia(empresaIdEspecifica?: string): Promise<number> {
+    if (!booleanEnv(process.env, 'DRAFT_CLEANUP_ENABLED', process.env.NODE_ENV !== 'production')) return 0;
     try {
         const filtroEmpresa = empresaIdEspecifica ? 'AND lc.empresa_id = $1' : '';
         const params = empresaIdEspecifica ? [empresaIdEspecifica] : [];

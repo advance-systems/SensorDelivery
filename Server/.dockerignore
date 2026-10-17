@@ -1,0 +1,11 @@
+**
+!Dockerfile
+!.dockerignore
+!package.json
+!package-lock.json
+!tsconfig.json
+!src/
+!src/**
+!database/
+!database/migrations/
+!database/migrations/**

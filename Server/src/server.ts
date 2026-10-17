@@ -4,8 +4,11 @@ import express from 'express';
 import cors from 'cors';
 import { readFileSync } from 'node:fs';
 import { createServer as createHttpsServer, type ServerOptions } from 'node:https';
+import type { Server } from 'node:http';
 import path from 'node:path';
+import { setTimeout as delay } from 'node:timers/promises';
 
+import { runtimeConfig } from './config/env.js';
 import { database } from './database/connection.js';
 import { executarMigrations } from './database/migrate.js';
 import { executarSeeds } from './database/seed.js';
@@ -17,179 +20,155 @@ import { cancelarPixExpirados } from './services/pix-payment.service.js';
 import { verificarEExcluirRascunhosPrimeiraExecucaoDoDia } from './services/pedidos-cleanup.service.js';
 import { IFoodService } from './services/ifood.service.js';
 
+const config = runtimeConfig(process.env);
 const app = express();
-const port = Number(process.env.PORT ?? 3001);
-const host = process.env.HOST?.trim() || '0.0.0.0';
+let server: Server | undefined;
+let monitor: ReturnType<typeof setInterval> | undefined;
+let shuttingDown = false;
+let monitorRunning = false;
 
-const corsOrigin = process.env.CORS_ORIGIN?.trim();
-const origensPermitidas = corsOrigin
-    ? (corsOrigin.includes(',') ? corsOrigin.split(',').map(o => o.trim()) : corsOrigin)
-    : '*';
+app.use(cors({
+    origin: config.origins.includes('*') ? '*' : config.origins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Empresa-ID', 'Accept'],
+    credentials: !config.origins.includes('*'),
+}));
+if (config.trustProxy) app.set('trust proxy', 1);
+app.use(express.json({ limit: '2mb' }));
 
-app.use(
-    cors({
-        origin: origensPermitidas,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-Empresa-ID', 'Accept'],
-        credentials: true,
-    })
-);
-
-function carregarConfiguracaoHttps(): ServerOptions | null {
-    const chave = process.env.TLS_KEY_PATH?.trim();
-    const certificado = process.env.TLS_CERT_PATH?.trim();
-    const valorHttps = process.env.HTTPS_ENABLED?.trim().toLowerCase();
-    const habilitado = valorHttps === 'true'
-        || (!valorHttps && Boolean(chave && certificado));
-
-    if (!habilitado) {
-        return null;
-    }
-    if (!chave || !certificado) {
-        throw new Error(
-            'HTTPS habilitado, mas TLS_KEY_PATH e TLS_CERT_PATH não foram configurados.',
-        );
-    }
-
-    const opcoes: ServerOptions = {
-        key: readFileSync(path.resolve(process.cwd(), chave)),
-        cert: readFileSync(path.resolve(process.cwd(), certificado)),
-    };
-    const cadeia = process.env.TLS_CA_PATH?.trim();
-    const senha = process.env.TLS_KEY_PASSPHRASE;
-    if (cadeia) {
-        opcoes.ca = readFileSync(path.resolve(process.cwd(), cadeia));
-    }
-    if (senha) {
-        opcoes.passphrase = senha;
-    }
-    return opcoes;
-}
-
-if (process.env.TRUST_PROXY?.trim().toLowerCase() === 'true') {
-    app.set('trust proxy', 1);
-}
-
-app.use(
-    express.json({
-        limit: '2mb',
-    }),
-);
-
-// Arquivos estáticos públicos (uploads de imagens e downloads de APK)
 const uploadOptions = {
     maxAge: 0,
     setHeaders: (res: express.Response) => {
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     },
 };
-app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads'), uploadOptions));
-app.use('/api/uploads', express.static(path.resolve(process.cwd(), 'uploads'), uploadOptions));
-app.use(
-    '/downloads',
-    express.static(path.resolve(process.cwd(), 'downloads'), {
-        fallthrough: false,
-        setHeaders: (response, filePath) => {
-            if (filePath.toLowerCase().endsWith('.apk')) {
-                response.setHeader(
-                    'Content-Disposition',
-                    `attachment; filename="${path.basename(filePath)}"`,
-                );
-                response.setHeader(
-                    'Content-Type',
-                    'application/vnd.android.package-archive',
-                );
-            }
-        },
-    }),
-);
+app.use('/uploads', express.static(config.directories.uploads, uploadOptions));
+app.use('/api/uploads', express.static(config.directories.uploads, uploadOptions));
+app.use('/downloads', express.static(config.directories.downloads, {
+    fallthrough: false,
+    setHeaders: (response, filePath) => {
+        if (filePath.toLowerCase().endsWith('.apk')) {
+            response.setHeader('Content-Disposition', `attachment; filename="${path.basename(filePath)}"`);
+            response.setHeader('Content-Type', 'application/vnd.android.package-archive');
+        }
+    },
+}));
 
 app.use('/api', routes);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/loja', lojaRoutes);
-
-// Suporte para requisições diretas sem prefixo /api
 app.use('/pedidos', pedidosRoutes);
 app.use('/loja', lojaRoutes);
 
+async function verificarBancoPreparado(): Promise<void> {
+    const result = await database.query(
+        "SELECT to_regclass('usuarios') AS usuarios, to_regclass('produtos') AS produtos, "
+        + "to_regclass('pedidos') AS pedidos, to_regclass('loja_configuracao') AS loja",
+    );
+    if (!Object.values(result.rows[0] ?? {}).every(Boolean) || !result.rows[0]) {
+        throw new Error('Banco sem estrutura necessária. Execute migrations e restaure os dados autorizados.');
+    }
+}
+
 app.get('/health', async (_request, response) => {
     try {
-        await database.query('SELECT 1');
-
+        if (shuttingDown) throw new Error('Encerramento em andamento.');
+        await verificarBancoPreparado();
         return response.json({
-            status: 'online',
-            sistema: 'Sensor Delivery',
-            banco: 'conectado',
+            status: 'online', sistema: 'Sensor Delivery', banco: 'conectado',
             horario: new Date().toISOString(),
         });
-    } catch (error) {
-        console.error('Erro no health check:', error);
-
+    } catch {
         return response.status(503).json({
-            status: 'indisponivel',
-            sistema: 'Sensor Delivery',
-            banco: 'desconectado',
+            status: 'indisponivel', sistema: 'Sensor Delivery', banco: 'desconectado',
         });
     }
 });
 
-const configuracaoHttps = carregarConfiguracaoHttps();
-const protocolo = configuracaoHttps ? 'https' : 'http';
-const servidorBase = configuracaoHttps
-    ? createHttpsServer(configuracaoHttps, app)
-    : app;
-const server = servidorBase.listen(port, host, () => {
-    const publicUrl = process.env.API_PUBLIC_URL?.trim() ||
-        `${protocolo}://${host}:${port}`;
-    console.log(
-        `Sensor Delivery em ${publicUrl}`,
-    );
+function carregarConfiguracaoHttps(): ServerOptions | null {
+    if (!config.httpsEnabled) return null;
+    const chave = process.env.TLS_KEY_PATH?.trim();
+    const certificado = process.env.TLS_CERT_PATH?.trim();
+    if (!chave || !certificado) {
+        throw new Error('HTTPS exige TLS_KEY_PATH e TLS_CERT_PATH.');
+    }
+    const options: ServerOptions = {
+        key: readFileSync(path.resolve(chave)), cert: readFileSync(path.resolve(certificado)),
+    };
+    if (process.env.TLS_CA_PATH?.trim()) options.ca = readFileSync(path.resolve(process.env.TLS_CA_PATH));
+    if (process.env.TLS_KEY_PASSPHRASE) options.passphrase = process.env.TLS_KEY_PASSPHRASE;
+    return options;
+}
 
-    // Executa migrações, seeds e importação do cardápio automaticamente na inicialização
-    (async () => {
-        try {
-            await executarMigrations();
-            await executarSeeds();
-            
-            // Verifica se o cardápio já está populado; se não estiver ou se tiver poucos produtos, importa automaticamente
-            const countProd = await database.query('SELECT COUNT(*)::int AS total FROM produtos');
-            const totalProdutos = countProd.rows[0]?.total ?? 0;
-            if (totalProdutos === 0) {
-                console.log('📦 Banco sem produtos detectado. Iniciando importação automática do Anota Aí...');
-                await importarCardapioAnotaAi();
-            }
-
-            await verificarEExcluirRascunhosPrimeiraExecucaoDoDia();
-        } catch (err) {
-            console.error('Erro no processo de inicialização do banco/dados:', err);
+async function executarMonitor(): Promise<void> {
+    if (monitorRunning || shuttingDown) return;
+    monitorRunning = true;
+    try {
+        const tasks: Promise<unknown>[] = [];
+        if (config.backgroundJobs) {
+            tasks.push(cancelarPixExpirados(), IFoodService.executarPollingTodasLojas());
         }
-    })();
-});
+        if (config.cleanupDrafts) tasks.push(verificarEExcluirRascunhosPrimeiraExecucaoDoDia());
+        const results = await Promise.allSettled(tasks);
+        results.forEach(result => {
+            if (result.status === 'rejected') console.error('Falha em rotina automática.');
+        });
+    } finally {
+        monitorRunning = false;
+    }
+}
 
-const monitorPix = setInterval(() => {
-    cancelarPixExpirados().catch((error) => {
-        console.error('Erro no monitor de pagamentos PIX:', error);
+async function iniciar(): Promise<void> {
+    for (let attempt = 1; ; attempt++) {
+        if (shuttingDown) return;
+        try { await database.query('SELECT 1'); break; }
+        catch {
+            if (attempt >= config.databaseAttempts) throw new Error('PostgreSQL indisponível após as tentativas de conexão.');
+            console.warn(`Aguardando PostgreSQL: tentativa ${attempt}/${config.databaseAttempts}.`);
+            await delay(1000);
+        }
+    }
+    if (shuttingDown) return;
+    if (config.runMigrations) await executarMigrations();
+    if (config.runSeeds) await executarSeeds();
+    if (config.importMenu) {
+        const result = await database.query('SELECT COUNT(*)::int AS total FROM produtos');
+        if (result.rows[0]?.total === 0) await importarCardapioAnotaAi();
+    }
+    await verificarBancoPreparado();
+    if (shuttingDown) return;
+    const https = carregarConfiguracaoHttps();
+    server = https ? createHttpsServer(https, app) : app.listen(config.port, config.host);
+    if (https) server.listen(config.port, config.host);
+    server.on('error', () => {
+        console.error('Não foi possível manter o servidor HTTP ativo.');
+        void shutdown(1);
     });
-    verificarEExcluirRascunhosPrimeiraExecucaoDoDia().catch((error) => {
-        console.error('Erro no monitor de limpeza de rascunhos:', error);
-    });
-    IFoodService.executarPollingTodasLojas().catch((error) => {
-        console.error('Erro no monitor iFood:', error);
-    });
-}, 15000);
-// O monitor permanece referenciado para também manter a API ativa em ambientes
-// do Windows nos quais o listener HTTP não sustenta sozinho o event loop.
-
-async function shutdown(): Promise<void> {
-    console.log('Encerrando o Sensor Delivery...');
-
-    clearInterval(monitorPix);
-
-    server.close(async () => {
-        await database.end();
-        process.exit(0);
+    server.once('listening', () => {
+        console.log(`Sensor Delivery em ${config.publicUrl || `http://${config.host}:${config.port}`}`);
+        if (config.backgroundJobs || config.cleanupDrafts) {
+            monitor = setInterval(() => { void executarMonitor(); }, 15000);
+        }
     });
 }
 
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+async function shutdown(exitCode = 0): Promise<void> {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    if (monitor) clearInterval(monitor);
+    const timeout = setTimeout(() => process.exit(1), 10000);
+    timeout.unref();
+    if (server?.listening) {
+        await new Promise<void>(resolve => { server!.close(() => resolve()); });
+    }
+    await database.end();
+    clearTimeout(timeout);
+    process.exit(exitCode);
+}
+
+process.on('SIGINT', () => { void shutdown(); });
+process.on('SIGTERM', () => { void shutdown(); });
+void iniciar().catch(() => {
+    console.error('Inicialização falhou. Verifique banco, migrations e configurações.');
+    void shutdown(1);
+});

@@ -1,15 +1,13 @@
-import fs from 'fs';
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: 'postgresql://postgres:SensorSistemas@localhost:5432/SENSOR_DELIVERY',
-});
+import fs from 'node:fs';
+import { database as pool } from './database/connection.js';
 
 async function importarCardapio() {
+  const menuPath = process.env.MENU_IMPORT_PATH?.trim();
+  if (!menuPath) throw new Error('MENU_IMPORT_PATH deve identificar o arquivo autorizado.');
   const client = await pool.connect();
 
   try {
-    const rawData = fs.readFileSync('H:/Projetos/SensorDelivery/cardapio_completo.json', 'utf8');
+    const rawData = fs.readFileSync(menuPath, 'utf8');
     const data = JSON.parse(rawData);
 
     // 1. Obter a empresa principal
