@@ -34,12 +34,13 @@ export const Login: React.FC = () => {
       login(token, usuario, empresas, permissoes);
       navigate('/');
     } catch (err: any) {
-      console.error('Erro de autenticação:', err);
+      console.error('Erro de autenticação detalhado:', err);
+      const detalhe = err.message || (err.response ? `Status ${err.response.status}` : 'Sem resposta');
       const mensagemErro = 
         err.response?.data?.erro || 
         err.response?.data?.mensagem || 
         err.response?.data?.error || 
-        (err.response ? 'E-mail ou senha inválidos.' : 'Falha na comunicação com a API. Verifique se o servidor está ativo.');
+        `Falha na comunicação com a API (${detalhe}). Verifique se o servidor está ativo.`;
 
       setErro(mensagemErro);
     } finally {
@@ -48,27 +49,27 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B132B] flex flex-col justify-center items-center px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-[#071A4B] flex flex-col justify-start sm:justify-center items-center px-4 py-6 relative overflow-y-auto overflow-x-hidden">
       {/* Luzes de fundo decorativas */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#8C63FF]/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#3B82F6]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#16C8E5]/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#8D3DFF]/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md">
         {/* Card Principal */}
-        <div className="bg-[#152439] border border-[#2A405B] rounded-2xl p-8 shadow-2xl relative z-10 backdrop-blur-xl">
+        <div className="bg-[#101F3D] border border-[#234A78] rounded-2xl p-6 sm:p-8 shadow-2xl relative z-10 backdrop-blur-xl">
           {/* Logo / Título */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6 sm:mb-8">
             <img
-              src="/logo-admin.png"
+              src="/feature-graphic-1024x500.png?v=sd-banner-20261006"
               alt="Sensor Delivery - Painel Administrativo"
-              className="h-16 w-auto max-w-full object-contain mx-auto mb-3"
+              className="w-full max-w-[420px] max-h-[170px] sm:max-h-none aspect-[2.048/1] object-cover mx-auto mb-4 rounded-2xl shadow-lg shadow-[#16C8E5]/20"
             />
             <p className="text-xs text-[#9CAABC] font-medium">Acesse o painel de gestão do seu delivery</p>
           </div>
 
           {/* Mensagem de Erro */}
           {erro && (
-            <div className="mb-6 p-4 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-start gap-3 text-[#EF4444] text-xs">
+            <div className="mb-6 p-4 rounded-xl bg-[#FF6B76]/10 border border-[#FF6B76]/30 flex items-start gap-3 text-[#FF6B76] text-xs">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{erro}</span>
             </div>
@@ -89,7 +90,7 @@ export const Login: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@sistemassensor.com.br"
-                  className="w-full bg-[#0B132B] border border-[#2A405B] focus:border-[#8C63FF] text-white rounded-xl px-4 py-3 pl-11 text-sm focus:outline-none transition-colors"
+                  className="w-full bg-[#0D2348] border border-[#234A78] focus:border-[#16C8E5] text-white rounded-xl px-4 py-3 pl-11 text-sm focus:outline-none transition-colors"
                 />
                 <Mail className="w-4 h-4 text-[#64748B] absolute left-4 top-1/2 -translate-y-1/2" />
               </div>
@@ -106,7 +107,7 @@ export const Login: React.FC = () => {
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-[#0B132B] border border-[#2A405B] focus:border-[#8C63FF] text-white rounded-xl px-4 py-3 pl-11 pr-11 text-sm focus:outline-none transition-colors"
+                  className="w-full bg-[#0D2348] border border-[#234A78] focus:border-[#16C8E5] text-white rounded-xl px-4 py-3 pl-11 pr-11 text-sm focus:outline-none transition-colors"
                 />
                 <Lock className="w-4 h-4 text-[#64748B] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <button
@@ -127,7 +128,7 @@ export const Login: React.FC = () => {
             <button
               type="submit"
               disabled={carregando}
-              className="w-full mt-2 bg-gradient-to-r from-[#8C63FF] to-[#7847eb] hover:from-[#7847eb] hover:to-[#6366F1] text-white font-semibold py-3.5 px-4 rounded-xl text-sm shadow-lg shadow-[#8C63FF]/25 hover:shadow-[#8C63FF]/40 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full mt-2 bg-gradient-to-r from-[#0A9BDE] via-[#16C8E5] to-[#8D3DFF] hover:brightness-110 text-white font-bold tracking-wide py-3.5 px-4 rounded-xl text-sm shadow-lg shadow-[#16C8E5]/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {carregando ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

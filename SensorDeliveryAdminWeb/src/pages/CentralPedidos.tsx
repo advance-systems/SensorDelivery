@@ -1,23 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { api } from '../api/client';
-import { 
-  ShoppingBag, 
-  Clock, 
-  CheckCircle2, 
-  Truck, 
-  XCircle, 
-  AlertTriangle, 
-  Printer, 
-  Eye, 
-  Phone, 
-  MapPin, 
-  DollarSign, 
+import React, { useState, useEffect, useRef } from "react";
+import { api } from "../api/client";
+import {
+  ShoppingBag,
+  Clock,
+  CheckCircle2,
+  Truck,
+  XCircle,
+  AlertTriangle,
+  Printer,
+  Eye,
+  Phone,
+  MapPin,
+  DollarSign,
   ChevronRight,
   Filter,
   Search,
   RefreshCw,
-  X
-} from 'lucide-react';
+  Calendar,
+  X,
+} from "lucide-react";
 
 export interface PedidoItem {
   id: number | string;
@@ -27,7 +28,11 @@ export interface PedidoItem {
   preco_total: number;
   observacoes?: string;
   sabores?: Array<{ sabor_nome: string; fracao?: string }>;
-  adicionais?: Array<{ adicional_nome: string; quantidade: number; valor_unitario: number }>;
+  adicionais?: Array<{
+    adicional_nome: string;
+    quantidade: number;
+    valor_unitario: number;
+  }>;
   borda_nome?: string;
 }
 
@@ -36,8 +41,8 @@ export interface Pedido {
   numero_pedido?: string;
   cliente_nome: string;
   cliente_telefone: string;
-  tipo_entrega: 'entrega' | 'retirada' | 'mesa';
-  status: 'novo' | 'em_preparo' | 'saiu_entrega' | 'entregue' | 'cancelado';
+  tipo_entrega: "entrega" | "retirada" | "mesa";
+  status: "novo" | "em_preparo" | "saiu_entrega" | "entregue" | "cancelado";
   forma_pagamento: string;
   subtotal: number;
   taxa_entrega: number;
@@ -55,66 +60,68 @@ export interface Pedido {
 }
 
 function formatarFormaPagamento(forma?: string, trocoPara?: number): string {
-  if (!forma) return 'PIX';
+  if (!forma) return "PIX";
   const f = String(forma).toUpperCase();
-  if (f === 'DINHEIRO') {
+  if (f === "DINHEIRO") {
     if (trocoPara && trocoPara > 0) {
-      return `Dinheiro (Troco p/ ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(trocoPara)})`;
+      return `Dinheiro (Troco p/ ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(trocoPara)})`;
     }
-    return 'Dinheiro';
+    return "Dinheiro";
   }
-  if (f === 'CARTAO_CREDITO' || f.includes('CREDITO')) return 'Cartão Crédito';
-  if (f === 'CARTAO_DEBITO' || f.includes('DEBITO')) return 'Cartão Débito';
-  if (f === 'ONLINE') return 'Online';
+  if (f === "CARTAO_CREDITO" || f.includes("CREDITO")) return "Cartão Crédito";
+  if (f === "CARTAO_DEBITO" || f.includes("DEBITO")) return "Cartão Débito";
+  if (f === "ONLINE") return "Online";
   return forma;
 }
 
-function normalizarStatus(statusDb?: string): Pedido['status'] {
-  const s = String(statusDb || '').toUpperCase();
-  if (['RASCUNHO', 'AGUARDANDO_CONFIRMACAO', 'CONFIRMADO', 'NOVO'].includes(s)) return 'novo';
-  if (['EM_PREPARO', 'PRONTO'].includes(s)) return 'em_preparo';
-  if (['SAIU_PARA_ENTREGA', 'EM_ENTREGA', 'SAIU_ENTREGA'].includes(s)) return 'saiu_entrega';
-  if (['ENTREGUE', 'FINALIZADO'].includes(s)) return 'entregue';
-  if (['CANCELADO'].includes(s)) return 'cancelado';
-  return 'novo';
+function normalizarStatus(statusDb?: string): Pedido["status"] {
+  const s = String(statusDb || "").toUpperCase();
+  if (["RASCUNHO", "AGUARDANDO_CONFIRMACAO", "CONFIRMADO", "NOVO"].includes(s))
+    return "novo";
+  if (["EM_PREPARO", "PRONTO"].includes(s)) return "em_preparo";
+  if (["SAIU_PARA_ENTREGA", "EM_ENTREGA", "SAIU_ENTREGA"].includes(s))
+    return "saiu_entrega";
+  if (["ENTREGUE", "FINALIZADO"].includes(s)) return "entregue";
+  if (["CANCELADO"].includes(s)) return "cancelado";
+  return "novo";
 }
 
-function obterInfoStatus(status: Pedido['status']) {
+function obterInfoStatus(status: Pedido["status"]) {
   switch (status) {
-    case 'novo':
+    case "novo":
       return {
-        label: 'Novo / Pendente',
-        corBadge: 'bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/30',
+        label: "Novo / Pendente",
+        corBadge: "bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/30",
         icone: AlertTriangle,
       };
-    case 'em_preparo':
+    case "em_preparo":
       return {
-        label: 'Em Preparo',
-        corBadge: 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/30',
+        label: "Em Preparo",
+        corBadge: "bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/30",
         icone: Clock,
       };
-    case 'saiu_entrega':
+    case "saiu_entrega":
       return {
-        label: 'Saiu p/ Entrega',
-        corBadge: 'bg-[#0EA5E9]/20 text-[#0EA5E9] border-[#0EA5E9]/30',
+        label: "Saiu p/ Entrega",
+        corBadge: "bg-[#0EA5E9]/20 text-[#0EA5E9] border-[#0EA5E9]/30",
         icone: Truck,
       };
-    case 'entregue':
+    case "entregue":
       return {
-        label: 'Concluído / Entregue',
-        corBadge: 'bg-[#10B981]/20 text-[#10B981] border-[#10B981]/30',
+        label: "Concluído / Entregue",
+        corBadge: "bg-[#10B981]/20 text-[#10B981] border-[#10B981]/30",
         icone: CheckCircle2,
       };
-    case 'cancelado':
+    case "cancelado":
       return {
-        label: 'Cancelado',
-        corBadge: 'bg-[#64748B]/20 text-[#94A3B8] border-[#64748B]/30',
+        label: "Cancelado",
+        corBadge: "bg-[#64748B]/20 text-[#94A3B8] border-[#64748B]/30",
         icone: XCircle,
       };
     default:
       return {
-        label: 'Novo',
-        corBadge: 'bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/30',
+        label: "Novo",
+        corBadge: "bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/30",
         icone: AlertTriangle,
       };
   }
@@ -124,71 +131,101 @@ function normalizarPedido(raw: any): Pedido {
   return {
     id: raw.id,
     numero_pedido: String(raw.numero || raw.numero_pedido || raw.id),
-    cliente_nome: raw.cliente_nome || 'Cliente',
-    cliente_telefone: raw.cliente_telefone || '',
+    cliente_nome: raw.cliente_nome || "Cliente",
+    cliente_telefone: raw.cliente_telefone || "",
     tipo_entrega: (() => {
-      const rawTipo = String(raw.tipo_atendimento || raw.tipo_entrega || '').toLowerCase();
-      if (rawTipo.includes('mesa') || rawTipo.includes('consumo_local') || rawTipo.includes('comanda')) return 'mesa';
-      if (rawTipo.includes('retirada') || rawTipo.includes('balcao')) return 'retirada';
-      return 'entrega';
+      const rawTipo = String(
+        raw.tipo_atendimento || raw.tipo_entrega || "",
+      ).toLowerCase();
+      if (
+        rawTipo.includes("mesa") ||
+        rawTipo.includes("consumo_local") ||
+        rawTipo.includes("comanda")
+      )
+        return "mesa";
+      if (rawTipo.includes("retirada") || rawTipo.includes("balcao"))
+        return "retirada";
+      return "entrega";
     })(),
     status: normalizarStatus(raw.status),
-    forma_pagamento: raw.forma_pagamento || raw.forma || 'PIX',
+    forma_pagamento: raw.forma_pagamento || raw.forma || "PIX",
     subtotal: Number(raw.subtotal || raw.valor_total || 0),
     taxa_entrega: Number(raw.taxa_entrega || 0),
     desconto: Number(raw.desconto || 0),
     total: Number(raw.valor_total || raw.total || 0),
-    troco_para: raw.troco_para ? Number(raw.troco_para) : (raw.dados?.troco_para ? Number(raw.dados.troco_para) : undefined),
-    endereco_rua: raw.endereco_texto || raw.endereco_rua || '',
-    endereco_numero: raw.endereco_numero || '',
-    endereco_bairro: raw.endereco_bairro || '',
-    endereco_complemento: raw.endereco_complemento || '',
-    itens_resumo: raw.itens_resumo || '',
+    troco_para: raw.troco_para
+      ? Number(raw.troco_para)
+      : raw.dados?.troco_para
+        ? Number(raw.dados.troco_para)
+        : undefined,
+    endereco_rua: raw.endereco_texto || raw.endereco_rua || "",
+    endereco_numero: raw.endereco_numero || "",
+    endereco_bairro: raw.endereco_bairro || "",
+    endereco_complemento: raw.endereco_complemento || "",
+    itens_resumo: raw.itens_resumo || "",
     criado_em: raw.criado_em || new Date().toISOString(),
     itens: raw.itens?.map((it: any) => ({
       id: it.id,
-      produto_nome: it.produto_nome || it.produto_descricao || 'Produto',
+      produto_nome: it.produto_nome || it.produto_descricao || "Produto",
       quantidade: Number(it.quantidade || 1),
       preco_unitario: Number(it.valor_unitario || it.preco_unitario || 0),
       preco_total: Number(it.valor_total || it.preco_total || 0),
       observacoes: it.observacoes,
       sabores: it.sabores?.map((sb: any) => ({
-        sabor_nome: sb.sabor_descricao || sb.descricao || sb.sabor_nome || '',
-        fracao: sb.fracao || ''
+        sabor_nome: sb.sabor_descricao || sb.descricao || sb.sabor_nome || "",
+        fracao: sb.fracao || "",
       })),
       adicionais: it.adicionais?.map((ad: any) => ({
-        adicional_nome: ad.adicional_nome || ad.descricao || '',
+        adicional_nome: ad.adicional_nome || ad.descricao || "",
         quantidade: Number(ad.quantidade || 1),
-        valor_unitario: Number(ad.valor_unitario || ad.valor || 0)
+        valor_unitario: Number(ad.valor_unitario || ad.valor || 0),
       })),
-      borda_nome: it.borda_descricao || it.borda_nome || ''
-    }))
+      borda_nome: it.borda_descricao || it.borda_nome || "",
+    })),
   };
+}
+
+function obterDataHojeIso(): string {
+  const d = new Date();
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
 }
 
 export const CentralPedidos: React.FC = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [filtroTexto, setFiltroTexto] = useState('');
-  const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null);
+  const [filtroTexto, setFiltroTexto] = useState("");
+  const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(
+    null,
+  );
   const [modalDetalhesAberto, setModalDetalhesAberto] = useState(false);
   const [carregandoDetalhes, setCarregandoDetalhes] = useState(false);
-  const [atualizandoStatus, setAtualizandoStatus] = useState<string | number | null>(null);
-  const [confirmarCancelamentoAberto, setConfirmarCancelamentoAberto] = useState(false);
+  const [atualizandoStatus, setAtualizandoStatus] = useState<
+    string | number | null
+  >(null);
+  const [confirmarCancelamentoAberto, setConfirmarCancelamentoAberto] =
+    useState(false);
+  const [dataInicio, setDataInicio] = useState(obterDataHojeIso());
+  const [dataFim, setDataFim] = useState(obterDataHojeIso());
 
   const carregarPedidos = async () => {
     try {
       setCarregando(true);
-      const response = await api.get('/pedidos');
+      const response = await api.get("/pedidos");
       let listaRaw: any[] = [];
       if (Array.isArray(response.data)) {
         listaRaw = response.data;
-      } else if (response.data?.pedidos && Array.isArray(response.data.pedidos)) {
+      } else if (
+        response.data?.pedidos &&
+        Array.isArray(response.data.pedidos)
+      ) {
         listaRaw = response.data.pedidos;
       }
       setPedidos(listaRaw.map(normalizarPedido));
     } catch (error) {
-      console.error('Erro ao carregar pedidos:', error);
+      console.error("Erro ao carregar pedidos:", error);
     } finally {
       setCarregando(false);
     }
@@ -210,25 +247,28 @@ export const CentralPedidos: React.FC = () => {
         setPedidoSelecionado(normalizarPedido(res.data.pedido));
       }
     } catch (error) {
-      console.error('Erro ao carregar detalhes do pedido:', error);
+      console.error("Erro ao carregar detalhes do pedido:", error);
     } finally {
       setCarregandoDetalhes(false);
     }
   };
 
-  const alterarStatus = async (pedidoId: string | number, novoStatus: Pedido['status']) => {
+  const alterarStatus = async (
+    pedidoId: string | number,
+    novoStatus: Pedido["status"],
+  ) => {
     try {
       setAtualizandoStatus(pedidoId);
       await api.patch(`/pedidos/${pedidoId}/status`, { status: novoStatus });
       setPedidos((prev) =>
-        prev.map((p) => (p.id === pedidoId ? { ...p, status: novoStatus } : p))
+        prev.map((p) => (p.id === pedidoId ? { ...p, status: novoStatus } : p)),
       );
       if (pedidoSelecionado && pedidoSelecionado.id === pedidoId) {
         setPedidoSelecionado({ ...pedidoSelecionado, status: novoStatus });
       }
     } catch (error) {
-      console.error('Erro ao atualizar status:', error);
-      alert('Não foi possível alterar o status do pedido.');
+      console.error("Erro ao atualizar status:", error);
+      alert("Não foi possível alterar o status do pedido.");
     } finally {
       setAtualizandoStatus(null);
     }
@@ -236,44 +276,53 @@ export const CentralPedidos: React.FC = () => {
 
   const colunas = [
     {
-      id: 'novo',
-      titulo: 'Novos / Pendentes',
-      corBadge: 'bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/30',
+      id: "novo",
+      titulo: "Novos / Pendentes",
+      corBadge: "bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/30",
       icone: AlertTriangle,
-      status: 'novo' as const,
-      proximoStatus: 'em_preparo' as const,
-      acaoTexto: 'Aceitar & Preparar',
+      status: "novo" as const,
+      proximoStatus: "em_preparo" as const,
+      acaoTexto: "Aceitar & Preparar",
     },
     {
-      id: 'em_preparo',
-      titulo: 'Em Preparo',
-      corBadge: 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/30',
+      id: "em_preparo",
+      titulo: "Em Preparo",
+      corBadge: "bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/30",
       icone: Clock,
-      status: 'em_preparo' as const,
-      proximoStatus: 'saiu_entrega' as const,
-      acaoTexto: 'Despachar / Pronto',
+      status: "em_preparo" as const,
+      proximoStatus: "saiu_entrega" as const,
+      acaoTexto: "Despachar / Pronto",
     },
     {
-      id: 'saiu_entrega',
-      titulo: 'Saiu p/ Entrega',
-      corBadge: 'bg-[#0EA5E9]/20 text-[#0EA5E9] border-[#0EA5E9]/30',
+      id: "saiu_entrega",
+      titulo: "Saiu p/ Entrega",
+      corBadge: "bg-[#0EA5E9]/20 text-[#0EA5E9] border-[#0EA5E9]/30",
       icone: Truck,
-      status: 'saiu_entrega' as const,
-      proximoStatus: 'entregue' as const,
-      acaoTexto: 'Concluir Entrega',
+      status: "saiu_entrega" as const,
+      proximoStatus: "entregue" as const,
+      acaoTexto: "Concluir Entrega",
     },
     {
-      id: 'entregue',
-      titulo: 'Concluídos',
-      corBadge: 'bg-[#10B981]/20 text-[#10B981] border-[#10B981]/30',
+      id: "entregue",
+      titulo: "Concluídos",
+      corBadge: "bg-[#10B981]/20 text-[#10B981] border-[#10B981]/30",
       icone: CheckCircle2,
-      status: 'entregue' as const,
+      status: "entregue" as const,
       proximoStatus: null,
       acaoTexto: null,
     },
   ];
 
   const pedidosFiltrados = pedidos.filter((p) => {
+    // Filtro por período de datas (baseado em p.criado_em)
+    if (p.criado_em) {
+      // Extrai YYYY-MM-DD da data do pedido
+      const dataPedido = new Date(p.criado_em).toLocaleDateString("sv-SE"); // sv-SE gera no padrão YYYY-MM-DD
+      if (dataInicio && dataPedido < dataInicio) return false;
+      if (dataFim && dataPedido > dataFim) return false;
+    }
+
+    // Filtro por texto de busca
     if (!filtroTexto) return true;
     const busca = filtroTexto.toLowerCase();
     return (
@@ -287,15 +336,21 @@ export const CentralPedidos: React.FC = () => {
   });
 
   const formatarMoeda = (valor: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor || 0);
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(valor || 0);
   };
 
   const formatarHora = (dataIso: string) => {
     try {
       const d = new Date(dataIso);
-      return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } catch {
-      return '--:--';
+      return "--:--";
     }
   };
 
@@ -329,7 +384,9 @@ export const CentralPedidos: React.FC = () => {
             onClick={carregarPedidos}
             className="flex items-center gap-2 px-3 py-2 bg-[#152439] hover:bg-[#1c2e47] border border-[#2A405B] text-xs font-semibold text-white rounded-xl transition-colors cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${carregando ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${carregando ? "animate-spin" : ""}`}
+            />
             <span>Atualizar</span>
           </button>
         </div>
@@ -338,21 +395,27 @@ export const CentralPedidos: React.FC = () => {
       {/* Kanban Board */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-start">
         {colunas.map((coluna) => {
-          const pedidosColuna = pedidosFiltrados.filter((p) => p.status === coluna.status);
+          const pedidosColuna = pedidosFiltrados.filter(
+            (p) => p.status === coluna.status,
+          );
           const ColunaIcone = coluna.icone;
 
           return (
             <div
               key={coluna.id}
-              className="bg-[#152439]/60 border border-[#2A405B] rounded-2xl flex flex-col max-h-[calc(100vh-180px)] overflow-hidden shadow-lg"
+              className="bg-[#152439]/60 border border-[#2A405B] rounded-2xl flex flex-col max-h-[calc(100vh-120px)] overflow-hidden shadow-lg"
             >
               {/* Header da Coluna */}
               <div className="p-4 border-b border-[#2A405B] bg-[#152439] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ColunaIcone className="w-4 h-4 text-[#8C63FF]" />
-                  <h3 className="font-bold text-sm text-white">{coluna.titulo}</h3>
+                  <h3 className="font-bold text-sm text-white">
+                    {coluna.titulo}
+                  </h3>
                 </div>
-                <span className={`px-2 py-0.5 text-xs font-bold rounded-full border ${coluna.corBadge}`}>
+                <span
+                  className={`px-2 py-0.5 text-xs font-bold rounded-full border ${coluna.corBadge}`}
+                >
                   {pedidosColuna.length}
                 </span>
               </div>
@@ -374,7 +437,11 @@ export const CentralPedidos: React.FC = () => {
                         <span className="font-extrabold text-sm text-white flex items-center gap-1.5">
                           #{pedido.numero_pedido || pedido.id}
                           <span className="text-[10px] font-medium text-[#9CAABC] bg-[#0B132B] px-1.5 py-0.5 rounded border border-[#2A405B]">
-                            {pedido.tipo_entrega === 'entrega' ? 'Entrega' : pedido.tipo_entrega === 'mesa' ? 'Mesa / Comanda' : 'Retirada'}
+                            {pedido.tipo_entrega === "entrega"
+                              ? "Entrega"
+                              : pedido.tipo_entrega === "mesa"
+                                ? "Mesa / Comanda"
+                                : "Retirada"}
                           </span>
                         </span>
                         <span className="text-[11px] font-semibold text-[#9CAABC] flex items-center gap-1">
@@ -385,16 +452,23 @@ export const CentralPedidos: React.FC = () => {
 
                       {/* Dados do Cliente & Endereço */}
                       <div>
-                        <p className="font-bold text-xs text-white truncate">{pedido.cliente_nome}</p>
-                        {pedido.tipo_entrega === 'entrega' && (pedido.endereco_bairro || pedido.endereco_rua) && (
-                          <p className="text-[11px] text-[#9CAABC] flex items-center gap-1 truncate mt-0.5">
-                            <MapPin className="w-3 h-3 text-[#64748B] shrink-0" />
-                            {pedido.endereco_bairro ? `${pedido.endereco_bairro} ` : ''}
-                            {pedido.endereco_rua ? `- ${pedido.endereco_rua}` : ''}
-                          </p>
-                        )}
+                        <p className="font-bold text-xs text-white truncate">
+                          {pedido.cliente_nome}
+                        </p>
+                        {pedido.tipo_entrega === "entrega" &&
+                          (pedido.endereco_bairro || pedido.endereco_rua) && (
+                            <p className="text-[11px] text-[#9CAABC] flex items-center gap-1 truncate mt-0.5">
+                              <MapPin className="w-3 h-3 text-[#64748B] shrink-0" />
+                              {pedido.endereco_bairro
+                                ? `${pedido.endereco_bairro} `
+                                : ""}
+                              {pedido.endereco_rua
+                                ? `- ${pedido.endereco_rua}`
+                                : ""}
+                            </p>
+                          )}
                         {pedido.itens_resumo && (
-                          <p className="text-[11px] text-[#8C63FF] line-clamp-2 mt-1 whitespace-pre-line bg-[#0B132B]/60 p-1.5 rounded border border-[#2A405B]/50">
+                          <p className="text-[11px] text-[#8C63FF] max-h-24 overflow-y-auto mt-1 whitespace-pre-line bg-[#0B132B]/60 p-1.5 rounded border border-[#2A405B]/50">
                             {pedido.itens_resumo}
                           </p>
                         )}
@@ -403,7 +477,10 @@ export const CentralPedidos: React.FC = () => {
                       {/* Total & Forma de Pagamento */}
                       <div className="flex items-center justify-between pt-2 border-t border-[#2A405B]/60 text-xs">
                         <span className="text-[11px] text-[#9CAABC] font-semibold bg-[#0B132B] px-2 py-0.5 rounded border border-[#2A405B]">
-                          {formatarFormaPagamento(pedido.forma_pagamento, pedido.troco_para)}
+                          {formatarFormaPagamento(
+                            pedido.forma_pagamento,
+                            pedido.troco_para,
+                          )}
                         </span>
                         <span className="font-extrabold text-sm text-[#10B981]">
                           {formatarMoeda(pedido.total)}
@@ -423,7 +500,9 @@ export const CentralPedidos: React.FC = () => {
                         {coluna.proximoStatus && (
                           <button
                             disabled={atualizandoStatus === pedido.id}
-                            onClick={() => alterarStatus(pedido.id, coluna.proximoStatus!)}
+                            onClick={() =>
+                              alterarStatus(pedido.id, coluna.proximoStatus!)
+                            }
                             className="flex-1 py-1.5 px-3 bg-gradient-to-r from-[#8C63FF] to-[#7847eb] hover:from-[#7847eb] hover:to-[#6366F1] text-white rounded-lg text-xs font-bold transition-all shadow-md shadow-[#8C63FF]/20 flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
                           >
                             {atualizandoStatus === pedido.id ? (
@@ -458,12 +537,19 @@ export const CentralPedidos: React.FC = () => {
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <h3 className="text-lg font-bold text-white">Detalhes do Pedido #{pedidoSelecionado.numero_pedido || pedidoSelecionado.id}</h3>
+                    <h3 className="text-lg font-bold text-white">
+                      Detalhes do Pedido #
+                      {pedidoSelecionado.numero_pedido || pedidoSelecionado.id}
+                    </h3>
                     {(() => {
-                      const infoStatus = obterInfoStatus(pedidoSelecionado.status);
+                      const infoStatus = obterInfoStatus(
+                        pedidoSelecionado.status,
+                      );
                       const StatusIcon = infoStatus.icone;
                       return (
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${infoStatus.corBadge}`}>
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${infoStatus.corBadge}`}
+                        >
                           <StatusIcon className="w-3.5 h-3.5" />
                           {infoStatus.label}
                         </span>
@@ -471,7 +557,10 @@ export const CentralPedidos: React.FC = () => {
                     })()}
                   </div>
                   <p className="text-xs text-[#9CAABC] mt-0.5">
-                    Criado em {new Date(pedidoSelecionado.criado_em).toLocaleString('pt-BR')}
+                    Criado em{" "}
+                    {new Date(pedidoSelecionado.criado_em).toLocaleString(
+                      "pt-BR",
+                    )}
                   </p>
                 </div>
               </div>
@@ -489,22 +578,34 @@ export const CentralPedidos: React.FC = () => {
               {/* Info Cliente */}
               <div className="bg-[#0B132B] border border-[#2A405B] rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-[#64748B]">Cliente</span>
-                  <p className="font-bold text-sm text-white">{pedidoSelecionado.cliente_nome}</p>
+                  <span className="text-[10px] uppercase font-bold text-[#64748B]">
+                    Cliente
+                  </span>
+                  <p className="font-bold text-sm text-white">
+                    {pedidoSelecionado.cliente_nome}
+                  </p>
                   <p className="text-xs text-[#9CAABC] flex items-center gap-1 mt-1">
                     <Phone className="w-3.5 h-3.5 text-[#8C63FF]" />
-                    {pedidoSelecionado.cliente_telefone || 'Não informado'}
+                    {pedidoSelecionado.cliente_telefone || "Não informado"}
                   </p>
                 </div>
 
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-[#64748B]">Entrega / Endereço</span>
-                  <p className="font-bold text-sm text-white capitalize">{pedidoSelecionado.tipo_entrega}</p>
+                  <span className="text-[10px] uppercase font-bold text-[#64748B]">
+                    Entrega / Endereço
+                  </span>
+                  <p className="font-bold text-sm text-white capitalize">
+                    {pedidoSelecionado.tipo_entrega}
+                  </p>
                   {pedidoSelecionado.endereco_rua && (
                     <p className="text-xs text-[#9CAABC] mt-1">
                       {pedidoSelecionado.endereco_rua}
-                      {pedidoSelecionado.endereco_numero ? `, ${pedidoSelecionado.endereco_numero}` : ''}
-                      {pedidoSelecionado.endereco_bairro ? ` - ${pedidoSelecionado.endereco_bairro}` : ''}
+                      {pedidoSelecionado.endereco_numero
+                        ? `, ${pedidoSelecionado.endereco_numero}`
+                        : ""}
+                      {pedidoSelecionado.endereco_bairro
+                        ? ` - ${pedidoSelecionado.endereco_bairro}`
+                        : ""}
                     </p>
                   )}
                 </div>
@@ -523,20 +624,32 @@ export const CentralPedidos: React.FC = () => {
                       <RefreshCw className="w-4 h-4 animate-spin text-[#8C63FF]" />
                       <span>Carregando itens...</span>
                     </div>
-                  ) : pedidoSelecionado.itens && pedidoSelecionado.itens.length > 0 ? (
+                  ) : pedidoSelecionado.itens &&
+                    pedidoSelecionado.itens.length > 0 ? (
                     pedidoSelecionado.itens.map((item, idx) => (
-                      <div key={idx} className="p-3.5 flex items-start justify-between gap-4">
+                      <div
+                        key={idx}
+                        className="p-3.5 flex items-start justify-between gap-4"
+                      >
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="px-2 py-0.5 bg-[#8C63FF]/20 text-[#8C63FF] text-xs font-bold rounded">
                               {item.quantidade}x
                             </span>
-                            <span className="font-bold text-sm text-white">{item.produto_nome}</span>
+                            <span className="font-bold text-sm text-white">
+                              {item.produto_nome}
+                            </span>
                           </div>
 
                           {item.sabores && item.sabores.length > 0 && (
                             <p className="text-xs text-[#9CAABC] mt-1 ml-8">
-                              Sabores: {item.sabores.map((s) => `${s.sabor_nome}${s.fracao ? ` (${s.fracao})` : ''}`).join(', ')}
+                              Sabores:{" "}
+                              {item.sabores
+                                .map(
+                                  (s) =>
+                                    `${s.sabor_nome}${s.fracao ? ` (${s.fracao})` : ""}`,
+                                )
+                                .join(", ")}
                             </p>
                           )}
 
@@ -548,7 +661,12 @@ export const CentralPedidos: React.FC = () => {
 
                           {item.adicionais && item.adicionais.length > 0 && (
                             <p className="text-xs text-[#9CAABC] ml-8">
-                              Adicionais: {item.adicionais.map((a) => `${a.quantidade}x ${a.adicional_nome}`).join(', ')}
+                              Adicionais:{" "}
+                              {item.adicionais
+                                .map(
+                                  (a) => `${a.quantidade}x ${a.adicional_nome}`,
+                                )
+                                .join(", ")}
                             </p>
                           )}
 
@@ -581,12 +699,19 @@ export const CentralPedidos: React.FC = () => {
                 <div className="flex justify-between text-[#9CAABC]">
                   <span>Forma de Pagamento</span>
                   <span className="font-bold text-white">
-                    {formatarFormaPagamento(pedidoSelecionado.forma_pagamento, pedidoSelecionado.troco_para)}
+                    {formatarFormaPagamento(
+                      pedidoSelecionado.forma_pagamento,
+                      pedidoSelecionado.troco_para,
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between text-[#9CAABC]">
                   <span>Subtotal</span>
-                  <span>{formatarMoeda(pedidoSelecionado.subtotal || pedidoSelecionado.total)}</span>
+                  <span>
+                    {formatarMoeda(
+                      pedidoSelecionado.subtotal || pedidoSelecionado.total,
+                    )}
+                  </span>
                 </div>
                 {pedidoSelecionado.taxa_entrega > 0 && (
                   <div className="flex justify-between text-[#9CAABC]">
@@ -602,7 +727,9 @@ export const CentralPedidos: React.FC = () => {
                 )}
                 <div className="flex justify-between text-base font-extrabold text-white pt-2 border-t border-[#2A405B]">
                   <span>Total</span>
-                  <span className="text-[#10B981]">{formatarMoeda(pedidoSelecionado.total)}</span>
+                  <span className="text-[#10B981]">
+                    {formatarMoeda(pedidoSelecionado.total)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -619,9 +746,11 @@ export const CentralPedidos: React.FC = () => {
               </button>
 
               <div className="flex items-center gap-2 flex-wrap justify-end">
-                {pedidoSelecionado.status === 'novo' && (
+                {pedidoSelecionado.status === "novo" && (
                   <button
-                    onClick={() => alterarStatus(pedidoSelecionado.id, 'em_preparo')}
+                    onClick={() =>
+                      alterarStatus(pedidoSelecionado.id, "em_preparo")
+                    }
                     disabled={atualizandoStatus === pedidoSelecionado.id}
                     className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#F59E0B] hover:bg-[#D97706] text-slate-900 font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md disabled:opacity-50"
                   >
@@ -630,9 +759,11 @@ export const CentralPedidos: React.FC = () => {
                   </button>
                 )}
 
-                {pedidoSelecionado.status === 'em_preparo' && (
+                {pedidoSelecionado.status === "em_preparo" && (
                   <button
-                    onClick={() => alterarStatus(pedidoSelecionado.id, 'saiu_entrega')}
+                    onClick={() =>
+                      alterarStatus(pedidoSelecionado.id, "saiu_entrega")
+                    }
                     disabled={atualizandoStatus === pedidoSelecionado.id}
                     className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md disabled:opacity-50"
                   >
@@ -641,9 +772,11 @@ export const CentralPedidos: React.FC = () => {
                   </button>
                 )}
 
-                {pedidoSelecionado.status === 'saiu_entrega' && (
+                {pedidoSelecionado.status === "saiu_entrega" && (
                   <button
-                    onClick={() => alterarStatus(pedidoSelecionado.id, 'entregue')}
+                    onClick={() =>
+                      alterarStatus(pedidoSelecionado.id, "entregue")
+                    }
                     disabled={atualizandoStatus === pedidoSelecionado.id}
                     className="flex items-center gap-1.5 px-3.5 py-2.5 bg-[#10B981] hover:bg-[#059669] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md disabled:opacity-50"
                   >
@@ -652,14 +785,15 @@ export const CentralPedidos: React.FC = () => {
                   </button>
                 )}
 
-                {pedidoSelecionado.status !== 'cancelado' && pedidoSelecionado.status !== 'entregue' && (
-                  <button
-                    onClick={() => setConfirmarCancelamentoAberto(true)}
-                    className="px-3 py-2.5 text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/15 rounded-xl border border-transparent hover:border-[#EF4444]/30 transition-all cursor-pointer"
-                  >
-                    Cancelar Pedido
-                  </button>
-                )}
+                {pedidoSelecionado.status !== "cancelado" &&
+                  pedidoSelecionado.status !== "entregue" && (
+                    <button
+                      onClick={() => setConfirmarCancelamentoAberto(true)}
+                      className="px-3 py-2.5 text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/15 rounded-xl border border-transparent hover:border-[#EF4444]/30 transition-all cursor-pointer"
+                    >
+                      Cancelar Pedido
+                    </button>
+                  )}
                 <button
                   onClick={() => setModalDetalhesAberto(false)}
                   className="px-4 py-2.5 bg-[#2A405B] hover:bg-[#3B82F6] text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md"
@@ -681,12 +815,24 @@ export const CentralPedidos: React.FC = () => {
               <div className="w-14 h-14 rounded-2xl bg-[#EF4444]/15 border border-[#EF4444]/30 flex items-center justify-center mx-auto mb-4 text-[#EF4444]">
                 <AlertTriangle className="w-7 h-7" />
               </div>
-              <h3 className="text-lg font-extrabold text-white">Cancelar Pedido?</h3>
+              <h3 className="text-lg font-extrabold text-white">
+                Cancelar Pedido?
+              </h3>
               <p className="text-xs text-[#9CAABC] mt-2 leading-relaxed">
-                Tem certeza de que deseja cancelar o <strong className="text-white">Pedido #{pedidoSelecionado.numero_pedido || pedidoSelecionado.id}</strong> de <strong className="text-white">{pedidoSelecionado.cliente_nome}</strong>?
+                Tem certeza de que deseja cancelar o{" "}
+                <strong className="text-white">
+                  Pedido #
+                  {pedidoSelecionado.numero_pedido || pedidoSelecionado.id}
+                </strong>{" "}
+                de{" "}
+                <strong className="text-white">
+                  {pedidoSelecionado.cliente_nome}
+                </strong>
+                ?
               </p>
               <p className="text-[11px] text-[#EF4444] mt-2 font-medium bg-[#EF4444]/10 p-2 rounded-xl border border-[#EF4444]/20">
-                ⚠️ Esta ação não poderá ser desfeita e o pedido será cancelado no sistema.
+                ⚠️ Esta ação não poderá ser desfeita e o pedido será cancelado
+                no sistema.
               </p>
             </div>
 
@@ -703,7 +849,7 @@ export const CentralPedidos: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  alterarStatus(pedidoSelecionado.id, 'cancelado');
+                  alterarStatus(pedidoSelecionado.id, "cancelado");
                   setConfirmarCancelamentoAberto(false);
                   setModalDetalhesAberto(false);
                 }}
@@ -720,35 +866,59 @@ export const CentralPedidos: React.FC = () => {
       {/* COMANDA TÉRMICA 80MM PARA IMPRESSÃO (NÃO APARECE NA TELA) */}
       {/* ======================================================== */}
       {pedidoSelecionado && (
-        <div id="secao-comanda-impressao" className="hidden print:block text-black bg-white font-mono text-[12px] leading-tight">
+        <div
+          id="secao-comanda-impressao"
+          className="hidden print:block text-black bg-white font-mono text-[12px] leading-tight"
+        >
           {/* Cabeçalho */}
           <div className="text-center pb-2 border-b-2 border-dashed border-black">
-            <h2 className="text-base font-black uppercase tracking-wider">SENSOR DELIVERY</h2>
-            <p className="text-[11px] font-bold mt-0.5">COMPROVANTE DE PEDIDO</p>
+            <h2 className="text-base font-black uppercase tracking-wider">
+              SENSOR DELIVERY
+            </h2>
+            <p className="text-[11px] font-bold mt-0.5">
+              COMPROVANTE DE PEDIDO
+            </p>
             <div className="my-1.5 py-1 px-2 border border-black inline-block rounded font-black text-lg">
               PEDIDO #{pedidoSelecionado.numero_pedido || pedidoSelecionado.id}
             </div>
             <p className="text-[11px]">
-              {new Date(pedidoSelecionado.criado_em).toLocaleString('pt-BR')}
+              {new Date(pedidoSelecionado.criado_em).toLocaleString("pt-BR")}
             </p>
             <p className="font-black text-xs mt-1 uppercase">
-              TIPO: {String(pedidoSelecionado.tipo_entrega).toLowerCase() === 'entrega' ? '🛵 ENTREGA' : '🏪 RETIRADA / BALCÃO'}
+              TIPO:{" "}
+              {String(pedidoSelecionado.tipo_entrega).toLowerCase() ===
+              "entrega"
+                ? "🛵 ENTREGA"
+                : "🏪 RETIRADA / BALCÃO"}
             </p>
           </div>
 
           {/* Dados do Cliente */}
           <div className="py-2 border-b-2 border-dashed border-black space-y-0.5">
-            <p className="font-bold"><strong>CLIENTE:</strong> {pedidoSelecionado.cliente_nome}</p>
-            <p><strong>TEL/WHATS:</strong> {pedidoSelecionado.cliente_telefone || 'Não informado'}</p>
+            <p className="font-bold">
+              <strong>CLIENTE:</strong> {pedidoSelecionado.cliente_nome}
+            </p>
+            <p>
+              <strong>TEL/WHATS:</strong>{" "}
+              {pedidoSelecionado.cliente_telefone || "Não informado"}
+            </p>
             {pedidoSelecionado.endereco_rua && (
               <div className="mt-1 pt-1 border-t border-dotted border-black">
-                <p className="font-bold"><strong>ENDEREÇO DE ENTREGA:</strong></p>
+                <p className="font-bold">
+                  <strong>ENDEREÇO DE ENTREGA:</strong>
+                </p>
                 <p>
                   {pedidoSelecionado.endereco_rua}
-                  {pedidoSelecionado.endereco_numero ? `, Nº ${pedidoSelecionado.endereco_numero}` : ''}
+                  {pedidoSelecionado.endereco_numero
+                    ? `, Nº ${pedidoSelecionado.endereco_numero}`
+                    : ""}
                 </p>
-                {pedidoSelecionado.endereco_bairro && <p>Bairro: {pedidoSelecionado.endereco_bairro}</p>}
-                {pedidoSelecionado.endereco_complemento && <p>Compl: {pedidoSelecionado.endereco_complemento}</p>}
+                {pedidoSelecionado.endereco_bairro && (
+                  <p>Bairro: {pedidoSelecionado.endereco_bairro}</p>
+                )}
+                {pedidoSelecionado.endereco_complemento && (
+                  <p>Compl: {pedidoSelecionado.endereco_complemento}</p>
+                )}
               </div>
             )}
           </div>
@@ -768,12 +938,20 @@ export const CentralPedidos: React.FC = () => {
                       <span className="break-words max-w-[70%]">
                         {item.quantidade}x {item.produto_nome}
                       </span>
-                      <span className="shrink-0">{formatarMoeda(item.preco_total)}</span>
+                      <span className="shrink-0">
+                        {formatarMoeda(item.preco_total)}
+                      </span>
                     </div>
 
                     {item.sabores && item.sabores.length > 0 && (
                       <p className="text-[11px] pl-2 font-medium">
-                        • Sabores: {item.sabores.map((s) => `${s.sabor_nome}${s.fracao ? ` (${s.fracao})` : ''}`).join(', ')}
+                        • Sabores:{" "}
+                        {item.sabores
+                          .map(
+                            (s) =>
+                              `${s.sabor_nome}${s.fracao ? ` (${s.fracao})` : ""}`,
+                          )
+                          .join(", ")}
                       </p>
                     )}
 
@@ -785,7 +963,10 @@ export const CentralPedidos: React.FC = () => {
 
                     {item.adicionais && item.adicionais.length > 0 && (
                       <p className="text-[11px] pl-2 font-medium">
-                        • Adicionais: {item.adicionais.map((a) => `${a.quantidade}x ${a.adicional_nome}`).join(', ')}
+                        • Adicionais:{" "}
+                        {item.adicionais
+                          .map((a) => `${a.quantidade}x ${a.adicional_nome}`)
+                          .join(", ")}
                       </p>
                     )}
 
@@ -798,7 +979,9 @@ export const CentralPedidos: React.FC = () => {
                 ))}
               </div>
             ) : pedidoSelecionado.itens_resumo ? (
-              <p className="whitespace-pre-line font-medium">{pedidoSelecionado.itens_resumo}</p>
+              <p className="whitespace-pre-line font-medium">
+                {pedidoSelecionado.itens_resumo}
+              </p>
             ) : (
               <p className="italic">Nenhum item informado</p>
             )}
@@ -808,7 +991,11 @@ export const CentralPedidos: React.FC = () => {
           <div className="py-2 border-b-2 border-dashed border-black space-y-1">
             <div className="flex justify-between">
               <span>Subtotal:</span>
-              <span>{formatarMoeda(pedidoSelecionado.subtotal || pedidoSelecionado.total)}</span>
+              <span>
+                {formatarMoeda(
+                  pedidoSelecionado.subtotal || pedidoSelecionado.total,
+                )}
+              </span>
             </div>
             {pedidoSelecionado.taxa_entrega > 0 && (
               <div className="flex justify-between">
@@ -827,7 +1014,13 @@ export const CentralPedidos: React.FC = () => {
               <span>{formatarMoeda(pedidoSelecionado.total)}</span>
             </div>
             <div className="pt-1 text-[11px]">
-              <p><strong>FORMA DE PGTO:</strong> {formatarFormaPagamento(pedidoSelecionado.forma_pagamento, pedidoSelecionado.troco_para)}</p>
+              <p>
+                <strong>FORMA DE PGTO:</strong>{" "}
+                {formatarFormaPagamento(
+                  pedidoSelecionado.forma_pagamento,
+                  pedidoSelecionado.troco_para,
+                )}
+              </p>
             </div>
           </div>
 
@@ -843,7 +1036,9 @@ export const CentralPedidos: React.FC = () => {
           <div className="pt-3 text-center text-[10px] space-y-0.5">
             <p className="font-bold">Obrigado pela preferência!</p>
             <p>Sensor Delivery - Sistema de Pedidos</p>
-            <p className="pt-2 text-[9px] text-gray-500">. . . . . . . . . . . . . . . . . . . . . . . . . .</p>
+            <p className="pt-2 text-[9px] text-gray-500">
+              . . . . . . . . . . . . . . . . . . . . . . . . . .
+            </p>
           </div>
         </div>
       )}

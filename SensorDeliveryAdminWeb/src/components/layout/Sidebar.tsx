@@ -85,9 +85,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ aberto }) => {
       {/* Topo / Logo */}
       <div className="h-32 flex items-center justify-center px-1.5 py-2 border-b border-[#2A405B] bg-[#0f1b2b] overflow-hidden">
         <img
-          src="/logo-admin.png"
+          src="/feature-graphic-admin-1024x500.png?v=admin-20261006"
           alt="Sensor Delivery - Painel Administrativo"
-          className="w-full h-full max-h-28 object-contain scale-125 transition-transform duration-200"
+          className="w-full h-full max-h-28 object-cover transition-transform duration-200"
         />
       </div>
 
