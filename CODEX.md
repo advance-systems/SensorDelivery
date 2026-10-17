@@ -1,6 +1,20 @@
 # Sensor Delivery — contexto completo do projeto
 
-Atualizado em **14/09/2026**. Este é o documento principal para continuar o desenvolvimento, preparar a demonstração e implantar o sistema no cliente. Leia-o completamente antes de alterar fontes.
+Atualizado em **06/10/2026**. Este é o documento principal para continuar o desenvolvimento, preparar a demonstração e implantar o sistema no cliente. Leia-o completamente antes de alterar fontes.
+
+## Continuação em 06/10/2026 — piloto Railway
+
+- Arquitetura definida com o usuário: mesma base de código, uma instância da API e um PostgreSQL por cliente, hospedados no Railway. Um projeto por cliente mantém API e banco na mesma rede privada. A pizzaria em implantação pode ser o piloto.
+- Preparação local autorizada: configuração validada de produção, Docker sem arquivos particulares, migrations em pré-deploy, armazenamento persistente, controle das rotinas automáticas e proteção do acesso mestre/importação. Consultar Server/README.md e Server/.env.example.
+- Sem autorização nesta etapa para publicar, restaurar banco, transferir imagens/APK ou alterar callbacks PIX. O Server/.env e o banco local são preservados.
+- Diagnóstico de 06/10: PostgreSQL local e SENSOR_DELIVERY conectados; nenhuma migration/seed pendente; 101 produtos. SensorPedidosApi parado, ainda aponta para E:. Porta 3001 sem listener. Domínio e download retornam HTTP 530/Cloudflare 1033. IP LAN 192.168.2.100, rede privada.
+- Há uma empresa elegível para limpeza automática de rascunhos; no piloto manter DRAFT_CLEANUP_ENABLED=false e BACKGROUND_JOBS_ENABLED=false até revisar dados e integrações.
+- A raiz agora é reconhecida como repositório Git; a observação anterior de ausência de Git é histórica. Imagens particulares estão versionadas; o Docker as exclui do pacote, mas não do histórico.
+- Validação local: TypeScript sem emissão e sete testes passaram. Docker não está disponível nesta máquina; imagem e operação Railway ainda não validadas.
+- Correção adicional autorizada: a limpeza respeita DRAFT_CLEANUP_ENABLED=false dentro da própria rotina, incluindo chamadas pela listagem de pedidos.
+- Ambiente local criado e verificado: SENSOR_DELIVERY_TESTE, usuário sensor_delivery_teste, zero tabelas, .env.test ignorado pelo Git, API configurada na porta 3031 (não iniciada). Nova orientação: restaurar dados reais do cliente Railway, sem adicionar demonstração. Preservar SENSOR_DELIVERY local.
+- Railway já possui projeto Sensor Delivery com serviços Postgres e SensorDelivery no ambiente production. CLI autenticado; PostgreSQL só tem rede privada. SSH requer criação e registro de chave própria, cujos arquivos e o arquivo de backup precisam de autorização específica.
+- Pendências: build Docker e validação Railway, backup/restauração autorizados, revisão das migrations históricas específicas (incluindo logotipo 024), transferência de imagens/APK, PIX, monitoramento e fluxo completo. A operação Railway depende de internet.
 
 ## Estado executivo atual
 
